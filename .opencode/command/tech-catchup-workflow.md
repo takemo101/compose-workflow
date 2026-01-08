@@ -45,20 +45,40 @@ React 19, Bun
 | 深度 | 調査範囲 | 所要時間目安 | 成果物 |
 |------|---------|------------|--------|
 | **quick** | 最新バージョン・Breaking Changesのみ | 5-10分 | 簡易レポート |
-| **standard** | 上記 + 新機能・非推奨・マイグレーション | 15-30分 | 標準レポート |
+| **standard** | 上記 + 新機能・非推奨・マイグレーション + **実装向け情報** | 15-30分 | 標準レポート |
 | **deep** | 上記 + ベストプラクティス・エコシステム動向・競合比較 | 30-60分 | 詳細レポート |
+
+### standard以上で含まれる実装向け情報
+
+| 項目 | 内容 |
+|------|------|
+| **インストール方法** | パッケージマネージャー別のインストールコマンド |
+| **基本的な使い方** | 最小構成のコード例（コピペで動く） |
+| **参照リンク集** | 公式ドキュメント、GitHub、APIリファレンス等 |
+| **よくあるエラーと対処** | 初期セットアップで躓きやすいポイント |
 
 ---
 
 ## 実行プロセス
+
+### Phase 0.5: コンテキスト確認
+
+**実行内容:**
+1. 既存プロジェクトの `package.json` / `Cargo.toml` 等から現行バージョンを確認
+2. 直近30日以内に同一技術の調査レポートが存在するか確認
+3. 調査の重複を防止
+
+**スキップ条件:**
+- 直近30日以内に同一技術の調査レポートが存在 → ユーザーに確認
+
+---
 
 ### Phase 1: 調査対象の特定と優先度付け
 
 **実行内容:**
 1. 入力から調査対象技術を抽出
 2. 要件定義書が指定されている場合、追加の技術キーワードを抽出
-3. 既存プロジェクトの `package.json` / `Cargo.toml` 等から現行バージョンを確認
-4. 調査優先度を決定
+3. 調査優先度を決定
 
 **優先度判定基準:**
 
@@ -72,18 +92,17 @@ React 19, Bun
 
 **スキップ条件:**
 - 全技術が「低」優先度 かつ ユーザーが明示的にスキップを許可
-- 直近30日以内に同一技術の調査レポートが存在
 
 ---
 
 ### Phase 2: 最新情報収集
 
-**Gemini 3 Flash + Web検索ツールを活用して以下を調査:**
+**librarianエージェントを並列起動して各技術を調査:**
 
-> **モデル選定理由**: 
-> - Web検索との統合が優秀
-> - 大量ドキュメントの高速処理
-> - コスト効率（Claude比 約1/10）
+> **実装方法**: 
+> - `call_omo_agent(subagent_type='librarian', run_in_background=True)` で並列実行
+> - 各技術ごとに独立したlibrarianを起動し、調査時間を短縮
+> - 使用ツール: `websearch_exa`, `context7_query-docs`, `webfetch`
 
 1. **公式ドキュメント確認**
    - 最新バージョン番号とリリース日
@@ -101,7 +120,14 @@ React 19, Bun
    - パフォーマンス改善
    - DX向上ポイント
 
-4. **エコシステム調査**（deep のみ）
+4. **実装向け情報収集**（standard以上）
+   - インストール方法（各パッケージマネージャー対応）
+   - 基本的な使い方（最小構成のコード例）
+   - 公式ドキュメント・リポジトリURL
+   - APIリファレンスURL
+   - よくあるエラーと対処法
+
+5. **エコシステム調査**（deep のみ）
    - 関連ライブラリの対応状況
    - コミュニティの動向
    - 競合技術との比較
@@ -111,6 +137,8 @@ React 19, Bun
 - GitHub Releases / Changelog
 - 公式ブログ
 - RFC / Proposal（deep のみ）
+- 公式Getting Started / Quickstart（standard以上）
+- 公式Examples / Tutorials（standard以上）
 
 ---
 
@@ -202,11 +230,55 @@ npm install package@latest
 npx migrate-tool
 ```
 
-## 参考リンク
+## クイックスタート（実装向け）
 
-- [公式ドキュメント](URL)
-- [マイグレーションガイド](URL)
-- [Changelog](URL)
+### インストール
+
+```bash
+# npm
+npm install [package-name]
+
+# yarn
+yarn add [package-name]
+
+# pnpm
+pnpm add [package-name]
+
+# bun
+bun add [package-name]
+```
+
+### 基本的な使い方
+
+```typescript
+// 最小構成のコード例（コピペで動く）
+import { ... } from '[package-name]';
+
+// 基本的な初期化
+const instance = new ...();
+
+// よく使うパターン
+...
+```
+
+### よくあるエラーと対処
+
+| エラー | 原因 | 対処法 |
+|--------|------|--------|
+| `Error: ...` | ... | ... |
+
+## 参照リンク集
+
+| リソース | URL | 説明 |
+|----------|-----|------|
+| 公式ドキュメント | [URL] | メインドキュメント |
+| GitHubリポジトリ | [URL] | ソースコード・Issues |
+| APIリファレンス | [URL] | 詳細なAPI仕様 |
+| インストールガイド | [URL] | セットアップ手順 |
+| マイグレーションガイド | [URL] | バージョンアップ手順 |
+| Changelog | [URL] | 変更履歴 |
+| 公式チュートリアル | [URL] | 入門ガイド |
+| 公式Examples | [URL] | サンプルコード集 |
 
 ---
 
@@ -264,6 +336,14 @@ npx migrate-tool
 | Prisma | 5.0.0 | 5.5.0 | 🟡 中 | [リンク] |
 | TanStack Query | v4 | v5 | 🔴 高 | [リンク] |
 
+### 実装クイックリファレンス
+
+| 技術 | インストール | 公式ドキュメント | GitHub |
+|------|-------------|-----------------|--------|
+| Next.js | `npm install next@15` | [nextjs.org/docs](URL) | [vercel/next.js](URL) |
+| Prisma | `npm install prisma` | [prisma.io/docs](URL) | [prisma/prisma](URL) |
+| TanStack Query | `npm install @tanstack/react-query` | [tanstack.com/query](URL) | [TanStack/query](URL) |
+
 ### 設計への影響サマリー
 
 #### 🚨 必須対応（基本設計前に決定必要）
@@ -311,7 +391,25 @@ npx migrate-tool
 
 ```python
 def tech_catchup_workflow(input_args):
-    # Phase 1: 調査対象の特定
+    """
+    技術キャッチアップワークフローのメイン処理
+    
+    使用ツール:
+    - call_omo_agent(subagent_type='librarian'): 外部ドキュメント調査（並列実行）
+    - websearch_exa: Web検索
+    - context7_query-docs: ライブラリドキュメント検索
+    - webfetch: 公式ドキュメント取得
+    """
+    
+    # Phase 0.5: コンテキスト確認
+    # 既存プロジェクトのバージョン確認（package.json, Cargo.toml等）
+    current_versions = detect_current_versions()
+    
+    # 直近30日以内の同一技術調査レポートを確認
+    existing_reports = glob("docs/research/TECH-*.md")
+    recent_reports = filter_recent(existing_reports, days=30)
+    
+    # Phase 1: 調査対象の特定と優先度付け
     technologies = parse_technologies(input_args)
     req_path = input_args.get('requirements')
     depth = input_args.get('depth', 'standard')
@@ -321,38 +419,54 @@ def tech_catchup_workflow(input_args):
         additional_techs = extract_tech_keywords(req_path)
         technologies.extend(additional_techs)
     
-    # 既存プロジェクトのバージョン確認
-    current_versions = detect_current_versions()
-    
-    # 優先度付け
-    prioritized = prioritize_technologies(technologies, current_versions)
+    # 優先度付け（recent_reportsで調査済みはスキップ）
+    prioritized = prioritize_technologies(technologies, current_versions, recent_reports)
     
     # スキップ判定
     if all(t.priority == 'low' for t in prioritized):
         if await confirm_skip():
             return skip_with_summary()
     
-    # Phase 2: 最新情報収集（Gemini 3 Flash + Web検索）
-    reports = []
+    # Phase 2: 最新情報収集（librarian並列実行）
+    # 各技術ごとにlibrarianエージェントを並列起動
+    task_ids = []
     for tech in prioritized:
-        # 並列実行可能
-        # 使用ツール: websearch_exa, context7, webfetch
-        research = gemini_flash.research(
-            technology=tech.name,
-            depth=depth,
-            tools=['websearch_exa', 'context7_query-docs', 'webfetch'],
-            focus=[
-                'latest_version',
-                'breaking_changes',
-                'new_features' if depth != 'quick' else None,
-                'ecosystem' if depth == 'deep' else None
-            ]
+        task_id = call_omo_agent(
+            subagent_type='librarian',
+            run_in_background=True,
+            description=f"Research {tech.name}",
+            prompt=f"""
+            Research the following technology and gather implementation-ready information:
+            
+            Technology: {tech.name}
+            Current Version: {tech.current_version or 'Unknown'}
+            Depth: {depth}
+            
+            Required Information:
+            1. Latest version and release date
+            2. Breaking changes (from current version)
+            3. {'New features and improvements' if depth != 'quick' else 'Skip'}
+            4. {'Installation methods (npm/yarn/pnpm/bun)' if depth != 'quick' else 'Skip'}
+            5. {'Basic usage examples (copy-paste ready code)' if depth != 'quick' else 'Skip'}
+            6. {'Reference links (official docs, GitHub, API reference)' if depth != 'quick' else 'Skip'}
+            7. {'Common errors and solutions' if depth != 'quick' else 'Skip'}
+            8. {'Ecosystem and community trends' if depth == 'deep' else 'Skip'}
+            
+            Use tools: websearch_exa, context7_query-docs, webfetch
+            Return structured data for report generation.
+            """
         )
-        reports.append(research)
+        task_ids.append((tech, task_id))
+    
+    # 並列実行結果を収集
+    reports = []
+    for tech, task_id in task_ids:
+        result = background_output(task_id=task_id)
+        reports.append((tech, result))
     
     # Phase 3: レポート作成
     report_paths = []
-    for tech, research in zip(prioritized, reports):
+    for tech, research in reports:
         category = determine_category(tech)
         next_id = get_next_report_id(category)
         path = f"docs/research/TECH-{category}-{next_id}_{tech.name}.md"
@@ -381,3 +495,10 @@ def tech_catchup_workflow(input_args):
 - 前工程: `/req-workflow`（要件定義）
 - 次工程: `/basic-design-workflow`（基本設計）
 - 参照: `.opencode/README.md`（ワークフロー全体図）
+
+## 参照スキル
+
+| スキル | 用途 |
+|--------|------|
+| {{skill:workflow-phase-convention}} | Phase番号体系・承認ゲート規約 |
+| {{skill:approval-gate}} | ユーザー承認ゲートの共通フォーマット |

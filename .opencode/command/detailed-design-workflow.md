@@ -36,34 +36,26 @@ flowchart TB
             P1_5["共通設計書<br/>(DB/インフラ/セキュリティ)"]
         end
         
-        subgraph PHASE15["Phase 1.5: ASCII検証"]
+        subgraph PHASE15["Phase 1.5: 検証 & モックアップ"]
             P15_1["ASCII罫線チェック"]
             P15_2{"検証OK?"}
+            P15_3["HTML作成<br/>(Desktop/Mobile/Error)"]
+            P15_4["Playwright撮影"]
+            P15_5["画像埋め込み"]
         end
         
-        subgraph PHASE2["Phase 2: モックアップ生成"]
-            P2_1["HTML作成<br/>(Desktop/Mobile/Error)"]
-            P2_2["Playwright撮影"]
-            P2_3["画像埋め込み"]
+        subgraph PHASE2["Phase 2: 品質保証ループ"]
+            P2_1["detailed-design-reviewer"]
+            P2_2{スコア >= 9?}
         end
         
-        subgraph PHASE3["Phase 3: 品質保証ループ"]
-            P3_1["detailed-design-reviewer"]
-            P3_2{スコア >= 9?}
-        end
+        PHASE25{"Phase 2.5<br/>👤 ユーザー承認"}
         
-        subgraph PHASE4["Phase 4: テスト設計"]
-            P4_1["テスト項目書作成<br/>@test-spec-writer"]
-            P4_2["テストレビュー"]
-        end
-        
-        PHASE45{"Phase 4.5<br/>👤 ユーザー承認"}
-        
-        subgraph PHASE5["Phase 5: Issue化"]
-            P5_1["Epic Issue作成"]
-            P5_2["子Issue作成"]
-            P5_3["Sub-issue連携<br/>(GitHub)"]
-            P5_4["依存関係図<br/>(Mermaid)"]
+        subgraph PHASE3["Phase 3: 成果物作成"]
+            P3_1["テスト項目書作成<br/>@test-spec-writer"]
+            P3_2["Epic Issue作成"]
+            P3_3["子Issue作成"]
+            P3_4["Sub-issue連携"]
         end
         
         OUTPUT[("詳細設計書群<br/>+ テスト項目書<br/>+ GitHub Issues")]
@@ -83,24 +75,20 @@ flowchart TB
         
         P15_1 --> P15_2
         P15_2 -->|NG| PHASE1
-        P15_2 -->|OK| PHASE2
+        P15_2 -->|OK| P15_3
+        P15_3 --> P15_4 --> P15_5
+        PHASE15 --> PHASE2
         
-        P2_1 --> P2_2 --> P2_3
-        PHASE2 --> PHASE3
+        P2_1 --> P2_2
+        P2_2 -->|NG| PHASE1
+        P2_2 -->|OK| PHASE25
         
-        P3_1 --> P3_2
-        P3_2 -->|NG| PHASE1
-        P3_2 -->|OK| PHASE4
+        PHASE25 -->|承認| PHASE3
+        PHASE25 -->|修正| PHASE1
+        PHASE25 -->|中断| ABORT(("中断"))
         
-        P4_1 --> P4_2
-        PHASE4 --> PHASE45
-        
-        PHASE45 -->|承認| PHASE5
-        PHASE45 -->|修正| PHASE1
-        PHASE45 -->|中断| ABORT(("中断"))
-        
-        P5_1 --> P5_2 --> P5_3 --> P5_4
-        PHASE5 --> OUTPUT
+        P3_1 --> P3_2 --> P3_3 --> P3_4
+        PHASE3 --> OUTPUT
     end
     
     classDef phaseNode fill:#e3f2fd,stroke:#1976d2
@@ -108,7 +96,7 @@ flowchart TB
     classDef outputNode fill:#e8f5e9,stroke:#388e3c
     
     class INPUT,OUTPUT outputNode
-    class P0_3,P05_4,P3_2,P15_2,PHASE45 approvalNode
+    class P0_3,P05_4,P2_2,P15_2,PHASE25 approvalNode
 ```
 
 ---
@@ -523,385 +511,47 @@ const {feature}Schema = z.object({
 
 ---
 
-### Phase 1.5: ASCII禁止 自動検証 (v2.5 NEW)
+### Phase 1.5: 検証 & モックアップ生成 (Wireframe Mode)
 
-**目的**: 画面設計書にASCIIワイヤーフレームが含まれていないことを自動検証する。
+**目的**: 設計書の品質検証（ASCII禁止）と、視覚的な確認（モックアップ）を行う。
 
-**実行コマンド**:
+1. **ASCII禁止 自動検証 (v2.5 NEW)**:
+   - 画面設計書に罫線文字が含まれていないかチェック。
+   - 違反がある場合はPhase 1に戻り修正。
 
-```bash
-# ASCII罫線文字の検出
-grep -r -l '┌\|┐\|└\|┘\|│\|─\|├\|┬\|┤\|┴\|┼' docs/designs/detailed/{機能名}/**/画面設計書.md
-
-# ツリー構造パターンの検出（├──, │, └──）
-grep -r -E '(├|└|│).*─' docs/designs/detailed/{機能名}/**/画面設計書.md
-
-# ボタン表示パターンの検出（[xxx] [yyy]形式）
-grep -r -E '\[.+\]\s+\[.+\]' docs/designs/detailed/{機能名}/**/画面設計書.md | grep -v '^\s*|' | grep -v 'http'
-```
-
-**検証結果の判定**:
-
-| 結果 | アクション |
-|------|----------|
-| 該当なし（0件） | Phase 2に進む |
-| 該当あり（1件以上） | **Phase 1に戻り修正** |
-
-**修正方法**:
-
-| 元のASCII表現 | 修正後 |
-|--------------|--------|
-| 罫線ボックス（┌─┐） | 表形式またはHTMLモックアップ参照 |
-| カード形式ASCII | `mockup-mobile.html`への参照 |
-| ページネーション例 | 仕様の箇条書き + モックアップ参照 |
-| ツリー構造 | 表形式 + モックアップ参照 |
-
-**自動修正テンプレート**:
-
-```markdown
-# 修正前（NG）
-**モバイル表示例（カード形式）**:
-┌─────────────────────────────┐
-│ 2026-01-15 10:30:00        │
-└─────────────────────────────┘
-
-# 修正後（OK）
-**モバイル表示（カード形式）**
-
-各カードに含まれる情報:
-- 操作日時（カードヘッダー）
-- 操作者メールアドレス
-- ...
-
-※ 実際の表示は `mockup-mobile.html` を参照してください。
-```
+2. **モックアップ生成 (Phase 2から統合)**:
+   - `mockup.html` (Desktop), `mockup-mobile.html` (Mobile), `mockup-error.html` 作成。
+   - Playwrightでスクリーンショット撮影。
+   - 画面設計書に画像を埋め込み。
 
 ---
 
-### Phase 2: モックアップ生成 & 検証 (Wireframe Mode)
-
-**コンセプト**: 
-- **デザイン**: 意匠性は不要。グレースケールと枠線のみの**ワイヤーフレーム**を作成する。
-- **目的**: レイアウト構造と情報の網羅性を確認するため。
-- **禁止事項**: 凝ったグラデーション、シャドウ、カスタムCSSの多用。Tailwindのデフォルトクラス(`border`, `bg-gray-*`)のみ使用する。
-
-#### 2.1 HTML生成 (`frontend-ui-ux-engineer`)
-
-各画面に対して以下のHTMLを作成する。
-
-| ファイル名 | 内容 | 備考 |
-|------------|------|------|
-| `mockup.html` | 通常時のワイヤーフレーム（Desktop） | 必須 |
-| `mockup-error.html` | エラー表示時の状態 | 必須 |
-| `mockup-mobile.html` | モバイル専用（固定幅375px） | 必須 |
-| `mockup-states.html` | トースト/モーダル等のUIパーツ表示状態 | 必要な場合のみ |
-
-#### 2.2 レイアウト崩れ防止ルール（v2.3 NEW）
-
-**モバイルHTML（mockup-mobile.html）は必ず以下のテンプレートを使用する**:
-
-```html
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <!-- viewport は固定幅に合わせる -->
-  <meta name="viewport" content="width=375, initial-scale=1.0">
-  <title>{画面名} - Mobile</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* ===== 必須：はみ出し防止ベーススタイル ===== */
-    * {
-      box-sizing: border-box;
-    }
-    /* カード・コンテナ：子要素のはみ出しを防ぐ */
-    .card, .container, .menu, .modal, .nav,
-    [class*="card"], [class*="container"], [class*="menu"] {
-      overflow: hidden;
-    }
-    /* テキスト省略 */
-    .truncate, .menu-item, .nav-item {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    /* 複数行テキスト折り返し */
-    p, .description, .card-body, td, th {
-      word-break: break-word;
-      overflow-wrap: break-word;
-    }
-    /* ボタン・入力要素：はみ出し防止 */
-    button, .btn, a, input, select, textarea, img, svg {
-      max-width: 100%;
-    }
-    img, svg {
-      height: auto;
-    }
-    /* Flexアイテム縮小許可 */
-    [class*="flex"] > * {
-      min-width: 0;
-      flex-shrink: 1;
-    }
-
-    /* ===== 固定幅コンテナ ===== */
-    body {
-      width: 375px;
-      margin: 0 auto;
-      background: #f5f5f5;
-      min-height: 100vh;
-    }
-    .mobile-container {
-      display: flex;
-      flex-direction: column;
-      padding: 16px;
-      gap: 16px;
-    }
-    .mobile-container > * {
-      width: 100%;
-    }
-  </style>
-</head>
-<body>
-  <div class="mobile-container">
-    <!-- ここに全てのコンテンツを縦並びで配置 -->
-    <!-- 横並び（flex-row）は使用禁止 -->
-  </div>
-</body>
-</html>
-```
-
-**絶対守るべきルール（レイアウト）**:
-
-| ルール | 理由 |
-|--------|------|
-| `body { width: 375px; }` 固定 | 可変幅がレイアウト崩れの原因 |
-| `flex-direction: column` のみ | 横並びは狭い画面で崩れる |
-| `%` 幅の使用禁止 | 固定px または `100%` のみ使用 |
-| `max-w-*` の使用禁止 | モバイルでは不要、予期しない挙動の原因 |
-| 要素の入れ子は最大2階層 | 深い入れ子は崩れの原因 |
-
-**絶対守るべきルール（オーバーフロー防止 v2.3）**:
-
-テキストやボタンがはみ出さないよう、以下のCSSを**必ず**適用する。
-
-```css
-/* 全HTMLファイル共通：はみ出し防止ベーススタイル */
-* {
-  box-sizing: border-box;
-}
-
-/* カード・コンテナ：子要素のはみ出しを防ぐ */
-.card, .container, .menu, .modal, [class*="card"], [class*="container"] {
-  overflow: hidden;
-}
-
-/* テキスト：長文の省略表示 */
-.truncate, .menu-item, .nav-item, .button-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* 複数行テキスト：単語の途中で折り返し */
-.card-body, .description, p {
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
-
-/* ボタン・要素：親からはみ出さない */
-button, .btn, a, input, select, textarea {
-  max-width: 100%;
-}
-
-/* Flexアイテム：縮小を許可 */
-[class*="flex"] > * {
-  min-width: 0;
-  flex-shrink: 1;
-}
-
-/* 画像：コンテナに収める */
-img, svg {
-  max-width: 100%;
-  height: auto;
-}
-```
-
-| 問題 | 防止ルール |
-|------|-----------|
-| テキストがメニューからはみ出る | `overflow: hidden; text-overflow: ellipsis;` |
-| ボタンがカードからはみ出る | 親に `overflow: hidden;`、子に `max-width: 100%;` |
-| 長いURL/メールが崩れる | `word-break: break-word;` |
-| Flexの子要素がはみ出る | `min-width: 0; flex-shrink: 1;` |
-| 画像がコンテナを超える | `max-width: 100%; height: auto;` |
-
-**Desktop HTML（mockup.html）のルール**:
-
-```html
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=1280, initial-scale=1.0">
-  <title>{画面名}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* ===== 必須：はみ出し防止ベーススタイル（Desktop共通） ===== */
-    * { box-sizing: border-box; }
-    .card, .container, .menu, .modal, .nav,
-    [class*="card"], [class*="container"], [class*="menu"] {
-      overflow: hidden;
-    }
-    .truncate, .menu-item, .nav-item, th {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    p, .description, .card-body, td {
-      word-break: break-word;
-      overflow-wrap: break-word;
-    }
-    button, .btn, a, input, select, textarea, img, svg {
-      max-width: 100%;
-    }
-    img, svg { height: auto; }
-    [class*="flex"] > * { min-width: 0; flex-shrink: 1; }
-    
-    /* ===== Desktop固定幅 ===== */
-    body {
-      min-width: 1280px;
-      background: #f5f5f5;
-    }
-    .main-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-  </style>
-</head>
-<body>
-  <div class="main-container">
-    <!-- コンテンツ -->
-  </div>
-</body>
-</html>
-```
-
-#### 2.3 HTML検証
-
-- 生成されたHTMLに対して簡易構文チェックを実行。
-- `div` の閉じ忘れ等がないか確認。
-- **モバイルHTMLが固定幅テンプレートに準拠しているか確認**（v2.3）
-
-#### 2.4 スクリーンショット撮影 (Playwright)
-
-```bash
-# Desktop (Wireframe)
-npx playwright screenshot \
-  --viewport-size="1280,900" \
-  --full-page \
-  "file://{path}/mockup.html" \
-  "{path}/{screen-name}.png"
-
-# Mobile (Wireframe)
-npx playwright screenshot \
-  --viewport-size="375,667" \
-  --full-page \
-  "file://{path}/mockup-mobile.html" \
-  "{path}/{screen-name}-mobile.png" # または mockup.html を使い回しても可
-
-# UI Parts (Toast/Modal)
-# 状態ごとのHTMLを撮影
-npx playwright screenshot \
-  --viewport-size="1280,900" \
-  "file://{path}/mockup-states.html" \
-  "{path}/{screen-name}-states.png"
-```
-
-#### 2.5 埋め込み
-
-画面設計書に生成した画像を埋め込む。
-- デスクトップ版: `![{name}](./{name}.png)`
-- モバイル版: `![{name} - Mobile](./{name}-mobile.png)`
-- 状態バリエーション: `![{name} - States](./{name}-states.png)`
-
----
-
-### Phase 3: 設計書品質保証ループ
+### Phase 2: 品質保証ループ (Review Loop)
 
 1. `detailed-design-reviewer` によるレビュー (9点以上合格)。
 2. モックアップが**ワイヤーフレームとして構造が正しいか**確認。
 3. **フロントエンド設計書の存在確認**: 画面を持つ機能に`フロントエンド設計書.md`が存在するか確認。
-4. **ASCII wireframe禁止チェック（v2.3）**: 画面設計書に罫線文字（┌─┐│└┘）が含まれていないか確認。
-5. **モバイルHTML固定幅チェック（v2.3）**: `mockup-mobile.html`が`width: 375px`固定になっているか確認。
-6. **はみ出しチェック（v2.3）**: スクリーンショットを目視確認し、テキスト/ボタン/画像のはみ出しがないか確認。
+4. **モバイルHTML固定幅チェック**: `width: 375px`固定確認。
+5. **はみ出しチェック**: スクリーンショット確認。
 
 ---
 
-### Phase 4: テスト設計 & レビュー
+### Phase 2.5: ユーザー承認ゲート【必須】
+
+> **共通仕様**: {{skill:approval-gate}} を参照
+
+レビューループ完了後、成果物作成に進む前にユーザーの承認を得る。
+
+---
+
+### Phase 3: 成果物作成 & Issue化
 
 1. **テスト項目書作成**: `test-spec-writer` が詳細設計書を元に作成。
-2. **テスト項目書レビュー**: 網羅性、独立性、検証可能性、TDD適合性をチェック。
-3. **修正ループ**: 9点未満の場合は修正。
-
----
-
-### Phase 4.5: ユーザー承認ゲート【必須】
-
-**目的**: テスト設計完了後、Issue化に進む前にユーザーの明示的な承認を得る。
-
-**出力形式**:
-
-```markdown
----
-## 🔔 承認リクエスト: 詳細設計・テスト設計レビュー完了
-
-### レビュー結果サマリー
-| ドキュメント種別 | 最終スコア | レビュー回数 |
-|----------------|-----------|-------------|
-| 詳細設計書群 | X/10点 | Y回 |
-| テスト項目書 | X/10点 | Y回 |
-
-### 作成されたドキュメント一覧
-| パス | 種別 | ステータス |
-|------|------|----------|
-| `docs/designs/detailed/{機能名}/README.md` | 概要 | ✅ |
-| `docs/designs/detailed/{機能名}/{サブ機能}/詳細設計書.md` | 詳細 | ✅ |
-| `docs/designs/detailed/{機能名}/{サブ機能}/バックエンド設計書.md` | BE | ✅ |
-| `docs/designs/detailed/{機能名}/{サブ機能}/フロントエンド設計書.md` | FE | ✅ |
-| `docs/designs/detailed/{機能名}/{サブ機能}/画面設計書.md` | 画面 | ✅ |
-| `docs/designs/detailed/{機能名}/共通/データベース設計書.md` | DB | ✅ |
-| `docs/designs/detailed/{機能名}/共通/インフラ設計書.md` | インフラ | ✅ |
-| `docs/designs/detailed/{機能名}/共通/セキュリティ設計書.md` | セキュリティ | ✅ |
-| `docs/designs/detailed/{機能名}/test-specification.md` | テスト | ✅ |
-
-### モックアップ確認
-- Desktop: [スクリーンショット確認済み / 要確認]
-- Mobile: [スクリーンショット確認済み / 要確認]
-- 状態バリエーション: [確認済み / 該当なし]
-
-### Issue化予定
-| Issue種別 | 件数 | 概要 |
-|----------|------|------|
-| Epic | 1 | {機能名}実装 |
-| 子Issue | N | BE/FE/DB/インフラ等 |
-
----
-**次のアクション**: GitHub Issue作成
-
-⏸️ **承認待ち**: Issue化を開始してよろしいですか？
-- `続行` → Issue作成を開始
-- `修正` → 指摘箇所を修正
-- `中断` → ワークフローを終了（ドキュメントは保持）
----
-```
-
-**重要**: ユーザーからの明示的な応答があるまでIssue化に進んではならない。
-
----
-
-### Phase 5: Issue化（粒度最適化 v3.0）
-
-> **Note**: ユーザー承認は Phase 4.5 で完了済み。ここでは Issue 作成のみを行う。
+2. **Issue化**:
+   - Epic Issue作成
+   - 子Issue作成（200行以下に分割）
+   - Sub-issue連携（GraphQL API使用）
+   - 依存関係図作成（Mermaid）
 > **重要**: Issueは**200行以下・3ファイル以下**の粒度で作成する。
 
 **GitHub Issue作成**: 実装タスクを**適切な粒度で**Issue化する。
@@ -1142,7 +792,7 @@ grep -r -c -E '(├|└|│).*─' docs/designs/detailed/{機能名}/**/画面�
 - [ ] **はみ出し防止CSSが全HTMLに含まれている** ← v2.3
 - [ ] **スクリーンショットでテキスト/ボタンのはみ出しがない** ← v2.3
 
-### Phase 5 完了条件（v3.0 粒度最適化）
+### Phase 3 完了条件（v3.0 粒度最適化）
 
 - [ ] Epic Issueが作成されている
 - [ ] 全子Issueが作成されている
@@ -1214,49 +864,51 @@ def detailed_design_workflow(basic_path):
     #   - If has_external_api:
     #       - Create 外部API連携設計書.md
     
-    # Phase 1.5: ASCII Validation (v2.5 NEW - BLOCKING)
-    # CRITICAL: Must pass before proceeding to Phase 2
+    # Phase 1.5: Verification & Mockup (v2.5 NEW - BLOCKING)
+    # 1. ASCII Check
     ascii_check_result = run_command("""
         grep -r -l '┌|┐|└|┘|│|─|├|┬|┤|┴|┼' \
             docs/designs/detailed/{feature}/**/画面設計書.md
     """)
-    tree_check_result = run_command("""
-        grep -r -c -E '(├|└|│).*─' \
-            docs/designs/detailed/{feature}/**/画面設計書.md
-    """)
+    if ascii_check_result:
+        return retry("ASCII wireframes detected. Use HTML mockups instead.")
+        
+    # 2. Mockup Generation (Integrated from Phase 2)
+    # Generate HTML & Screenshots
+    generate_mockups(feature_dir)
     
-    if ascii_check_result or tree_check_result:
-        # BLOCK: Do not proceed to Phase 2
-        # Return to Phase 1 and fix the issues
-        print("❌ ASCII検証失敗: 以下のファイルにASCII表現が含まれています")
-        print(ascii_check_result)
-        print("修正方法: 表形式またはHTMLモックアップ参照に置き換えてください")
-        return "PHASE_1_RETRY"
-    
-    print("✅ ASCII検証成功: Phase 2に進みます")
-    
-    # Phase 2: Wireframe Mockups
-    # Prompt for frontend-ui-ux-engineer:
-    # "Create a SIMPLE WIREFRAME using Tailwind CSS. 
-    # Use GRAYSCALE ONLY (black, white, gray). 
-    # Focus on correct LAYOUT and INFORMATION STRUCTURE.
-    # No fancy styling.
-    # 
-    # CRITICAL for mockup-mobile.html (v2.3):
-    # - body MUST have width: 375px fixed
-    # - Use flex-direction: column ONLY
-    # - NO percentage widths (use 100% or fixed px)
-    # - NO max-w-* classes
-    # - Maximum 2 levels of nesting"
-    
-    # ... (Playwright execution with mobile viewport)
-    
-    # Phase 3: Quality Check
-    # - Verify all required documents exist
-    # - Verify フロントエンド設計書.md exists for screen-based features
-    # - Check mockup-mobile.html has width: 375px
-    # - Run detailed-design-reviewer
-    
-    # Phase 4-5
-    # ...
+    # Phase 2: Quality Review Loop (Renamed from Phase 3)
+    history = []
+    for i in range(4):
+        # Review design docs AND mockups
+        score, feedback = detailed_reviewer.review(feature_dir)
+        
+        # Check specific constraints
+        fe_doc_missing = check_frontend_doc_missing(feature_dir)
+        mobile_width_invalid = check_mobile_width(feature_dir)
+        
+        if score >= 9 and not fe_doc_missing and not mobile_width_invalid:
+            # Phase 2.5: User Approval Gate (Renamed from Phase 4.5)
+            approval = await_user_approval(feature_dir, score)
+            if approval == "修正":
+                continue
+            if approval == "中断":
+                return cancelled(feature_dir)
+                
+            # Phase 3: Deliverables & Issue Creation (Renamed from Phase 4/5)
+            # 1. Create Test Spec
+            test_spec_writer.create(feature_dir)
+            
+            # 2. Create Issues
+            issues = create_issues_with_optimal_granularity(feature_dir)
+            
+            return success(feature_dir, issues)
+            
+        if i > 0 and score < history[-1]:
+            return fail("Score degraded")
+            
+        history.append(score)
+        detailed_writer.fix(feature_dir, feedback)
+
+    return fail("Max retries reached")
 ```
