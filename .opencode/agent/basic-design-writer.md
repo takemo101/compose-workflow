@@ -1,6 +1,6 @@
 ---
 description: 基本設計書を作成・修正する
-model: antigravity-claude-sonnet-4-5-thinking
+model: google/antigravity-claude-sonnet-4-5-thinking
 mode: subagent
 temperature: 0.3
 tools:

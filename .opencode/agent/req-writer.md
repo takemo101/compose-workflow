@@ -1,6 +1,6 @@
 ---
 description: 要件定義書を作成・修正する（提案型ヒアリング機能付き）
-model: antigravity-claude-sonnet-4-5-thinking
+model: google/antigravity-claude-sonnet-4-5-thinking
 mode: subagent
 temperature: 0.3
 tools:
