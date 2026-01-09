@@ -1,6 +1,6 @@
 ---
 description: 詳細設計書を作成・修正する（参考プロジェクト準拠）
-model: anthropic/claude-sonnet-4-5
+model: antigravity-claude-sonnet-4-5-thinking
 mode: subagent
 temperature: 0.3
 tools:
