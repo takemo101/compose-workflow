@@ -99,6 +99,25 @@ def verify_container_buildable(env_id: str, language: str) -> bool:
 
 ## 例外適用時のルール
 
+### Worktree を使用した開発（推奨）
+
+プラットフォーム例外適用時は、**worktree** を使用してブランチを分離することを推奨します。
+
+```bash
+# 1. worktree 作成
+bash .opencode/skill/create-worktree/scripts/create_worktree.sh issue-{issue_id}-{feature}
+
+# 2. worktree に移動して開発
+cd .worktrees/issue-{issue_id}-{feature}
+
+# 3. 開発完了後、PR 作成 + worktree 削除
+bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh --title "feat: {summary}" --body "Closes #{issue_id}
+
+[platform-exception: macOS]"
+```
+
+> **詳細**: {{skill:worktree-workflow}} を参照
+
 ### 事前報告（必須）
 
 ```markdown
@@ -108,6 +127,7 @@ Issue #{issue_id} は macOS 固有 API (`objc2`) を使用しているため、
 container-use 例外を適用し、ホスト環境で作業します。
 
 **理由**: {specific_reason}
+**開発方式**: worktree（`.worktrees/issue-{issue_id}-{feature}/`）
 **最終検証**: GitHub Actions macOS ランナー
 ```
 
@@ -243,6 +263,7 @@ def handle_platform_exception_detected(env_id: str, issue_id: int, reason: str):
 
 | ドキュメント | 参照タイミング |
 |-------------|---------------|
+| {{skill:worktree-workflow}} | **worktree を使った開発フロー** |
 | [container-use.md](./container-use.md) | container-use 基本ルール |
 | [testing-strategy.md](./testing-strategy.md) | 環境依存テストの Mock パターン |
 | [implement-issues.md](../command/implement-issues.md) | 実装ワークフロー全体 |
@@ -253,4 +274,5 @@ def handle_platform_exception_detected(env_id: str, issue_id: int, reason: str):
 
 | 日付 | バージョン | 変更内容 |
 |:---|:---|:---|
+| 2026-01-09 | 1.1.0 | worktree ワークフロー連携を追加 |
 | 2026-01-07 | 1.0.0 | 初版作成。プラットフォーム例外判断基準を明文化 |

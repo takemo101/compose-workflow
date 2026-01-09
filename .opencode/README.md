@@ -277,35 +277,36 @@ docs/
 
 | ドキュメント | 説明 | 参照タイミング |
 |-------------|------|---------------|
-| [container-use環境構築](./skill/container-use-guide.md) | コンテナ環境での開発・テスト手順 | **実装開始時（必須）** |
+| [container-use環境構築](./skill/container-use-guide/SKILL.md) | コンテナ環境での開発・テスト手順 | **実装開始時（必須）** |
 | [container-useエージェントルール](./instructions/container-use.md) | 障害対応・セッション復旧・フォールバック手順 | **障害発生時・セッション再開時** |
 | [設計書同期ポリシー](./instructions/design-sync.md) | 設計書と実装の同期ルール、差分ドキュメント化 | **実装時（設計書参照時）** |
 | [テスト戦略](./instructions/testing-strategy.md) | 環境依存コードのテスト方針、Mock実装パターン | **テスト実装時** |
 | [プラットフォーム例外ポリシー](./instructions/platform-exception.md) | macOS/Windows固有コードのcontainer-use例外判断 | **プラットフォーム固有コード実装時** |
-| [レビューガイド](./skill/review-guidelines.md) | DB/セキュリティ/アーキテクチャの詳細レビュー観点 | レビュー時 |
-| [コード品質ルール](./skill/code-quality-rules.md) | 500行ルール、固定アーキテクチャ、命名規則 | 実装時 |
-| [インフラワークフロー](./skill/infra-workflow.md) | Terraform/Docker Composeの設計・実装フロー | インフラ構築時 |
-| [申し送り処理](./skill/handover-process.md) | BE↔FE間の申し送り処理ルール | 実装時 |
-| [反復レビュー](./skill/iterative-review.md) | OpenCode自己改善の修正→レビュー→修正ループ | **.opencode/修正時** |
-| [CI監視ワークフロー](./skill/ci-workflow.md) | CI監視・修正・自動マージフロー | **PR作成後（必須）** |
-| [PRマージワークフロー](./skill/pr-merge-workflow.md) | PR作成〜マージ〜ロールバックの全体フロー | **PR作成・マージ時** |
-| [Subtask検出](./skill/subtask-detection.md) | 親Issue→Subtask検出・依存関係解決 | **Issue実装開始時** |
-| [品質レビューフロー](./skill/quality-review-flow.md) | レビュースコア基準・客観的品質基準 | **PR作成前（必須）** |
-| [Issue粒度判定](./skill/issue-size-estimation.md) | 200行ルール・サイズラベル・行数見積もり | **Issue実装開始時** |
-| [TDD実装フロー](./skill/tdd-implementation.md) | Red→Green→Refactorサイクル | **コード実装時** |
-| [environments.json管理](./skill/environments-json-management.md) | 環境ID追跡・ステータス管理API | **環境作成・削除時** |
-| [Sisyphus実装ガイド](./skill/sisyphus-implementation-guide.md) | Sisyphus専用の実行フロー・チェックリスト | **Issue実装時（Sisyphus）** |
-| [GitHub GraphQL API](./skill/github-graphql-api.md) | Sub-issue登録等のGraphQL API共通処理 | **Issue作成時** |
-| [承認ゲート](./skill/approval-gate.md) | ユーザー承認ゲートの共通フォーマット | **フェーズ移行時** |
-| [レビュアー共通](./skill/reviewer-common.md) | 実装レビュアーの共通ガイドライン | **レビュー時** |
-| [Phase命名規約](./skill/workflow-phase-convention.md) | Phase番号・承認ゲート・リトライ回数の標準 | **ワークフロー設計時** |
+| [Worktreeワークフロー](./skill/worktree-workflow/SKILL.md) | ホスト環境開発時のブランチ分離（platform-exception用） | **プラットフォーム固有コード実装時** |
+| [レビューガイド](./skill/review-guidelines/SKILL.md) | DB/セキュリティ/アーキテクチャの詳細レビュー観点 | レビュー時 |
+| [コード品質ルール](./skill/code-quality-rules/SKILL.md) | 500行ルール、固定アーキテクチャ、命名規則 | 実装時 |
+| [インフラワークフロー](./skill/infra-workflow/SKILL.md) | Terraform/Docker Composeの設計・実装フロー | インフラ構築時 |
+| [申し送り処理](./skill/handover-process/SKILL.md) | BE↔FE間の申し送り処理ルール | 実装時 |
+| [反復レビュー](./skill/iterative-review/SKILL.md) | OpenCode自己改善の修正→レビュー→修正ループ | **.opencode/修正時** |
+| [CI監視ワークフロー](./skill/ci-workflow/SKILL.md) | CI監視・修正・自動マージフロー | **PR作成後（必須）** |
+| [PRマージワークフロー](./skill/pr-merge-workflow/SKILL.md) | PR作成〜マージ〜ロールバックの全体フロー | **PR作成・マージ時** |
+| [Subtask検出](./skill/subtask-detection/SKILL.md) | 親Issue→Subtask検出・依存関係解決 | **Issue実装開始時** |
+| [品質レビューフロー](./skill/quality-review-flow/SKILL.md) | レビュースコア基準・客観的品質基準 | **PR作成前（必須）** |
+| [Issue粒度判定](./skill/issue-size-estimation/SKILL.md) | 200行ルール・サイズラベル・行数見積もり | **Issue実装開始時** |
+| [TDD実装フロー](./skill/tdd-implementation/SKILL.md) | Red→Green→Refactorサイクル | **コード実装時** |
+| [environments.json管理](./skill/environments-json-management/SKILL.md) | 環境ID追跡・ステータス管理API | **環境作成・削除時** |
+| [Sisyphus実装ガイド](./skill/sisyphus-implementation-guide/SKILL.md) | Sisyphus専用の実行フロー・チェックリスト | **Issue実装時（Sisyphus）** |
+| [GitHub GraphQL API](./skill/github-graphql-api/SKILL.md) | Sub-issue登録等のGraphQL API共通処理 | **Issue作成時** |
+| [承認ゲート](./skill/approval-gate/SKILL.md) | ユーザー承認ゲートの共通フォーマット | **フェーズ移行時** |
+| [レビュアー共通](./skill/reviewer-common/SKILL.md) | 実装レビュアーの共通ガイドライン | **レビュー時** |
+| [Phase命名規約](./skill/workflow-phase-convention/SKILL.md) | Phase番号・承認ゲート・リトライ回数の標準 | **ワークフロー設計時** |
 | [バグ修正ワークフロー](./command/bug-fix.md) | バグ報告→修正→PR作成の完全フロー（`/bug-fix`コマンド） | **バグ修正時** |
 
 ---
 
 ## コード品質ルール（概要）
 
-詳細は [コード品質ルール](./skill/code-quality-rules.md) を参照。
+詳細は [コード品質ルール](./skill/code-quality-rules/SKILL.md) を参照。
 
 ### 500行ルール
 
@@ -331,7 +332,7 @@ docs/
 
 ## 申し送り処理（概要）
 
-詳細は [申し送り処理](./skill/handover-process.md) を参照。
+詳細は [申し送り処理](./skill/handover-process/SKILL.md) を参照。
 
 | 方向 | 種別 | 例 |
 |------|------|-----|
@@ -346,7 +347,7 @@ docs/
 
 **実装フェーズでは container-use を使用したコンテナ環境での開発が必須です。**
 
-詳細は [container-use環境構築ガイド](./skill/container-use-guide.md) を参照。
+詳細は [container-use環境構築ガイド](./skill/container-use-guide/SKILL.md) を参照。
 
 ### メリット
 
@@ -401,6 +402,8 @@ container-use_environment_run_cmd(command="npm test")
 
 | 日付 | バージョン | 変更内容 |
 |:---|:---|:---|
+| 2026-01-09 | 3.23.0 | **OpenCodeスキル形式移行**: 全20スキルファイルをOpenCode標準ディレクトリ構造（`<name>/SKILL.md` + YAMLフロントマター）に移行。README.mdのスキル参照パスを更新 |
+| 2026-01-09 | 3.22.0 | **Worktreeワークフロー追加**: shikajiro/claude-code-skill-exampleからworktreeスキルを移植。platform-exception時のホスト環境開発をサポート。スクリプト（create_worktree.sh, pr_and_cleanup.sh）とスキルドキュメント（worktree-workflow.md）を追加 |
 | 2026-01-08 | 3.21.0 | **重複削減・SSOT化**: (1) pr-merge-workflow.md新規作成（179行）、container-use.mdのPRマージセクション約130行をスキル参照に置換 (2) environments-json-management.mdをSSOT化（98→223行）、container-use.mdの約85行をスキル参照に置換 (3) ci-workflow.mdに関連ドキュメント追加。総削減: container-use.md 750→544行（**206行削減、27%**） |
 | 2026-01-08 | 3.20.0 | **ワークフロー構造改善**: bug-fix-workflow.mdをコマンドに昇格（`/bug-fix`）。container-use-guide.md軽量化（656→611行）。スキル参照形式の完全統一。古い変更履歴をCHANGELOG.mdにアーカイブ |
 | 2026-01-08 | 3.19.0 | **ワークフローレビュー対応**: Phase命名規約（workflow-phase-convention.md）を新規作成。スキル参照を`{{skill:xxx}}`形式に統一。bug-fix-workflow.mdの重複削除（1382→1322行）。孤立スキル参照の修正 |

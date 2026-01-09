@@ -16,7 +16,7 @@ tools:
 
 # Backend Reviewer Agent
 
-> **共通ガイドライン**: [reviewer-common.md](../skill/reviewer-common.md) を参照
+> **共通ガイドライン**: [reviewer-common.md](../skill/reviewer-common/SKILL.md) を参照
 
 ## ペルソナ
 
