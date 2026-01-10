@@ -97,12 +97,17 @@ React 19, Bun
 
 ### Phase 2: 最新情報収集
 
-**librarianエージェントを並列起動して各技術を調査:**
+**librarianエージェントを起動して各技術を調査:**
 
 > **実装方法**: 
-> - `call_omo_agent(subagent_type='librarian', run_in_background=True)` で並列実行
-> - 各技術ごとに独立したlibrarianを起動し、調査時間を短縮
-> - 使用ツール: `websearch_exa`, `context7_query-docs`, `webfetch`
+> - `call_omo_agent(subagent_type='librarian', run_in_background=True)` でバックグラウンド実行
+> - 使用ツール: `websearch_exa`, `context7_query-docs`（webfetchは最小限）
+>
+> **⚠️ 重要な制約（トークン・帯域節約）**:
+> - リポジトリのクローン・ダウンロード禁止（git clone, wget, curl）
+> - GitHubからのソースコード直接取得禁止
+> - 検索結果のサマリーと公式ドキュメントページのみ使用
+> - context7_query-docsを優先（リポジトリ直接アクセスより効率的）
 
 1. **公式ドキュメント確認**
    - 最新バージョン番号とリリース日
@@ -453,6 +458,14 @@ def tech_catchup_workflow(input_args):
     
     IMPORTANT: Return ONLY the raw JSON list. No markdown formatting, no explanations.
     Start with [ and end with ].
+    
+    ===== CRITICAL RESTRICTIONS =====
+    - DO NOT clone or download any repositories
+    - DO NOT use git clone, wget, curl to download files
+    - DO NOT fetch raw source code files from GitHub
+    - ONLY use search results summaries and official documentation pages
+    - Prefer context7_query-docs over direct repository access
+    ================================
     """
 
     # シングルエージェント起動
