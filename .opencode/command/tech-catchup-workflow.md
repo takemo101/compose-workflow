@@ -144,7 +144,10 @@ React 19, Bun
 
 ### Phase 3: 技術調査レポート作成
 
-**出力先:** `docs/research/TECH-[カテゴリ]-[連番]_[技術名].md`
+**出力先:**
+- **単体調査時**: `docs/research/TECH-[カテゴリ]-[連番]_[技術名].md`
+- **複数調査時**: `docs/research/TECH-REPORT-[YYYYMMDD]_Combined.md`（統合レポート）
+  > **Note**: 大量ファイル生成を防ぐため、複数技術の調査時は1つのMarkdownファイルに統合します。
 
 **カテゴリ定義:**
 
@@ -466,13 +469,24 @@ def tech_catchup_workflow(input_args):
     
     # Phase 3: レポート作成
     report_paths = []
-    for tech, research in reports:
-        category = determine_category(tech)
-        next_id = get_next_report_id(category)
-        path = f"docs/research/TECH-{category}-{next_id}_{tech.name}.md"
+    
+    if len(reports) > 1:
+        # 複数技術の場合は統合レポートを作成（大量ファイル生成防止）
+        date_str = get_current_date_str()
+        path = f"docs/research/TECH-REPORT-{date_str}_Combined.md"
         
-        create_report(path, tech, research, depth)
+        # 統合レポートの作成（目次付き）
+        create_combined_report(path, reports, depth)
         report_paths.append(path)
+    else:
+        # 単体の場合は個別ファイル作成
+        for tech, research in reports:
+            category = determine_category(tech)
+            next_id = get_next_report_id(category)
+            path = f"docs/research/TECH-{category}-{next_id}_{tech.name}.md"
+            
+            create_report(path, tech, research, depth)
+            report_paths.append(path)
     
     # Phase 4: 基本設計への引き継ぎ
     impact_summary = generate_impact_summary(reports)
