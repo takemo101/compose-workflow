@@ -1,0 +1,106 @@
+# Skill Index
+
+> **Purpose**: Lazy loading guide for skills. Load only when trigger condition matches.
+> **Total skills**: 26 | **Total lines**: ~6,000
+
+---
+
+## Loading Rules
+
+1. **Session Start**: Load this index only (~100 lines)
+2. **On Trigger**: Load specific skill when condition matches
+3. **Explicit Request**: Load when user or workflow explicitly requires
+
+---
+
+## Skill Catalog
+
+### Environment & Container (load at implementation start)
+
+| Skill | Lines | Trigger | Description |
+|-------|-------|---------|-------------|
+| `container-use-guide` | 494 | Environment creation | Container setup, services, commands |
+| `environments-json-management` | 477 | Session recovery, env tracking | SSOT for environment state |
+| `delete-environment` | 105 | Environment cleanup | Container, file, metadata removal |
+
+### Implementation Flow (load during coding)
+
+| Skill | Lines | Trigger | Description |
+|-------|-------|---------|-------------|
+| `sisyphus-implementation-guide` | 247 | Issue implementation | Sisyphus agent flow, checklists |
+| `implement-subtask-rules` | 313 | Subtask execution | Design doc reference matrix |
+| `tdd-implementation` | 113 | Test writing | Red-Green-Refactor cycle |
+| `code-quality-rules` | 223 | Code writing | 500-line rule, architecture |
+| `issue-size-estimation` | 104 | Issue planning | Size labels, line estimates |
+
+### Quality & Review (load before PR)
+
+| Skill | Lines | Trigger | Description |
+|-------|-------|---------|-------------|
+| `quality-review-flow` | 361 | Before PR creation | Score criteria, TODO-driven fix |
+| `stress-test-flow` | 353 | Critical features | Parallel security/perf/edge tests |
+| `reviewer-common` | 141 | Review execution | Reviewer shared guidelines |
+| `review-guidelines` | 293 | Detailed review | Domain-specific review points |
+
+### Git & PR (load at PR stage)
+
+| Skill | Lines | Trigger | Description |
+|-------|-------|---------|-------------|
+| `pr-merge-workflow` | 200 | PR to merge | Full PR lifecycle |
+| `pr-and-cleanup` | 93 | After PR merge | Worktree cleanup |
+| `ci-workflow` | 211 | CI failure | CI monitoring, fix flow |
+| `github-graphql-api` | 132 | Sub-issue creation | GraphQL API patterns |
+
+### Workflow Control (load when managing phases)
+
+| Skill | Lines | Trigger | Description |
+|-------|-------|---------|-------------|
+| `workflow-phase-convention` | 145 | Phase management | Phase numbering, gates |
+| `approval-gate` | 139 | User approval needed | Approval prompt format |
+| `subtask-detection` | 178 | Issue decomposition | Dependency resolution |
+| `handover-process` | 100 | BE/FE handoff | Cross-domain requests |
+
+### Design (load during design phase)
+
+| Skill | Lines | Trigger | Description |
+|-------|-------|---------|-------------|
+| `design-document-types` | 321 | Design creation | Required doc types per project |
+| `infra-workflow` | 360 | Infra design | Terraform, Docker Compose |
+| `release-workflow` | 439 | Release creation | Version, changelog, GitHub Release |
+
+### Special Cases (load when applicable)
+
+| Skill | Lines | Trigger | Description |
+|-------|-------|---------|-------------|
+| `worktree-workflow` | 147 | Platform-specific code | Host environment development |
+| `create-worktree` | 67 | Branch isolation | Worktree creation |
+| `iterative-review` | 310 | .opencode modifications | Self-improvement loop |
+
+---
+
+## Quick Reference by Task
+
+| Task | Load These Skills |
+|------|-------------------|
+| **New implementation** | `container-use-guide`, `tdd-implementation`, `code-quality-rules` |
+| **Before PR** | `quality-review-flow` |
+| **Critical feature** | + `stress-test-flow` |
+| **CI failed** | `ci-workflow` |
+| **Session recovery** | `environments-json-management` |
+| **Platform exception** | `worktree-workflow`, `create-worktree` |
+| **Release** | `release-workflow` |
+
+---
+
+## Token Estimates
+
+| Scenario | Skills Loaded | Lines | vs Full Load |
+|----------|---------------|-------|--------------|
+| Simple fix | 2-3 | ~600 | **90% saved** |
+| Standard impl | 4-5 | ~1,200 | **80% saved** |
+| Full workflow | 8-10 | ~2,500 | **60% saved** |
+| All skills | 26 | ~6,000 | baseline |
+
+---
+
+> **Usage**: `{{skill:skill-name}}` to load specific skill

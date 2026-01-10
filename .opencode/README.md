@@ -2,6 +2,9 @@
 
 このディレクトリには、ソフトウェア設計の自動化ワークフローが定義されています。
 
+> **Quick Reference**: [CONTEXT_SLIM.md](./CONTEXT_SLIM.md) - 軽量コンテキスト（トークン最適化用）
+> **Skill Index**: [SKILL_INDEX.md](./skill/SKILL_INDEX.md) - スキル遅延読み込みガイド
+
 ## ワークフロー全体図
 
 ```mermaid

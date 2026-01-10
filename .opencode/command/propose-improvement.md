@@ -1,7 +1,6 @@
 ---
 description: ワークフロー改善提案の起案からIssue化までを行う（ROI分析・アクションプラン付）
 argument-hint: "[改善のテーマ]"
-model: oracle
 agent: document-writer
 ---
 
