@@ -18,6 +18,7 @@ GITIGNORE_ENTRIES=(
     "# OpenCode workflow"
     "node_modules/"
     "bun.lockb"
+    ".serena/"
 )
 
 EXCLUDE_ENTRIES=(
