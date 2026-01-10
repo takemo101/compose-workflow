@@ -44,19 +44,88 @@ description: container-use環境の状態管理のためのSingle Source of Trut
   "pr_number": null,
   "title": "User authentication feature",
   "status": "active",
+  "phase": 4,
+  "step": "tdd-green",
+  "area": "backend",
+  "blocked": null,
+  "pending_issues": [],
   "created_at": "2026-01-03T10:00:00Z",
   "last_used_at": "2026-01-03T15:30:00Z"
 }
 ```
+
+### フィールド定義
+
+| フィールド | 型 | 必須 | 説明 |
+|-----------|-----|------|------|
+| `env_id` | string | ✅ | container-use環境ID |
+| `branch` | string | ✅ | Gitブランチ名 |
+| `issue_number` | number | ✅ | GitHub Issue番号 |
+| `pr_number` | number \| null | | PR番号（作成後） |
+| `title` | string | ✅ | 作業内容の説明 |
+| `status` | string | ✅ | 現在のステータス（下記参照） |
+| `phase` | number | ✅ | **現在のPhase番号**（0-12） |
+| `step` | string | ✅ | **Phase内の詳細ステップ** |
+| `area` | string | | 実装領域（backend/frontend/infra等） |
+| `blocked` | object \| null | | **Blocked状態の詳細**（下記参照） |
+| `pending_issues` | array | | 未解決のレビュー指摘 |
+| `created_at` | string | ✅ | 作成日時（ISO 8601） |
+| `last_used_at` | string | ✅ | 最終使用日時（ISO 8601） |
 
 ### ステータス値
 
 | ステータス | 説明 |
 |-----------|------|
 | `active` | 作業中 |
+| `blocked` | **人間の介入が必要** |
 | `pr_created` | PR作成済み |
 | `merged` | PRマージ済み |
 | `abandoned` | 放棄（PRクローズ等） |
+
+### Phase & Step 定義（再開ポイント）
+
+| Phase | Step | 説明 |
+|-------|------|------|
+| 0 | `branch-create` | ブランチ作成 |
+| 1 | `env-create` | 環境構築 |
+| 2 | `design-read` | 設計書参照 |
+| 3 | `design-check` | 設計書実現性チェック |
+| 4 | `tdd-red` | テスト作成（Red） |
+| 5 | `tdd-green` | 実装（Green） |
+| 6 | `tdd-refactor` | リファクタリング |
+| 7 | `review-request` | レビュー依頼 |
+| 8 | `review-fix` | レビュー指摘修正 |
+| 9 | `stress-test` | **ストレステスト（任意）** |
+| 10 | `approval-wait` | ユーザー承認待ち |
+| 11 | `pr-create` | PR作成 |
+| 12 | `ci-watch` | CI監視 |
+| 13 | `merge-cleanup` | マージ & 環境削除 |
+| 14 | `parent-close` | 親Issueクローズ |
+
+### Blocked状態の構造
+
+```json
+{
+  "blocked": {
+    "reason": "design_ambiguity",
+    "description": "設計書に矛盾あり。ユーザーIDの型がintかuuidか不明確",
+    "blocked_at": "2026-01-03T14:00:00Z",
+    "suggested_action": "バックエンド設計書の「ユーザーID」定義を統一してください",
+    "context": {
+      "ambiguous_points": ["ID型定義不一致", "必須フィールド欠落"]
+    }
+  }
+}
+```
+
+| Blocked Reason | 説明 | 推奨アクション |
+|----------------|------|---------------|
+| `design_ambiguity` | **設計書実現性チェックNG** | 設計書修正 |
+| `review_loop_exceeded` | レビュー3回失敗 | 設計書見直し |
+| `dependency_missing` | 依存Subtask未完了 | 依存解決待ち |
+| `external_blocker` | 外部要因（API未提供等） | 人間エスカレーション |
+| `resource_limit` | 環境リソース不足 | Docker cleanup |
+| `ci_persistent_failure` | CI 3回連続失敗 | 手動調査必要 |
 
 ---
 
@@ -64,10 +133,15 @@ description: container-use環境の状態管理のためのSingle Source of Trut
 
 | トリガー | アクション | 更新フィールド |
 |---------|----------|---------------|
-| `environment_create` 成功 | **ADD** | `env_id`, `branch`, `issue_number`, `title`, `status: "active"`, `created_at`, `last_used_at` |
+| `environment_create` 成功 | **ADD** | `env_id`, `branch`, `issue_number`, `title`, `status: "active"`, `phase: 1`, `step: "env-create"`, `area`, `created_at`, `last_used_at` |
+| Phase遷移時 | **UPDATE** | `phase`, `step`, `last_used_at` |
 | `environment_open` 成功 | **UPDATE** | `last_used_at` |
-| `gh pr create` 成功 | **UPDATE** | `pr_number`, `status: "pr_created"`, `last_used_at` |
-| PR merged | **UPDATE** | `status: "merged"`, `last_used_at` |
+| レビュー指摘発生 | **UPDATE** | `pending_issues` に追加 |
+| レビュー指摘解決 | **UPDATE** | `pending_issues` から削除 |
+| Blocked発生 | **UPDATE** | `status: "blocked"`, `blocked` オブジェクト設定 |
+| Blocked解除 | **UPDATE** | `status: "active"`, `blocked: null` |
+| `gh pr create` 成功 | **UPDATE** | `pr_number`, `status: "pr_created"`, `phase: 9`, `step: "pr-create"`, `last_used_at` |
+| PR merged | **UPDATE** | `status: "merged"`, `phase: 11`, `step: "merge-cleanup"`, `last_used_at` |
 | PR closed (マージなし) | **UPDATE** | `status: "abandoned"`, `last_used_at` |
 | 環境削除 | **REMOVE** | エントリ全体を削除 |
 
@@ -140,9 +214,73 @@ def find_environment_by_issue(issue_id: int) -> dict | None:
     """Issue IDから環境を検索（PR修正時の再利用用）"""
     data = load_environments()
     for env in data["environments"]:
-        if env["issue_number"] == issue_id and env["status"] in ["active", "pr_created"]:
+        if env["issue_number"] == issue_id and env["status"] in ["active", "blocked", "pr_created"]:
             return env
     return None
+
+def update_phase(env_id: str, phase: int, step: str):
+    """Phase/Step更新（再開ポイント記録）"""
+    data = load_environments()
+    for env in data["environments"]:
+        if env["env_id"] == env_id:
+            env["phase"] = phase
+            env["step"] = step
+            env["last_used_at"] = datetime.now().isoformat()
+            break
+    save_environments(data)
+
+def set_blocked(env_id: str, reason: str, description: str, suggested_action: str, context: dict = None):
+    """Blocked状態に設定（人間介入必要）"""
+    data = load_environments()
+    for env in data["environments"]:
+        if env["env_id"] == env_id:
+            env["status"] = "blocked"
+            env["blocked"] = {
+                "reason": reason,
+                "description": description,
+                "blocked_at": datetime.now().isoformat(),
+                "suggested_action": suggested_action,
+                "context": context or {}
+            }
+            env["last_used_at"] = datetime.now().isoformat()
+            break
+    save_environments(data)
+
+def clear_blocked(env_id: str):
+    """Blocked状態を解除"""
+    data = load_environments()
+    for env in data["environments"]:
+        if env["env_id"] == env_id:
+            env["status"] = "active"
+            env["blocked"] = None
+            env["last_used_at"] = datetime.now().isoformat()
+            break
+    save_environments(data)
+
+def add_pending_issue(env_id: str, issue: dict):
+    """レビュー指摘を追加"""
+    data = load_environments()
+    for env in data["environments"]:
+        if env["env_id"] == env_id:
+            if "pending_issues" not in env:
+                env["pending_issues"] = []
+            env["pending_issues"].append({
+                **issue,
+                "added_at": datetime.now().isoformat()
+            })
+            env["last_used_at"] = datetime.now().isoformat()
+            break
+    save_environments(data)
+
+def clear_pending_issues(env_id: str):
+    """レビュー指摘をクリア（修正完了時）"""
+    data = load_environments()
+    for env in data["environments"]:
+        if env["env_id"] == env_id:
+            env["pending_issues"] = []
+            env["last_used_at"] = datetime.now().isoformat()
+            break
+    save_environments(data)
 ```
 
 ---
@@ -152,6 +290,11 @@ def find_environment_by_issue(issue_id: int) -> dict | None:
 | イベント | 関数 | 更新内容 |
 |---------|------|---------|
 | 環境作成時 | `register_environment()` | 新規登録 |
+| Phase遷移時 | `update_phase()` | phase, step 更新 |
+| Blocked発生 | `set_blocked()` | blocked状態設定 |
+| Blocked解除 | `clear_blocked()` | blocked状態解除 |
+| レビュー指摘発生 | `add_pending_issue()` | pending_issues に追加 |
+| レビュー指摘解決 | `clear_pending_issues()` | pending_issues クリア |
 | PR作成時 | `update_environment_pr()` | PR番号記録 |
 | PRマージ後 | `mark_environment_merged()` | ステータス更新 |
 | 環境削除時 | `remove_environment()` | レコード削除 |
@@ -173,11 +316,90 @@ def find_environment_by_issue(issue_id: int) -> dict | None:
 
 | Entry Status | PR State | Action |
 |--------------|----------|--------|
-| `active` | No PR | 作業継続、`env_id` で環境再開 |
+| `active` | No PR | 作業継続、`phase`/`step` から再開 |
+| `blocked` | N/A | **人間に通知**、blocked解除後に再開 |
 | `pr_created` | PR open | 修正用に `env_id` で環境再開 |
 | `pr_created` | PR merged | `status: "merged"` に更新、環境削除 |
 | `merged` | N/A | クリーンアップ候補 |
 | `abandoned` | N/A | 環境とエントリを即削除 |
+
+### Phase-based 再開ロジック
+
+```python
+def resume_from_checkpoint(env_id: str) -> ResumeAction:
+    """環境の現在Phase/Stepから再開アクションを決定"""
+    env = find_environment_by_id(env_id)
+    if not env:
+        return ResumeAction(action="create_new")
+    
+    if env["status"] == "blocked":
+        return ResumeAction(
+            action="notify_human",
+            message=f"Blocked: {env['blocked']['description']}",
+            suggested_action=env["blocked"]["suggested_action"]
+        )
+    
+    phase = env.get("phase", 0)
+    step = env.get("step", "branch-create")
+    
+    # Phase別の再開ポイント
+    RESUME_POINTS = {
+        (0, "branch-create"): "create_branch",
+        (1, "env-create"): "open_environment",
+        (2, "design-read"): "read_design",
+        (3, "design-check"): "check_design_feasibility",
+        (4, "tdd-red"): "write_tests",
+        (5, "tdd-green"): "implement",
+        (6, "tdd-refactor"): "refactor",
+        (7, "review-request"): "request_review",
+        (8, "review-fix"): "fix_review_issues",
+        (9, "stress-test"): "run_stress_tests",
+        (10, "approval-wait"): "wait_approval",
+        (11, "pr-create"): "create_pr",
+        (12, "ci-watch"): "watch_ci",
+        (13, "merge-cleanup"): "merge_and_cleanup",
+        (14, "parent-close"): "close_parent_issue",
+    }
+    
+    return ResumeAction(
+        action=RESUME_POINTS.get((phase, step), "open_environment"),
+        env_id=env_id,
+        phase=phase,
+        step=step,
+        pending_issues=env.get("pending_issues", [])
+    )
+```
+
+### Blocked状態の検出と通知
+
+```python
+def check_and_report_blocked() -> list[BlockedEnvironment]:
+    """Blocked状態の環境を検出して報告"""
+    data = load_environments()
+    blocked = []
+    
+    for env in data["environments"]:
+        if env.get("status") == "blocked":
+            blocked.append(BlockedEnvironment(
+                env_id=env["env_id"],
+                issue_number=env["issue_number"],
+                reason=env["blocked"]["reason"],
+                description=env["blocked"]["description"],
+                suggested_action=env["blocked"]["suggested_action"],
+                blocked_at=env["blocked"]["blocked_at"]
+            ))
+    
+    if blocked:
+        print("⚠️ === BLOCKED ENVIRONMENTS ===")
+        for b in blocked:
+            print(f"  Issue #{b.issue_number}: {b.description}")
+            print(f"    Reason: {b.reason}")
+            print(f"    Suggested: {b.suggested_action}")
+            print(f"    Blocked since: {b.blocked_at}")
+        print("Blocked環境を確認し、問題解決後に clear_blocked() を呼び出してください。")
+    
+    return blocked
+```
 
 ---
 

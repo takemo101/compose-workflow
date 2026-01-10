@@ -96,16 +96,57 @@ Subtask #N:
 
 ---
 
-## Phase別の責任分担
+## Phase別の責任分担（SSOT）
 
 > **Note**: 以下のフローは**Issue単位でもSubtask単位でも同一**。
+> **この表がPhase責任の唯一の定義（Single Source of Truth）です。**
 
-| Phase | 実行者 | 内容 |
-|-------|--------|------|
-| **0. ブランチ作成** | Sisyphus | 各Subtask実装開始時にfeatureブランチを作成 |
-| **1-9. 実装→PR** | container-worker | 環境構築、TDD、レビュー、PR作成（1 Subtaskずつ） |
-| **10-11. CI→マージ** | Sisyphus | CI監視、マージ、環境削除（各PR単位） |
-| **12. 親Issueクローズ** | Sisyphus | 全Subtask完了確認、親Issue自動クローズ |
+### 責任分担マトリクス
+
+| Phase | 実行者 | 内容 | 入力 | 出力 | Token消費 |
+|-------|--------|------|------|------|-----------|
+| **0** | Sisyphus | Subtask検出 & ブランチ作成 | Issue ID | branch_name, subtask_list | 低 |
+| **1** | container-worker | 環境構築 | branch_name | env_id | 低 |
+| **2** | container-worker | 設計書参照（マトリクス使用） | task_type | context (必須セクションのみ) | **中**（最適化済） |
+| **3** | container-worker | **設計書実現性チェック** | context | **OK/NG** | 低 |
+| **4** | container-worker | TDD: テスト作成（Red） | context, test_spec | test_files | 中 |
+| **5** | container-worker | TDD: 実装（Green） | test_files | impl_files | 中 |
+| **6** | container-worker | TDD: リファクタ | impl_files | impl_files (refined) | 低 |
+| **7** | container-worker | 品質レビュー依頼 | impl_files | review_result | 低（レビュアーがトークン消費） |
+| **8** | container-worker | TODO駆動再実装（必要時） | review_todo_file | impl_files (fixed) | **低**（TODO参照のみ） |
+| **9** | container-worker | **ストレステスト（任意）** | impl_files | stress_report | 中（重要機能のみ） |
+| **10** | container-worker | ユーザー承認依頼 | review_score | approval | 低 |
+| **11** | container-worker | PR作成 | approval | pr_number | 低 |
+| **12** | Sisyphus | CI監視 | pr_number | ci_status | 低 |
+| **13** | Sisyphus | マージ & 環境削除 | ci_status, env_id | merged | 低 |
+| **14** | Sisyphus | 親Issueクローズ | all_subtasks_done | closed | 低 |
+
+### Token消費の最適化ポイント
+
+| Phase | 最適化手法 | 効果 |
+|-------|-----------|------|
+| Phase 2 | 設計書参照マトリクス（必須セクションのみ） | 60-70%削減 |
+| Phase 3 | **設計書実現性チェック**（Gate） | **手戻り防止**（無限Token消費回避） |
+| Phase 8 | TODO駆動再実装（TODOファイルのみ参照） | 60-70%削減 |
+| Phase 9 | ストレステスト（読み取り専用エージェント並列） | 単一エージェント比50%削減 |
+| Phase 7, 10 | Sisyphusからworkerへの委譲 | メインエージェントのコンテキスト維持 |
+
+### 責任境界（厳格）
+
+| 操作 | Sisyphus | container-worker |
+|------|----------|------------------|
+| Subtask検出 | ✅ | ❌ |
+| ブランチ作成 | ✅ | ❌ |
+| 環境作成/操作 | ❌ | ✅ |
+| ファイル読み書き | ❌ | ✅ |
+| テスト実行 | ❌ | ✅ |
+| レビュー依頼 | ❌ | ✅ |
+| PR作成 | ❌ | ✅ |
+| CI監視 | ✅ | ❌ |
+| マージ | ✅ | ❌ |
+| 環境削除 | ✅ | ❌ |
+
+**⛔ 違反禁止**: container-workerがSisyphusの責任を実行すること、またはその逆。
 
 ---
 

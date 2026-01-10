@@ -49,125 +49,50 @@ description: 実装時に遵守すべきコード品質ルール（500行ルー�
 
 ---
 
-## 2. 固定アーキテクチャ
+## 2. アーキテクチャ選定戦略
 
-### 2.1 バックエンド
+> **Adaptive Strategy**: プロジェクトの特性やフレームワークに合わせて最適なアーキテクチャを選択する。
+> 一律の「固定アーキテクチャ」強制は廃止。
 
-以下のアーキテクチャを**必須**とします。
+### 2.1 優先順位（Decision Tree）
 
-| アーキテクチャ/手法 | 説明 |
-|-------------------|------|
-| オニオンアーキテクチャ | 依存関係を内側（ドメイン）に向ける層構造 |
-| クリーンアーキテクチャ | ビジネスロジックをフレームワーク・DBから独立 |
-| TDD（テスト駆動開発） | テストを先に書いてから実装 |
+実装エージェントは以下の優先順位で採用するアーキテクチャを決定します。
 
-#### 層構造（内側から外側）
+1.  **Project Definition (最優先)**
+    *   `docs/architecture.md` または設計書（基本・詳細）に明記されたアーキテクチャ。
+2.  **Framework Convention (フレームワーク標準)**
+    *   Next.js (App Router), NestJS, Rails, Django 等、フレームワークが構造を規定している場合はそれに従う。
+    *   **禁止**: フレームワークの流儀に逆らって無理にオニオンアーキテクチャ等を適用すること。
+3.  **Recommended Patterns (デフォルト)**
+    *   上記に該当しない場合、以下の標準パターンを採用する。
 
-```
-Domain Layer（最内層）
-  └── Entities, Value Objects, Domain Services, Repository Interfaces
-      │
-Application Layer
-  └── Use Cases, Application Services, DTOs
-      │
-Interface Adapters Layer
-  └── Controllers, Gateways, Presenters
-      │
-Infrastructure Layer（最外層）
-  └── Frameworks, DB, External Services
-```
+### 2.2 推奨パターン（Default Fallback）
 
-#### 依存関係のルール
+プロジェクト固有の定義がない場合の標準セットです。
 
-- **Domain層は他の層に依存しない**（純粋なビジネスロジック）
-- Application層はDomain層のみに依存
-- Infrastructure層・Interfaces層はApplication層・Domain層に依存
-- **外側の層から内側の層への依存のみ許可**（逆は禁止）
+| 領域/規模 | 推奨パターン | プロンプト指定 | 備考 |
+|-----------|------------|---------------|------|
+| **Backend (Simple)** | Layered (Controller-Service-Repository) | `Layered Architecture` | 一般的なWeb API |
+| **Backend (Complex)** | Onion Architecture + DDD | `Onion Architecture` | ビジネスロジックが複雑な場合 |
+| **Frontend (App)** | Framework Standard (e.g. Next.js App Router) | `Next.js App Router` | フレームワーク推奨に従う |
+| **Frontend (Component)** | Atomic Design | `Atomic Design` | 大規模なUIコンポーネント設計時 |
+| **Script/Tool** | Single File / Module based | `Modular` | 過剰なレイヤー化は禁止 |
 
-#### ディレクトリ構成
+### 2.3 プロンプト最適化ガイド（LLM事前学習活用）
 
-```
-backend/
-├── src/
-│   ├── Domain/                 # ドメイン層（最内層）
-│   │   ├── Entities/
-│   │   ├── ValueObjects/
-│   │   ├── Repositories/       # インターフェースのみ
-│   │   └── Services/
-│   │
-│   ├── Application/            # アプリケーション層
-│   │   ├── UseCases/
-│   │   ├── DTOs/
-│   │   └── Services/
-│   │
-│   ├── Infrastructure/         # インフラストラクチャ層
-│   │   ├── Persistence/        # Repository実装
-│   │   └── ExternalServices/
-│   │
-│   └── Interfaces/             # インターフェースアダプター層
-│       └── Http/
-│           ├── Controllers/
-│           ├── Requests/
-│           └── Responses/
-│
-└── tests/
-    ├── Unit/
-    ├── Integration/
-    └── E2E/
-```
+選択されたアーキテクチャ名をプロンプトに含めるだけで、詳細説明は省略可能です（80-90%トークン削減）。
 
-### 2.2 フロントエンド
+#### ✅ 正しい指示の例
 
-以下のアーキテクチャを**必須**とします。
+```text
+// Next.jsの場合
+"Next.js App Router標準構成。Server ComponentsとClient Componentsを適切に分離。"
 
-| アーキテクチャ | 説明 |
-|--------------|------|
-| Atomic Design | UIコンポーネントを5階層で分類 |
-| MVVM | Model-View-ViewModelパターン |
+// 複雑なドメインの場合
+"オニオンアーキテクチャ + TDD。Domain層の依存を排除。"
 
-#### Atomic Designの5階層
-
-| 階層 | 説明 | 例 |
-|-----|------|-----|
-| Atoms | 最小単位のUI要素 | Button, Input, Label, Icon |
-| Molecules | Atomsを組み合わせた機能単位 | SearchBox, FormField, Card |
-| Organisms | 独立したUIセクション | Header, Footer, UserList |
-| Templates | ページのレイアウト構造 | DefaultLayout, DashboardLayout |
-| Pages | 実際のページコンポーネント | HomePage, UserDetailPage |
-
-#### MVVMパターン
-
-| 層 | 責務 | 実装例 |
-|----|-----|-------|
-| Model | データ・ビジネスロジック | API Client, Store, Repository |
-| ViewModel | 状態管理・UIロジック | Custom Hooks, Store Slice |
-| View | UI表示 | React/Vue Component |
-
-#### ディレクトリ構成
-
-```
-frontend/
-├── src/
-│   ├── components/             # Atomic Design
-│   │   ├── atoms/
-│   │   ├── molecules/
-│   │   ├── organisms/
-│   │   └── templates/
-│   │
-│   ├── pages/                  # ページコンポーネント
-│   │
-│   ├── viewmodels/             # ViewModel層
-│   │   ├── hooks/
-│   │   └── stores/
-│   │
-│   ├── models/                 # Model層
-│   │   ├── api/
-│   │   ├── repositories/
-│   │   └── types/
-│   │
-│   └── utils/
-│
-└── tests/
+// 小規模ツールの場合
+"シンプルなモジュール構成。過剰な抽象化は避けること。"
 ```
 
 ---

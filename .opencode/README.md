@@ -292,7 +292,8 @@ docs/
 | [CI監視ワークフロー](./skill/ci-workflow/SKILL.md) | CI監視・修正・自動マージフロー | **PR作成後（必須）** |
 | [PRマージワークフロー](./skill/pr-merge-workflow/SKILL.md) | PR作成〜マージ〜ロールバックの全体フロー | **PR作成・マージ時** |
 | [Subtask検出](./skill/subtask-detection/SKILL.md) | 親Issue→Subtask検出・依存関係解決 | **Issue実装開始時** |
-| [品質レビューフロー](./skill/quality-review-flow/SKILL.md) | レビュースコア基準・客観的品質基準 | **PR作成前（必須）** |
+| [品質レビューフロー](./skill/quality-review-flow/SKILL.md) | レビュースコア基準・客観的品質基準・TODO駆動再実装 | **PR作成前（必須）** |
+| [ストレステストフロー](./skill/stress-test-flow/SKILL.md) | マルチ視点ストレステスト（セキュリティ/パフォーマンス/エッジケース） | **重要機能実装時（推奨）** |
 | [Issue粒度判定](./skill/issue-size-estimation/SKILL.md) | 200行ルール・サイズラベル・行数見積もり | **Issue実装開始時** |
 | [TDD実装フロー](./skill/tdd-implementation/SKILL.md) | Red→Green→Refactorサイクル | **コード実装時** |
 | [environments.json管理](./skill/environments-json-management/SKILL.md) | 環境ID追跡・ステータス管理API | **環境作成・削除時** |
@@ -404,6 +405,11 @@ container-use_environment_run_cmd(command="npm test")
 
 | 日付 | バージョン | 変更内容 |
 |:---|:---|:---|
+| 2026-01-10 | 3.27.1 | **Stress Test Integration (ストレステスト統合)**: Phase 9 に「ストレステスト（任意）」を追加し、メインフローに正式統合。重要機能の実装時に自動的にマルチ視点検証を実行するフローを確立 |
+| 2026-01-10 | 3.27.0 | **Adaptive Architecture Strategy (適応型アーキテクチャ) 導入**: 固定アーキテクチャ強制を廃止。プロジェクト定義 > フレームワーク標準 > 推奨パターンの優先順位でアーキテクチャを決定。小規模プロジェクトやNext.js等のフレームワークとの親和性を向上 |
+| 2026-01-10 | 3.26.0 | **Specification Gate (設計書検問) 実装**: Phase 3 に「設計書実現性チェック」を追加。実装前にAIが仕様の曖昧さを判定し、NGならBlocked移行することで「推測実装によるバグ」を完全防止。ai-frameworkの「仕様書品質重視」思想を取り込み完了 |
+| 2026-01-10 | 3.25.0 | **セッション復旧強化4点**（ai-framework分析より）: (1) **再開ポイント明示化** - environments.jsonに`phase`/`step`フィールド追加、12段階の再開ポイント定義 (2) **Blocked状態検出** - `status: "blocked"`と`blocked`オブジェクト追加、6種類のblocked reason定義 (3) **エリア分離厳格化** - 参照マトリクスに`area`カラム追加、領域別設計書マッピング定義 (4) **TODO永続化強化** - レビューTODOのenvironments.json連携、セッション間復旧ロジック追加 |
+| 2026-01-10 | 3.24.0 | **Token最適化5点実装**（ai-framework分析より）: (1) TODO駆動インクリメンタル再実装（quality-review-flow.md）- レビュー指摘をTODOファイル化し再読み込み60-70%削減 (2) 設計書参照マトリクス（implement-subtask-rules.md）- タスク別必須/任意/禁止セクション定義 (3) Phase責任SSOTテーブル（sisyphus-implementation-guide.md）- Token消費列追加 (4) 固定アーキテクチャプロンプト簡略化（code-quality-rules.md）- LLM事前学習活用で80-90%削減 (5) ストレステストフロー新規作成（stress-test-flow/SKILL.md）- 並列検証エージェント（コード生成なし） |
 | 2026-01-09 | 3.23.0 | **OpenCodeスキル形式移行**: 全20スキルファイルをOpenCode標準ディレクトリ構造（`<name>/SKILL.md` + YAMLフロントマター）に移行。README.mdのスキル参照パスを更新 |
 | 2026-01-09 | 3.22.0 | **Worktreeワークフロー追加**: shikajiro/claude-code-skill-exampleからworktreeスキルを移植。platform-exception時のホスト環境開発をサポート。スクリプト（create_worktree.sh, pr_and_cleanup.sh）とスキルドキュメント（worktree-workflow.md）を追加 |
 | 2026-01-08 | 3.21.0 | **重複削減・SSOT化**: (1) pr-merge-workflow.md新規作成（179行）、container-use.mdのPRマージセクション約130行をスキル参照に置換 (2) environments-json-management.mdをSSOT化（98→223行）、container-use.mdの約85行をスキル参照に置換 (3) ci-workflow.mdに関連ドキュメント追加。総削減: container-use.md 750→544行（**206行削減、27%**） |

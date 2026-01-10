@@ -138,32 +138,193 @@ def review_with_repeat_detection(env_id: str, subtask_id: int) -> ReviewResult:
 
 ---
 
-## 4. 修正 & 再レビュー
+## 4. 修正 & 再レビュー（TODO駆動インクリメンタル方式）
 
-スコア未達の場合：
+> **Token最適化**: レビュー指摘をTODOファイルに保存し、再実装時はTODOのみ参照。
+> 設計書・既存コードの再読み込みを最小限に抑える。
 
-1. レビュー指摘事項をTODOリストに追加
-2. container-use環境内で修正を実施
-3. テスト再実行で問題なしを確認
-4. **再度レビューエージェントを呼び出し**（スキップ禁止）
+### 4.1 TODOファイル生成（レビュー後）
+
+レビュー指摘事項を構造化TODOファイルに保存：
 
 ```python
-# 修正後の再レビュー呼び出し例
+def save_review_todo(env_id: str, subtask_id: int, review_result: ReviewResult) -> str:
+    """レビュー指摘をTODOファイルに保存（トークン節約）"""
+    
+    todo_content = f"""# Review TODO: Issue #{subtask_id}
+## Review Score: {review_result.score}/10
+## Attempt: {review_result.attempt}/3
+
+### 指摘事項（優先度順）
+
+{chr(10).join(f"- [ ] **{issue.severity}**: {issue.description} (File: {issue.file}, Line: {issue.line})" for issue in sorted(review_result.issues, key=lambda x: x.severity_order))}
+
+### 修正ガイド
+
+| 指摘 | 修正方針 | 参照セクション |
+|------|---------|--------------|
+{chr(10).join(f"| {issue.description[:30]}... | {issue.fix_hint} | {issue.design_section or 'N/A'} |" for issue in review_result.issues)}
+
+### ⚠️ 再実装時の注意
+- このTODOファイルのみ参照して修正
+- 設計書の再読み込みは「参照セクション」が指定された場合のみ
+- 修正後、このファイルの該当行にチェックを入れる
+"""
+    
+    todo_path = f".review-todo/issue-{subtask_id}-attempt-{review_result.attempt}.md"
+    container_use_environment_file_write(
+        environment_id=env_id,
+        target_file=todo_path,
+        contents=todo_content
+    )
+    return todo_path
+```
+
+### 4.2 TODO駆動の再実装フロー
+
+```
+📋 レビュー完了（スコア < 9）
+     ↓
+💾 TODOファイル生成 (.review-todo/issue-N-attempt-M.md)
+     ↓
+🔧 再実装（TODOファイルのみ参照）
+     ├─ 指摘事項を上から順に修正
+     ├─ 修正完了したらチェック☑
+     └─ 「参照セクション」がある場合のみ設計書をピンポイント読み込み
+     ↓
+🧪 テスト再実行
+     ↓
+📝 再レビュー依頼（修正サマリ付き）
+```
+
+### 4.3 再レビュー呼び出し（TODO参照版）
+
+```python
+# 修正後の再レビュー呼び出し例（トークン最適化版）
+todo_content = container_use_environment_file_read(
+    environment_id=env_id,
+    target_file=f".review-todo/issue-{subtask_id}-attempt-{attempt}.md"
+)
+
 task(
     subagent_type="backend-reviewer",
     description="Issue #{issue_id} 修正後再レビュー",
     prompt=f"""
 ## 前回レビュー
 - スコア: {previous_score}/10
-- 指摘事項: {issues}
+- 指摘事項: {len(issues)}件
 
-## 修正内容
+## 修正TODOファイル
+```
+{todo_content}
+```
+
+## 修正サマリ
 {fix_summary}
 
 ## 再レビュー依頼
-修正が適切に行われたか確認し、再スコアリングしてください。
+TODOファイルの指摘事項が適切に修正されたか確認し、再スコアリングしてください。
+新規の問題があれば指摘してください。
 """
 )
+```
+
+### 4.4 Token節約効果
+
+| フェーズ | 従来方式 | TODO駆動方式 | 削減率 |
+|---------|---------|-------------|--------|
+| 1回目レビュー後 | 設計書全文 + コード全文読み込み | TODOファイルのみ | **60-70%** |
+| 2回目レビュー後 | 設計書全文 + コード全文読み込み | TODOファイルのみ | **60-70%** |
+| 3回目レビュー後 | 設計書全文 + コード全文読み込み | TODOファイルのみ | **60-70%** |
+
+**累積効果**: 3回のレビューループで **5,000-15,000トークン節約**
+
+### 4.5 TODOファイルのセッション間永続化
+
+> **重要**: TODOファイルはcontainer-use環境内に保存されるため、セッション間で永続化される。
+
+#### environments.json との連携
+
+```python
+def sync_review_todo_to_environments_json(env_id: str, subtask_id: int, attempt: int):
+    """レビューTODOをenvironments.jsonにも記録（復旧用）"""
+    from pathlib import Path
+    import json
+    
+    # environments.jsonに pending_issues として記録
+    todo_path = f".review-todo/issue-{subtask_id}-attempt-{attempt}.md"
+    
+    add_pending_issue(env_id, {
+        "type": "review_todo",
+        "todo_file": todo_path,
+        "attempt": attempt,
+        "subtask_id": subtask_id
+    })
+    
+    # Phaseを review-fix に更新
+    update_phase(env_id, phase=7, step="review-fix")
+```
+
+#### セッション再開時の復旧
+
+```python
+def resume_review_fix(env_id: str) -> str | None:
+    """セッション再開時にレビューTODOを復旧"""
+    env = find_environment_by_id(env_id)
+    
+    if not env:
+        return None
+    
+    # pending_issues からレビューTODOを検索
+    for issue in env.get("pending_issues", []):
+        if issue.get("type") == "review_todo":
+            todo_path = issue["todo_file"]
+            
+            # container-use環境からTODOファイルを読み込み
+            content = container_use_environment_file_read(
+                environment_id=env_id,
+                target_file=todo_path,
+                should_read_entire_file=True
+            )
+            
+            return content
+    
+    return None
+```
+
+#### ディレクトリ構造
+
+```
+.review-todo/
+├── issue-42-attempt-1.md    # 1回目レビュー後のTODO
+├── issue-42-attempt-2.md    # 2回目レビュー後のTODO
+├── issue-42-attempt-3.md    # 3回目レビュー後のTODO（Blocked判定）
+└── .gitignore               # Git管理外（環境内のみ）
+```
+
+### 4.6 Blocked状態への移行
+
+レビュー3回失敗時、`environments.json` を `blocked` 状態に更新：
+
+```python
+def escalate_to_blocked(env_id: str, subtask_id: int, last_score: int, issues: list):
+    """レビュー3回失敗時にBlocked状態に移行"""
+    
+    set_blocked(
+        env_id=env_id,
+        reason="review_loop_exceeded",
+        description=f"Issue #{subtask_id}: レビュー3回失敗（最終スコア: {last_score}/10）",
+        suggested_action="設計書の該当セクションを見直し、要件の曖昧さを解消してください",
+        context={
+            "subtask_id": subtask_id,
+            "review_attempts": 3,
+            "last_score": last_score,
+            "unresolved_issues": issues
+        }
+    )
+    
+    # Draft PR作成
+    create_draft_pr(env_id, subtask_id, issues)
 ```
 
 ---
@@ -172,7 +333,8 @@ task(
 
 3回連続でスコア9点未満の場合：
 
-1. Draft PRを作成（`--draft`フラグ）
-2. PRの本文に「レビュー未通過」と明記
-3. 未解決の指摘事項をPRコメントに記載
-4. ユーザーに報告して判断を仰ぐ
+1. `environments.json` を `blocked` 状態に更新（`escalate_to_blocked()`）
+2. Draft PRを作成（`--draft`フラグ）
+3. PRの本文に「レビュー未通過」と明記
+4. 未解決の指摘事項をPRコメントに記載
+5. ユーザーに報告して判断を仰ぐ
