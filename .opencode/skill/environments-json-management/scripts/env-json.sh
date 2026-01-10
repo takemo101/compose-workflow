@@ -21,6 +21,7 @@ set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 ENVIRONMENTS_JSON="${REPO_ROOT}/.opencode/environments.json"
+LOCK_DIR="${ENVIRONMENTS_JSON}.lock"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -30,6 +31,19 @@ NC='\033[0m'
 log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+
+acquire_lock() {
+    local retries=30
+    while ! mkdir "$LOCK_DIR" 2>/dev/null; do
+        if [ $retries -eq 0 ]; then
+            log_error "Could not acquire lock: $LOCK_DIR"
+            return 1
+        fi
+        sleep 0.1
+        ((retries--))
+    done
+    trap 'rm -rf "$LOCK_DIR"' EXIT
+}
 
 usage() {
     echo "Usage: $0 <command> [args...]"
@@ -84,6 +98,10 @@ fi
 
 COMMAND="$1"
 shift
+
+if [[ "$COMMAND" =~ ^(add|update-pr|mark-merged|remove)$ ]]; then
+    acquire_lock
+fi
 
 case "$COMMAND" in
     add)

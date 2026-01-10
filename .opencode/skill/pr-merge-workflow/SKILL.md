@@ -95,24 +95,14 @@ git push origin --delete <branch-name>
 # 1. Issue自動クローズを確認（Closes #XX使用時）
 gh issue view <issue-number>  # Should show "CLOSED"
 
-# 2. 環境削除（container-use使用時）
-container-use delete <env_id>
-
-# 3. environments.json更新
-# status: "pr_created" → "merged" or 削除
+# 2. 環境削除（コンテナ・ファイル・JSON一括削除）
+bash .opencode/skill/delete-environment/scripts/delete_env.sh <env_id>
 ```
 
 ### environments.json更新
 
-```json
-// マージ後の状態
-{
-  "env_id": "abc-123",
-  "status": "merged",  // または削除
-  "pr_number": 42,
-  "last_used_at": "2026-01-08T..."
-}
-```
+`delete_env.sh` が自動的にJSONエントリを削除するため、手動更新は不要です。
+もし履歴を残したい場合は、削除前にバックアップするか、スクリプトのオプションを確認してください。
 
 ---
 
@@ -169,8 +159,8 @@ gh pr merge <pr-number> --admin --merge
 
 ### マージ後
 - [ ] Issue自動クローズ確認
-- [ ] 環境削除（container-use）
-- [ ] environments.json更新
+- [ ] 環境削除（`delete_env.sh` 実行）
+- [ ] environments.json更新（スクリプトが自動実行）
 
 ---
 
@@ -180,6 +170,7 @@ gh pr merge <pr-number> --admin --merge
 |-------------|------|
 | {{skill:ci-workflow}} | CI監視・修正フロー |
 | {{skill:environments-json-management}} | 環境ID管理 |
+| {{skill:delete-environment}} | 環境削除手順 |
 | {{skill:quality-review-flow}} | 品質レビュー基準 |
 
 ---

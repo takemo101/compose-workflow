@@ -411,6 +411,8 @@ def check_and_report_blocked() -> list[BlockedEnvironment]:
 | `status: "abandoned"` | 即時削除 |
 | `last_used_at` から 30日以上 | レビューして削除検討 |
 
+> **実行方法**: 環境削除には [delete-environment](../delete-environment/SKILL.md) スキルを使用してください（コンテナ・ファイル・JSONを一括削除）。
+
 ---
 
 ## ハードブロック (違反禁止)

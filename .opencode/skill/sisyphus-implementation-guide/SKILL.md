@@ -197,6 +197,7 @@ Sisyphus (親エージェント)
 | ファイル操作 | `container-use_environment_file_*` | ⛔ `edit`/`write` 禁止 |
 | コマンド実行 | `container-use_environment_run_cmd` | ⛔ `bash` でのテスト/ビルド禁止 |
 | CI監視・マージ | `bash` (gh コマンド) | ✅ OK（環境外のGitHub API操作） |
+| 環境クリーンアップ | `delete_env.sh` (delete-environment skill) | ✅ OK（Sisyphusが実行） |
 | 親Issueクローズ | `bash` (gh issue close) | 全Subtask完了後 |
 
 ---

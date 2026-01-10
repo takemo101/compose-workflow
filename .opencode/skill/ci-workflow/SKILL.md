@@ -148,19 +148,19 @@ def escalate_ci_failure(pr_number: int, env_id: str):
 
 ```python
 def cleanup_environment(env_id: str, pr_number: int) -> bool:
-    """container-use delete {env_id} を実行（最大2回リトライ）"""
+    """delete-environment スキルを実行（最大2回リトライ）"""
+    script = ".opencode/skill/delete-environment/scripts/delete_env.sh"
+    
     for _ in range(3):
-        if bash(f"container-use delete {env_id}").exit_code == 0:
-            # environments.json からエントリを削除
-            remove_environment(env_id)
+        if bash(f"bash {script} {env_id}").exit_code == 0:
             report_to_user(f"✅ PR #{pr_number} マージ済み、環境 {env_id} 削除済み")
             return True
         wait(5)
-    report_to_user(f"⚠️ 環境削除失敗。手動: container-use delete {env_id}")
+    report_to_user(f"⚠️ 環境削除失敗。手動: bash {script} {env_id}")
     return False
 ```
 
-> **Note**: `mark_environment_merged()`, `remove_environment()` は [container-use.md](../../instructions/container-use.md) で定義。
+> **Note**: `mark_environment_merged()` は [environments-json-management](../environments-json-management/SKILL.md) で定義。
 
 ### クリーンアップタイミング
 
@@ -180,6 +180,7 @@ def cleanup_environment(env_id: str, pr_number: int) -> bool:
 |-------------|------|
 | {{skill:pr-merge-workflow}} | PR作成〜マージ〜ロールバックの全体フロー |
 | {{skill:environments-json-management}} | 環境ID管理・ステータス更新 |
+| {{skill:delete-environment}} | 環境削除手順 |
 
 ---
 

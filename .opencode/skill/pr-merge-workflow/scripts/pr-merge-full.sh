@@ -135,42 +135,29 @@ else
     fi
 fi
 
-log_step "Phase 3: Updating environments.json..."
-
-update_environments_json() {
-    if [ ! -f "$ENV_JSON_SCRIPT" ]; then
-        log_warn "env-json.sh not found, skipping environments.json update"
-        return
-    fi
-
-    if [ -n "$ENV_ID" ]; then
-        bash "$ENV_JSON_SCRIPT" mark-merged "$ENV_ID"
-        log_info "Updated status to 'merged' for env_id: $ENV_ID"
-    else
-        log_warn "No env-id provided, cannot update environments.json by PR number"
-    fi
-}
-
-update_environments_json
-
-log_step "Phase 4: Cleaning up environment..."
+log_step "Phase 3: Cleaning up environment..."
 
 if [ -n "$ENV_ID" ]; then
-    if command -v container-use &> /dev/null; then
-        if container-use delete "$ENV_ID" 2>/dev/null; then
-            log_info "Environment deleted: $ENV_ID"
-            
-            if [ -f "$ENV_JSON_SCRIPT" ]; then
-                bash "$ENV_JSON_SCRIPT" remove "$ENV_ID"
-                log_info "Removed entry from environments.json"
-            fi
+    DELETE_ENV_SCRIPT="${SCRIPT_DIR}/../../delete-environment/scripts/delete_env.sh"
+    
+    if [ -f "$DELETE_ENV_SCRIPT" ]; then
+        log_info "Executing delete_env.sh for $ENV_ID..."
+        if bash "$DELETE_ENV_SCRIPT" "$ENV_ID"; then
+            log_info "Environment cleanup completed."
         else
-            log_warn "Failed to delete environment: $ENV_ID"
-            log_info "Delete manually: container-use delete $ENV_ID"
+            log_error "delete_env.sh failed."
+            exit 1
         fi
     else
-        log_warn "container-use not installed, skipping environment deletion"
-        log_info "Delete manually: container-use delete $ENV_ID"
+        log_warn "delete_env.sh not found at $DELETE_ENV_SCRIPT"
+        log_info "Falling back to manual cleanup..."
+        
+        if command -v container-use &> /dev/null; then
+            container-use delete "$ENV_ID" || true
+        fi
+        if [ -f "$ENV_JSON_SCRIPT" ]; then
+            bash "$ENV_JSON_SCRIPT" remove "$ENV_ID"
+        fi
     fi
 else
     log_info "No env-id provided, skipping environment cleanup"

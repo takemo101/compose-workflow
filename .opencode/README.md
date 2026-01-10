@@ -297,6 +297,7 @@ docs/
 | [Issue粒度判定](./skill/issue-size-estimation/SKILL.md) | 200行ルール・サイズラベル・行数見積もり | **Issue実装開始時** |
 | [TDD実装フロー](./skill/tdd-implementation/SKILL.md) | Red→Green→Refactorサイクル | **コード実装時** |
 | [environments.json管理](./skill/environments-json-management/SKILL.md) | 環境ID追跡・ステータス管理API | **環境作成・削除時** |
+| [環境削除](./skill/delete-environment/SKILL.md) | コンテナ・ファイル・メタデータの完全削除手順 | **環境削除時** |
 | [Sisyphus実装ガイド](./skill/sisyphus-implementation-guide/SKILL.md) | Sisyphus専用の実行フロー・チェックリスト | **Issue実装時（Sisyphus）** |
 | [GitHub GraphQL API](./skill/github-graphql-api/SKILL.md) | Sub-issue登録等のGraphQL API共通処理 | **Issue作成時** |
 | [承認ゲート](./skill/approval-gate/SKILL.md) | ユーザー承認ゲートの共通フォーマット | **フェーズ移行時** |
