@@ -95,47 +95,28 @@ React 19, Bun
 
 ---
 
-### Phase 2: 最新情報収集
+### Phase 2: 最新情報収集（軽量版）
 
-**librarianエージェントを起動して各技術を調査:**
+**librarianエージェントを起動して技術概要のみを調査:**
 
 > **実装方法**: 
-> - `call_omo_agent(subagent_type='librarian', run_in_background=True)` でバックグラウンド実行
-> - 使用ツール: `websearch_exa`, `context7_query-docs`（webfetchは最小限）
+> - `call_omo_agent` でバックグラウンド実行
+> - **技術概要のみ** にフォーカスし、コード例や詳細調査をスキップ
+> - 使用ツール: `websearch_exa` (メイン)
 >
-> **⚠️ 重要な制約（トークン・帯域節約）**:
-> - リポジトリのクローン・ダウンロード禁止（git clone, wget, curl）
-> - GitHubからのソースコード直接取得禁止
-> - 検索結果のサマリーと公式ドキュメントページのみ使用
-> - context7_query-docsを優先（リポジトリ直接アクセスより効率的）
+> **⚠️ 制約（動作軽量化）**:
+> - コード例、インストール手順、詳細な変更点は調査しない
+> - 公式サイトのメタデータ（バージョン、日付、URL）のみ取得
+> - リポジトリへのアクセス・ダウンロードは一切行わない
 
-1. **公式ドキュメント確認**
+1. **基本情報確認**
    - 最新バージョン番号とリリース日
-   - Changelog / Release Notes
-   - マイグレーションガイド
+   - 公式ドキュメントURL
+   - 概要（1-2行）
 
-2. **Breaking Changes特定**
-   - API変更
-   - 非推奨（Deprecated）機能
-   - 削除された機能
-   - 挙動変更
-
-3. **新機能調査**（standard以上）
-   - 注目の新機能
-   - パフォーマンス改善
-   - DX向上ポイント
-
-4. **実装向け情報収集**（standard以上）
-   - インストール方法（各パッケージマネージャー対応）
-   - 基本的な使い方（最小構成のコード例）
-   - 公式ドキュメント・リポジトリURL
-   - APIリファレンスURL
-   - よくあるエラーと対処法
-
-5. **エコシステム調査**（deep のみ）
-   - 関連ライブラリの対応状況
-   - コミュニティの動向
-   - 競合技術との比較
+2. **詳細調査（スキップ）**
+   - コード例、マイグレーションガイド、エコシステム調査は実施しない
+   - 必要であればユーザーが個別に調査を行う前提とする
 
 **調査ソース:**
 - 公式ドキュメント（最優先）
@@ -165,7 +146,7 @@ React 19, Bun
 | LANG | プログラミング言語・ランタイム |
 | TOOL | 開発ツール・ビルドツール |
 
-**レポート構成:**
+**レポート構成（参照インデックス版）:**
 
 ```markdown
 # 技術調査レポート: [技術名]
@@ -173,127 +154,20 @@ React 19, Bun
 | 項目 | 内容 |
 |------|------|
 | 調査日 | YYYY-MM-DD |
-| 調査深度 | quick / standard / deep |
-| 対象バージョン | vX.Y.Z（調査時最新） |
-| 現行バージョン | vA.B.C（プロジェクト使用中） |
+| 最新バージョン | vX.Y.Z |
 
-## エグゼクティブサマリー
+## 参照リンク（公式）
+- **公式ドキュメント**: [URL]
+- **GitHubリポジトリ**: [URL]
 
-[1-3行で調査結果の要点]
+## 技術概要
+[LLMの知識ベースに基づいて1-2行で記載]
 
-## バージョン情報
-
-| バージョン | リリース日 | サポート状況 |
-|-----------|-----------|-------------|
-| vX.Y.Z | YYYY-MM-DD | Active / LTS / EOL |
-
-## Breaking Changes
-
-### 🚨 高影響
-
-| 変更内容 | 影響範囲 | 移行方法 |
-|---------|---------|---------|
-| ... | ... | ... |
-
-### ⚠️ 中影響
-
-...
-
-### ℹ️ 低影響
-
-...
-
-## 新機能・改善点
-
-| 機能 | 概要 | 活用シーン |
-|------|------|----------|
-| ... | ... | ... |
-
-## 非推奨・削除予定
-
-| 機能 | 状況 | 代替手段 | 削除予定 |
-|------|------|---------|---------|
-| ... | Deprecated | ... | vX.Y.Z |
-
-## 設計への影響
-
-### 必須対応
-
-- [ ] [対応事項1]
-- [ ] [対応事項2]
-
-### 推奨対応
-
-- [ ] [対応事項]
-
-### 検討事項
-
-- [検討が必要な事項]
-
-## マイグレーション手順（該当時）
-
-```bash
-# 手順例
-npm install package@latest
-npx migrate-tool
+## メモ
+[必要に応じて追記]
 ```
-
-## クイックスタート（実装向け）
-
-### インストール
-
-```bash
-# npm
-npm install [package-name]
-
-# yarn
-yarn add [package-name]
-
-# pnpm
-pnpm add [package-name]
-
-# bun
-bun add [package-name]
-```
-
-### 基本的な使い方
-
-```typescript
-// 最小構成のコード例（コピペで動く）
-import { ... } from '[package-name]';
-
-// 基本的な初期化
-const instance = new ...();
-
-// よく使うパターン
-...
-```
-
-### よくあるエラーと対処
-
-| エラー | 原因 | 対処法 |
-|--------|------|--------|
-| `Error: ...` | ... | ... |
-
-## 参照リンク集
-
-| リソース | URL | 説明 |
-|----------|-----|------|
-| 公式ドキュメント | [URL] | メインドキュメント |
-| GitHubリポジトリ | [URL] | ソースコード・Issues |
-| APIリファレンス | [URL] | 詳細なAPI仕様 |
-| インストールガイド | [URL] | セットアップ手順 |
-| マイグレーションガイド | [URL] | バージョンアップ手順 |
-| Changelog | [URL] | 変更履歴 |
-| 公式チュートリアル | [URL] | 入門ガイド |
-| 公式Examples | [URL] | サンプルコード集 |
 
 ---
-
-**関連ドキュメント:**
-- 要件定義書: [リンク]
-- 基本設計書: [リンク]（作成後追記）
-```
 
 ---
 
@@ -442,30 +316,26 @@ def tech_catchup_workflow(input_args):
     
     # 統合プロンプトの作成
     prompt = f"""
-    Research the following technologies ONE BY ONE and gather implementation-ready information:
+    Collect REFERENCE URLs and METADATA for the following technologies.
     Target Technologies: {tech_list_str}
-    Depth: {depth}
     
-    For EACH technology, provide:
-    1. Latest version & Release date
-    2. Breaking changes (Brief summary)
-    3. Installation commands (npm/yarn/pnpm/bun)
-    4. Minimal usage example code
-    5. Official documentation URL
+    For EACH technology, provide ONLY:
+    1. Latest Version Number (e.g., v15.1.0)
+    2. Official Documentation URL
+    3. GitHub Repository URL
     
-    Use tools: websearch_exa, context7_query-docs
+    Use tools: websearch_exa (Preferred)
     Output the result as a structured JSON list.
     
-    IMPORTANT: Return ONLY the raw JSON list. No markdown formatting, no explanations.
+    IMPORTANT: Return ONLY the raw JSON list. No markdown formatting.
     Start with [ and end with ].
     
-    ===== CRITICAL RESTRICTIONS =====
-    - DO NOT clone or download any repositories
-    - DO NOT use git clone, wget, curl to download files
-    - DO NOT fetch raw source code files from GitHub
-    - ONLY use search results summaries and official documentation pages
-    - Prefer context7_query-docs over direct repository access
-    ================================
+    ===== RESTRICTIONS =====
+    - DO NOT summarize the technology
+    - DO NOT look for features or changes
+    - DO NOT download anything
+    - GOAL is just to create an index of links
+    ========================
     """
 
     # シングルエージェント起動
@@ -479,39 +349,38 @@ def tech_catchup_workflow(input_args):
     # 結果待機
     raw_result = background_output(task_id=task_id)
     
-    # 結果のパース（エージェントがまとめて返した結果を分解）
-    reports = parse_batch_result(raw_result, prioritized)
+    # 結果のパース（JSONリストを辞書に変換）
+    # 期待形式: [{ "name": "Next.js", "version": "v15.0", "docs": "...", "github": "..." }, ...]
+    reports = parse_json_result(raw_result)
     
-    # Phase 3: レポート作成
+    # Phase 3: レポート作成（リンク集のみ）
     report_paths = []
     
     if len(reports) > 1:
-        # 複数技術の場合は統合レポートを作成（大量ファイル生成防止）
+        # 複数技術の場合は統合レポートを作成
         date_str = get_current_date_str()
         path = f"docs/research/TECH-REPORT-{date_str}_Combined.md"
         
-        # 統合レポートの作成（目次付き）
-        create_combined_report(path, reports, depth)
+        # 統合インデックスレポートの作成
+        create_combined_index_report(path, reports)
         report_paths.append(path)
     else:
         # 単体の場合は個別ファイル作成
-        for tech, research in reports:
-            category = determine_category(tech)
+        for tech in reports:
+            category = determine_category(tech.get('name', 'UNKNOWN'))
             next_id = get_next_report_id(category)
-            path = f"docs/research/TECH-{category}-{next_id}_{tech.name}.md"
+            path = f"docs/research/TECH-{category}-{next_id}_{tech.get('name', 'unknown')}.md"
             
-            create_report(path, tech, research, depth)
+            create_index_report(path, tech)
             report_paths.append(path)
     
     # Phase 4: 基本設計への引き継ぎ
-    impact_summary = generate_impact_summary(reports)
-    unresolved_issues = extract_unresolved_issues(reports)
+    # 複雑な分析（impact_summary等）は廃止し、単純な完了報告のみ返す
     
-    # 次ステップへの連携情報を準備
     handoff = {
         'reports': report_paths,
-        'impact_summary': impact_summary,
-        'unresolved_issues': unresolved_issues
+        'status': 'completed',
+        'note': 'Technical details should be checked by humans using the provided links.'
     }
     
     return success(handoff)
