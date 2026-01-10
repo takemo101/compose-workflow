@@ -430,42 +430,41 @@ def tech_catchup_workflow(input_args):
         if await confirm_skip():
             return skip_with_summary()
     
-    # Phase 2: 最新情報収集（librarian並列実行）
-    # 各技術ごとにlibrarianエージェントを並列起動
-    task_ids = []
-    for tech in prioritized:
-        task_id = call_omo_agent(
-            subagent_type='librarian',
-            run_in_background=True,
-            description=f"Research {tech.name}",
-            prompt=f"""
-            Research the following technology and gather implementation-ready information:
-            
-            Technology: {tech.name}
-            Current Version: {tech.current_version or 'Unknown'}
-            Depth: {depth}
-            
-            Required Information:
-            1. Latest version and release date
-            2. Breaking changes (from current version)
-            3. {'New features and improvements' if depth != 'quick' else 'Skip'}
-            4. {'Installation methods (npm/yarn/pnpm/bun)' if depth != 'quick' else 'Skip'}
-            5. {'Basic usage examples (copy-paste ready code)' if depth != 'quick' else 'Skip'}
-            6. {'Reference links (official docs, GitHub, API reference)' if depth != 'quick' else 'Skip'}
-            7. {'Common errors and solutions' if depth != 'quick' else 'Skip'}
-            8. {'Ecosystem and community trends' if depth == 'deep' else 'Skip'}
-            
-            Use tools: websearch_exa, context7_query-docs, webfetch
-            Return structured data for report generation.
-            """
-        )
-        task_ids.append((tech, task_id))
+    # Phase 2: 最新情報収集（省エネモード：シングルエージェント）
+    # トークン節約のため、1つのlibrarianエージェントに全技術の調査を依頼する
     
-    # 並列実行結果を収集
-    reports = []
-    for tech, task_id in task_ids:
-        result = background_output(task_id=task_id)
-        reports.append((tech, result))
+    tech_list_str = ", ".join([t.name for t in prioritized])
+    
+    # 統合プロンプトの作成
+    prompt = f"""
+    Research the following technologies ONE BY ONE and gather implementation-ready information:
+    Target Technologies: {tech_list_str}
+    Depth: {depth}
+    
+    For EACH technology, provide:
+    1. Latest version & Release date
+    2. Breaking changes (Brief summary)
+    3. Installation commands (npm/yarn/pnpm/bun)
+    4. Minimal usage example code
+    5. Official documentation URL
+    
+    Use tools: websearch_exa, context7_query-docs
+    Output the result as a structured JSON list.
+    """
+
+    # シングルエージェント起動
+    task_id = call_omo_agent(
+        subagent_type='librarian',
+        run_in_background=True,
+        description=f"Batch Research: {tech_list_str}",
+        prompt=prompt
+    )
+    
+    # 結果待機
+    raw_result = background_output(task_id=task_id)
+    
+    # 結果のパース（エージェントがまとめて返した結果を分解）
+    reports = parse_batch_result(raw_result, prioritized)
     
     # Phase 3: レポート作成
     report_paths = []
