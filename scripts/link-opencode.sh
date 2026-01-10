@@ -31,6 +31,7 @@ Usage: $0 [OPTIONS] <target-directory>
 
 Creates a symbolic link to .opencode in the specified directory.
 Also copies opencode.json and package.json (if not already present).
+Creates docs/memos directory with .gitkeep for project documentation.
 Creates or updates .gitignore (or .git/info/exclude) with OpenCode-related entries.
 
 Options:
@@ -206,6 +207,14 @@ if [[ -f "$SOURCE_PACKAGE_JSON" ]]; then
     fi
 else
     echo -e "${YELLOW}⚠ Source package.json not found, skipping.${NC}"
+fi
+
+MEMOS_DIR="${TARGET_DIR}/docs/memos"
+if [[ -d "$MEMOS_DIR" ]]; then
+    echo -e "${YELLOW}⏭ docs/memos already exists, skipping.${NC}"
+else
+    execute "Create docs/memos with .gitkeep" "mkdir -p '$MEMOS_DIR' && touch '$MEMOS_DIR/.gitkeep'"
+    [[ "$DRY_RUN" == false ]] && echo -e "${GREEN}✓ docs/memos created with .gitkeep.${NC}"
 fi
 
 GIT_DIR="${TARGET_DIR}/.git"
