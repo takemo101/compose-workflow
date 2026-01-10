@@ -240,6 +240,75 @@ def confirm_bug_report_with_user(bug_report: BugReport) -> bool:
 
 ---
 
+## 実装環境の選択（MANDATORY）
+
+バグ修正には**必ず隔離された環境**を使用する。ホスト環境での直接編集は禁止。
+
+### 環境選択フロー
+
+```
+バグの種類を判定
+  ↓
+[プラットフォーム固有コード？]
+  ├─ NO → container-use環境を使用（デフォルト）
+  └─ YES → worktree環境を使用
+```
+
+### 判定基準
+
+| 条件 | 環境 | 理由 |
+|------|------|------|
+| 通常のバグ修正 | **container-use** | 環境分離、再現性 |
+| macOS固有API（objc2, cocoa等） | **worktree** | Linuxコンテナで動作しない |
+| Windows固有API（windows-rs等） | **worktree** | Linuxコンテナで動作しない |
+| ハードウェア依存（オーディオ、GPU等） | **worktree** | コンテナでアクセス不可 |
+
+### container-use環境（デフォルト）
+
+```bash
+# 環境作成
+container-use_environment_create(
+  environment_source="/path/to/repo",
+  title="fix/issue-XX-description",
+  from_git_ref="fix/issue-XX-description"
+)
+
+# 修正作業はすべて環境内で実行
+container-use_environment_file_edit(...)
+container-use_environment_run_cmd(command="cargo test")
+```
+
+> **詳細**: {{skill:container-use-guide}} を参照
+
+### worktree環境（プラットフォーム固有コード用）
+
+プラットフォーム固有コードの場合、worktreeを使用してホスト環境で作業する。
+
+```bash
+# worktree作成
+git worktree add ../fix-issue-XX fix/issue-XX-description
+
+# worktree内で作業
+cd ../fix-issue-XX
+# 修正作業...
+
+# PR作成後にworktree削除
+git worktree remove ../fix-issue-XX
+```
+
+> **詳細**: {{skill:worktree-workflow}} を参照
+
+### ホスト環境での直接編集は禁止
+
+| 禁止事項 | 理由 |
+|---------|------|
+| ホスト環境で直接 `git checkout -b` してコード編集 | 環境汚染、再現性なし |
+| container-use/worktreeを使わずにPR作成 | 隔離されていない |
+
+**例外**: `.opencode/` 配下のドキュメントのみ編集可能（コード変更なし）
+
+---
+
 ## ワークフロー全体図
 
 ```
@@ -249,9 +318,13 @@ def confirm_bug_report_with_user(bug_report: BugReport) -> bool:
   ├─ 既存Issue → 取得
   └─ 未作成 → 作成提案 → ユーザー承認
   ↓
+[1.5. 環境選択]
+  ├─ プラットフォーム固有 → worktree環境作成
+  └─ 通常 → container-use環境作成
+  ↓
 [2. 実装フェーズ] ← `/implement-issues <issue-number>` を内部で呼び出し
   ├─ fixブランチ作成（Sisyphus）
-  ├─ container-use環境作成（fix/issue-XX-<description>）
+  ├─ 環境作成（container-use or worktree）
   ├─ バグ原因特定（container-worker）
   ├─ Regression Test追加（必須）
   ├─ 最小修正（Bugfix Rule遵守）

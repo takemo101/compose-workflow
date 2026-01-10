@@ -1,6 +1,6 @@
 ---
 name: release-workflow
-description: バージョン提案からGitHub Release作成までの標準リリースフローを定義
+description: バージョン提案からGitHub Release作成までの標準リリースフローを定義（マルチエコシステム対応）
 ---
 
 # リリースワークフロー
@@ -17,7 +17,7 @@ description: バージョン提案からGitHub Release作成までの標準リ�
 2. ユーザーがバージョンを承認/変更
    ↓
 3. リリース実行（自動）
-   - Cargo.toml更新
+   - バージョンファイル更新
    - CHANGELOG.md更新
    - コミット & タグ作成
    - push
@@ -27,16 +27,81 @@ description: バージョン提案からGitHub Release作成までの標準リ�
 
 ---
 
-## Phase 1: バージョン提案
+## 実装環境
 
-### 1.1 現在のバージョン取得
+### container-use不要
+
+リリースワークフローでは**container-useは不要**です。
+
+| 理由 | 説明 |
+|------|------|
+| コード変更なし | バージョンファイル（Cargo.toml等）とCHANGELOG.mdのみ更新 |
+| ドキュメント操作のみ | 実行可能コードの変更を伴わない |
+| タグ・リリース操作 | Gitタグ作成とGitHub Release操作のみ |
+
+### ホスト環境で直接実行
 
 ```bash
-# Cargo.tomlから現在のバージョンを取得
+# リリース作業はホスト環境で直接実行
+git add Cargo.toml CHANGELOG.md
+git commit -m "chore: release v<version>"
+git tag -a v<version> -m "Release v<version>"
+git push origin <default-branch> --tags
+gh release create v<version> ...
+```
+
+---
+
+## 対応エコシステム
+
+| エコシステム | バージョンファイル | 検出条件 |
+|-------------|-------------------|----------|
+| **Rust** | `Cargo.toml` | `Cargo.toml` 存在 |
+| **Node.js** | `package.json` | `package.json` 存在 |
+| **Python (pyproject)** | `pyproject.toml` | `pyproject.toml` 存在 |
+| **Python (setup.py)** | `setup.py` | `setup.py` 存在 |
+| **Go** | タグのみ | `go.mod` 存在 |
+| **Generic** | `VERSION` | `VERSION` ファイル存在 |
+| **Tag-only** | なし | 上記いずれも該当しない |
+
+### 自動検出の優先順位
+
+1. `Cargo.toml` → Rust
+2. `package.json` → Node.js
+3. `pyproject.toml` → Python (pyproject)
+4. `setup.py` → Python (setup.py)
+5. `go.mod` → Go
+6. `VERSION` → Generic
+7. いずれもなし → Tag-only
+
+---
+
+## Phase 1: バージョン提案
+
+### 1.1 エコシステム検出とバージョン取得
+
+```bash
+# スクリプトを使用（推奨）
+.opencode/scripts/release.sh --detect
+
+# または手動で検出
+# Rust
 grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/'
 
-# 最新タグを取得
-git tag --sort=-version:refname | head -1
+# Node.js
+jq -r '.version' package.json
+
+# Python (pyproject.toml)
+grep '^version = ' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/'
+
+# Python (setup.py)
+grep -o "version=['\"][^'\"]*['\"]" setup.py | sed "s/version=['\"]\\([^'\"]*\\)['\"/\\1/"
+
+# Go / Tag-only
+git tag --sort=-version:refname | head -1 | sed 's/^v//'
+
+# Generic
+cat VERSION
 ```
 
 ### 1.2 変更内容の分析
@@ -59,21 +124,23 @@ git log <last-tag>..HEAD --oneline
 ```markdown
 ## リリース提案
 
+### エコシステム
+<detected-ecosystem>
+
 ### 現在のバージョン
 v0.4.0
 
 ### 前回リリースからの変更
-- feat: ビジュアル強化機能（Epic #121）
-- fix: 作業アニメーション方向修正（#136）
-- fix: 休憩アニメーション改善（#138, #140）
+- feat: 新機能追加（#XX）
+- fix: バグ修正（#YY）
 
 ### 提案バージョン
 **v0.5.0** (MINOR: 新機能追加)
 
 ### 変更種別
-- ✨ 新機能: 3件
-- 🐛 バグ修正: 3件
-- 📝 ドキュメント: 0件
+- ✨ 新機能: N件
+- 🐛 バグ修正: N件
+- 📝 ドキュメント: N件
 
 ---
 
@@ -100,12 +167,50 @@ v0.4.0
 
 ## Phase 3: リリース実行
 
-### 3.1 Cargo.toml更新
+### 3.1 バージョンファイル更新
 
 ```bash
-# バージョンを更新
+# スクリプトを使用（推奨）
+.opencode/scripts/release.sh --update-version <new-version>
+
+# または手動で更新（エコシステム別）
+```
+
+#### Rust (Cargo.toml)
+
+```bash
 sed -i '' 's/^version = ".*"/version = "<new-version>"/' Cargo.toml
 ```
+
+#### Node.js (package.json)
+
+```bash
+npm version <new-version> --no-git-tag-version
+# または
+jq '.version = "<new-version>"' package.json > tmp.json && mv tmp.json package.json
+```
+
+#### Python (pyproject.toml)
+
+```bash
+sed -i '' 's/^version = ".*"/version = "<new-version>"/' pyproject.toml
+```
+
+#### Python (setup.py)
+
+```bash
+sed -i '' "s/version=['\"][^'\"]*['\"]/version='<new-version>'/" setup.py
+```
+
+#### Generic (VERSION)
+
+```bash
+echo "<new-version>" > VERSION
+```
+
+#### Go / Tag-only
+
+バージョンファイル更新なし（タグのみ）
 
 ### 3.2 CHANGELOG.md更新
 
@@ -127,15 +232,23 @@ sed -i '' 's/^version = ".*"/version = "<new-version>"/' Cargo.toml
 ### 3.3 コミット & タグ作成
 
 ```bash
-git add Cargo.toml CHANGELOG.md
-git commit -m "chore: bump version to <new-version>"
+# スクリプトを使用（推奨）
+.opencode/scripts/release.sh --commit <new-version>
+
+# または手動
+git add -A
+git commit -m "chore: release v<new-version>"
 git tag -a v<new-version> -m "Release v<new-version> - <summary>"
-git push origin master --tags
+git push origin <default-branch> --tags
 ```
 
 ### 3.4 GitHub Release作成
 
 ```bash
+# スクリプトを使用（推奨）
+.opencode/scripts/release.sh --create-release <new-version> "<release-notes>"
+
+# または手動
 gh release create v<new-version> \
   --title "v<new-version> - <summary>" \
   --notes "<release-notes>"
@@ -144,7 +257,10 @@ gh release create v<new-version> \
 ### 3.5 Release Workflow完了待機
 
 ```bash
-# Release workflowの実行を監視
+# スクリプトを使用（推奨）
+.opencode/scripts/release.sh --watch
+
+# または手動
 gh run list --workflow=Release --limit 1
 gh run watch <run-id>
 ```
@@ -157,10 +273,48 @@ gh release view v<new-version> --json tagName,assets --jq '.tagName, (.assets[].
 
 ---
 
+## スクリプト使用方法
+
+`.opencode/scripts/release.sh` を使用することで、上記の処理を自動化できます。
+
+### 基本コマンド
+
+```bash
+# エコシステム検出とバージョン表示
+.opencode/scripts/release.sh --detect
+
+# 完全自動リリース（対話モード）
+.opencode/scripts/release.sh
+
+# バージョン指定リリース
+.opencode/scripts/release.sh --version 1.2.3
+
+# ドライラン（実行せずに確認）
+.opencode/scripts/release.sh --dry-run --version 1.2.3
+```
+
+### 個別操作
+
+```bash
+# バージョン更新のみ
+.opencode/scripts/release.sh --update-version 1.2.3
+
+# コミット & タグのみ
+.opencode/scripts/release.sh --commit 1.2.3
+
+# GitHub Release作成のみ
+.opencode/scripts/release.sh --create-release 1.2.3 "Release notes here"
+
+# Workflow監視
+.opencode/scripts/release.sh --watch
+```
+
+---
+
 ## リリースノートテンプレート
 
 ```markdown
-## ポモドーロタイマーCLI v<version>
+## <project-name> v<version>
 
 ### ✨ 新機能
 
@@ -180,14 +334,12 @@ gh release view v<new-version> --json tagName,assets --jq '.tagName, (.assets[].
 ### インストール方法
 
 ```bash
-curl -LO https://github.com/<owner>/<repo>/releases/download/v<version>/<asset-name>.tar.gz
-tar -xzf <asset-name>.tar.gz
-sudo mv <binary-name> /usr/local/bin/<command-name>
+# エコシステムに応じたインストールコマンド
 ```
 
 ### 動作確認
 ```bash
-<command-name> --version
+<command> --version
 ```
 
 ### システム要件
@@ -252,11 +404,11 @@ gh release upload v<version> <asset-file>
 ### リリース前
 - [ ] 全テスト通過
 - [ ] Lint通過
-- [ ] masterブランチが最新
+- [ ] デフォルトブランチが最新
 - [ ] 未マージのPRなし
 
 ### リリース中
-- [ ] Cargo.toml更新
+- [ ] バージョンファイル更新
 - [ ] CHANGELOG.md更新
 - [ ] コミット & タグ作成
 - [ ] push完了
@@ -275,3 +427,13 @@ gh release upload v<version> <asset-file>
 |-------------|------|
 | [Keep a Changelog](https://keepachangelog.com/) | CHANGELOG形式の標準 |
 | [Semantic Versioning](https://semver.org/) | バージョニング規約 |
+| [release.sh スクリプト](../../scripts/release.sh) | リリース自動化スクリプト |
+
+---
+
+## 変更履歴
+
+| 日付 | バージョン | 変更内容 |
+|:---|:---|:---|
+| 2026-01-10 | 2.0.0 | マルチエコシステム対応（Rust, Node.js, Python, Go, Generic）。release.sh スクリプト追加 |
+| 2026-01-09 | 1.0.0 | 初版作成（Rust専用） |
