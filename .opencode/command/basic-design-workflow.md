@@ -399,6 +399,10 @@ def basic_design_workflow(req_path):
     # Phase 1: ドラフト作成（確定した技術スタックを反映）
     basic_path = basic_writer.create_draft(req_path, tech_stack, unresolved_issues)
     
+    # ⚡ Token Optimization:
+    # メインセッションで basic_path の中身を read してはいけない。
+    # レビュアーエージェントにパスだけを渡して、エージェント内で read させること。
+    
     # Phase 2: 品質保証ループ
     history = []
     for i in range(4):

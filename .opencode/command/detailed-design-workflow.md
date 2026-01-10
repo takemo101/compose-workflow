@@ -833,6 +833,7 @@ def detailed_design_workflow(basic_path):
         issue_dependencies = analyze_issue_dependencies(existing_issues)
         
         # 3. コードベース影響分析
+        # ⚡ Use `grep` / `glob` only. Do NOT read full source files.
         code_impact = analyze_codebase_impact(basic_path, 'src/')
         
         # 4. 影響分析レポート作成 & ユーザー確認
@@ -863,6 +864,10 @@ def detailed_design_workflow(basic_path):
     #       - Create 通知設計書.md
     #   - If has_external_api:
     #       - Create 外部API連携設計書.md
+    
+    # ⚡ Token Optimization:
+    # Do NOT read the full content of these files in the main session.
+    # Pass the `feature_dir` path to the reviewer agent.
     
     # Phase 1.5: Verification & Mockup (v2.5 NEW - BLOCKING)
     # 1. ASCII Check

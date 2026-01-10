@@ -965,23 +965,29 @@ Closes #{issue_id}
 > **⚠️ 重要**: PRのタイトルと本文は**日本語**で記述してください。
 
 ```python
+def generate_test_log_summary(test_output: str) -> str:
+    """テスト出力からサマリーを生成（トークン節約）"""
+    # 成功時: "✅ All tests passed (52/52)"
+    # 失敗時: "❌ Failed: 2 tests\n- test_auth_login\n- test_api_create"
+    pass
+
 container-use_environment_run_cmd(
     environment_id=env_id,
     environment_source="/path/to/repo",
-    command='''
-        gh pr create \
-          --title "feat: {日本語タイトル}" \
+    command=f'''
+        gh pr create \\
+          --title "feat: {{日本語タイトル}}" \\
           --body "## 概要
-Closes #{issue_id}
+Closes #{{issue_id}}
 
-{変更の概要を日本語で記述}
+{{変更の概要を日本語で記述}}
 
 ## 変更内容
-- {変更点1}
-- {変更点2}
+- {{変更点1}}
+- {{変更点2}}
 
 ## テスト結果
-{test_log}
+{{generate_test_log_summary(test_output)}}
 
 ## チェックリスト
 - [x] TDDで実装

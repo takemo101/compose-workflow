@@ -450,6 +450,9 @@ def tech_catchup_workflow(input_args):
     
     Use tools: websearch_exa, context7_query-docs
     Output the result as a structured JSON list.
+    
+    IMPORTANT: Return ONLY the raw JSON list. No markdown formatting, no explanations.
+    Start with [ and end with ].
     """
 
     # シングルエージェント起動

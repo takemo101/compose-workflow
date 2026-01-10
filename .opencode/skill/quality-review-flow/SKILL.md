@@ -23,7 +23,28 @@ description: PR作成前の品質レビュー実行フロー、客観的品質�
 | インフラ | `infra-reviewer` |
 | セキュリティ | `security-reviewer` |
 
-### 1.2 スコア判定基準
+### 1.3 Token最適化（Diff-Driven Review）
+
+> **⚠️ 重要**: レビュアーエージェントは、ファイル全体ではなく**変更差分**を中心にレビューすること。
+
+1. **差分取得**: `git diff main...HEAD` で変更箇所のみを取得
+2. **重点確認**: 差分とその周辺コンテキストのみを読み込む
+3. **全文読み込み禁止**: ファイル全体の読み込みは、構造理解が必要な場合のみに限定する
+
+```python
+# レビューエージェントへの指示例
+prompt = """
+レビュー対象:
+1. `git diff main...HEAD` の出力（変更点）
+2. 変更されたファイルの関連箇所（全体ではない）
+
+確認事項:
+- 変更が要件を満たしているか
+- 既存機能を破壊していないか
+"""
+```
+
+### 1.4 スコア判定基準
 
 | スコア | アクション |
 |--------|----------|
@@ -55,13 +76,13 @@ def check_objective_criteria(env_id: str, language: str) -> ObjectiveCriteriaRes
             "lint": "cargo clippy -- -D warnings",
             "type": "cargo check",
             "format": "cargo fmt --check",
-            "test": "cargo test",
+            "test": "cargo test -- --quiet",  # ログ抑制
         },
         "typescript": {
-            "lint": "npm run lint",
+            "lint": "npm run lint -- --quiet",
             "type": "npm run type-check",
             "format": "npm run format:check",
-            "test": "npm test",
+            "test": "npm test -- --silent",  # ログ抑制
         }
     }
     
