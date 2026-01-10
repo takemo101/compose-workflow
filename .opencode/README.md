@@ -148,6 +148,7 @@ flowchart TB
 | `/req-workflow` | アイデア・メモ | 要件定義書 (REQ-XXX.md) | 8点以上 |
 | `/tech-catchup-workflow` | 技術リスト / 要件定義書 | 技術調査レポート (TECH-XXX.md) | - (調査完了) |
 | `/basic-design-workflow` | 要件定義書 + 技術調査レポート | 基本設計書 (BASIC-XXX.md) | 9点以上 |
+| `/release` | バージョン（省略可） | GitHub Release | - (リリース完了) |
 | `/detailed-design-workflow` | 基本設計書 | 詳細設計書群 + テスト項目書 + Issues | 9点以上 |
 | `/implement-issues` | GitHub Issues | 実装コード + PR | 9点以上（全レビュアー）⚡並列対応 |
 
@@ -301,6 +302,7 @@ docs/
 | [レビュアー共通](./skill/reviewer-common/SKILL.md) | 実装レビュアーの共通ガイドライン | **レビュー時** |
 | [Phase命名規約](./skill/workflow-phase-convention/SKILL.md) | Phase番号・承認ゲート・リトライ回数の標準 | **ワークフロー設計時** |
 | [バグ修正ワークフロー](./command/bug-fix.md) | バグ報告→修正→PR作成の完全フロー（`/bug-fix`コマンド） | **バグ修正時** |
+| [リリースワークフロー](./skill/release-workflow/SKILL.md) | バージョン提案→承認→GitHub Release作成（`/release`コマンド） | **リリース時** |
 
 ---
 
