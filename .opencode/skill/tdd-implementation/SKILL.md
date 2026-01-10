@@ -32,12 +32,28 @@ TDD開始前に、詳細設計フェーズで作成されたテスト項目書�
 
 ## 🔴 Red: テスト実装
 
+### Test Log Compression (ログ圧縮)
+
+> **Token最適化**: テスト実行ログは膨大になりがち。成功ログはノイズ。
+> 常に**失敗したテストのみ**を出力するか、出力をフィルタリングする。
+
+```bash
+# npm (Jest) の場合: --silent または failureのみgrep
+npm test -- --silent --testPathPattern='feature-name'
+# または
+npm test 2>&1 | grep -A 5 "FAIL"
+
+# Cargo (Rust) の場合: --quiet
+cargo test --quiet
+```
+
 ```python
 # テスト実行 (失敗を確認)
 container-use_environment_run_cmd(
     environment_id=env_id,
     environment_source="/path/to/repo",
-    command="npm test -- --testPathPattern='feature-name'"
+    # 冗長な出力を抑制
+    command="npm test -- --silent --testPathPattern='feature-name'"
 )
 ```
 

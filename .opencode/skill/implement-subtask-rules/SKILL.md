@@ -167,12 +167,17 @@ def load_design_context(task_type: str, design_path: str) -> dict:
 
 ## 1.5 設計書実現性チェック（Phase 3）
 
-> **目的**: 実装前に「仕様の曖昧さ」を検知し、手戻りやWorkerの独断実装を防ぐ。
+> **Token最適化**: Phase 2 で取得した `context` オブジェクトを直接埋め込む。
+> **絶対に設計書を再読み込みしないこと**（ファイルアクセス 0回）。
 
 ### 判定プロンプト（Gate）
 
 ```python
-PROMPT = """
+# Phase 2 で取得済みの context を使用
+def check_feasibility(context: dict) -> GateResult:
+    """設計書の実現性をチェック（読み込み済みのコンテキストを使用）"""
+    
+    PROMPT = f"""
 あなたはシニアエンジニアです。以下の設計書セクションだけを読んで、**迷いなくコードに落とし込めますか？**
 
 ## 判定基準
@@ -182,16 +187,18 @@ PROMPT = """
 4. **NG**: 依存するAPI/DB定義が存在しない
 5. **NG**: 実装者の推測で補完する必要がある
 
-## コンテキスト
-{context}
+## コンテキスト（読み込み済み）
+{json.dumps(context, indent=2)}
 
 ## 出力
-{
+{{
   "feasibility": "OK" | "NG",
   "reason": "NGの場合の具体的理由（なければnull）",
   "questions": ["設計者への質問リスト"]
-}
+}}
 """
+    # 呼び出し (readツールは使用しない)
+    return llm.generate(PROMPT)
 ```
 
 ### NG時の対応（Blocked移行）

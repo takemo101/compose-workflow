@@ -405,6 +405,7 @@ container-use_environment_run_cmd(command="npm test")
 
 | 日付 | バージョン | 変更内容 |
 |:---|:---|:---|
+| 2026-01-10 | 3.28.0 | **Token Consumption Optimization (トークン消費量最適化)**: 隠れた無駄を徹底排除。(1) **Diff-Driven Review** (レビュー時の全文読み込み禁止)、(2) **Test Log Compression** (テスト成功ログの抑制)、(3) **Context Pass-through** (設計書コンテキストの再利用による読み込みゼロ化) を実装 |
 | 2026-01-10 | 3.27.1 | **Stress Test Integration (ストレステスト統合)**: Phase 9 に「ストレステスト（任意）」を追加し、メインフローに正式統合。重要機能の実装時に自動的にマルチ視点検証を実行するフローを確立 |
 | 2026-01-10 | 3.27.0 | **Adaptive Architecture Strategy (適応型アーキテクチャ) 導入**: 固定アーキテクチャ強制を廃止。プロジェクト定義 > フレームワーク標準 > 推奨パターンの優先順位でアーキテクチャを決定。小規模プロジェクトやNext.js等のフレームワークとの親和性を向上 |
 | 2026-01-10 | 3.26.0 | **Specification Gate (設計書検問) 実装**: Phase 3 に「設計書実現性チェック」を追加。実装前にAIが仕様の曖昧さを判定し、NGならBlocked移行することで「推測実装によるバグ」を完全防止。ai-frameworkの「仕様書品質重視」思想を取り込み完了 |
