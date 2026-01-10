@@ -1,6 +1,6 @@
 ---
 description: テスト項目書を作成する専門家（TDD強制フロー）
-model: anthropic/claude-sonnet-4-5
+model: google/antigravity-claude-sonnet-4-5-thinking
 mode: subagent
 temperature: 0.2
 tools:

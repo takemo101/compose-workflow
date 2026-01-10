@@ -95,28 +95,29 @@ React 19, Bun
 
 ---
 
-### Phase 2: 最新情報収集（軽量版）
+### Phase 2: 最新情報収集
 
-**librarianエージェントを起動して技術概要のみを調査:**
+**librarianエージェントを起動して調査（深度に応じた情報を収集）:**
 
 > **実装方法**: 
 > - `call_omo_agent` でバックグラウンド実行
-> - **技術概要のみ** にフォーカスし、コード例や詳細調査をスキップ
-> - 使用ツール: `websearch_exa` (メイン)
+> - 使用ツール: `websearch_exa`, `context7_query-docs`
 >
-> **⚠️ 制約（動作軽量化）**:
-> - コード例、インストール手順、詳細な変更点は調査しない
-> - 公式サイトのメタデータ（バージョン、日付、URL）のみ取得
-> - リポジトリへのアクセス・ダウンロードは一切行わない
+> **⚠️ 制約（調査深度による差分）**:
+> - **quick**: 公式サイトのメタデータ（バージョン、日付、URL）のみ取得
+> - **standard以上**: インストール手順・基本的な使い方・コード例も調査
+> - リポジトリへのダウンロード・ビルドは一切行わない
 
 1. **基本情報確認**
    - 最新バージョン番号とリリース日
    - 公式ドキュメントURL
    - 概要（1-2行）
 
-2. **詳細調査（スキップ）**
-   - コード例、マイグレーションガイド、エコシステム調査は実施しない
-   - 必要であればユーザーが個別に調査を行う前提とする
+2. **詳細調査（standard以上で実施）**
+   - インストールコマンド（npm/yarn/pnpm等）
+   - 基本的な使い方（最小構成のコード例）
+   - マイグレーションガイド（メジャーバージョン差がある場合）
+   - よくあるエラーと対処法
 
 **調査ソース:**
 - 公式ドキュメント（最優先）
@@ -146,7 +147,66 @@ React 19, Bun
 | LANG | プログラミング言語・ランタイム |
 | TOOL | 開発ツール・ビルドツール |
 
-**レポート構成（参照インデックス版）:**
+**レポート構成（standard以上）:**
+
+```markdown
+# 技術調査レポート: [技術名]
+
+| 項目 | 内容 |
+|------|------|
+| 調査日 | YYYY-MM-DD |
+| 最新バージョン | vX.Y.Z |
+| 調査深度 | standard / deep |
+
+## 参照リンク（公式）
+- **公式ドキュメント**: [URL]
+- **GitHubリポジトリ**: [URL]
+- **Getting Started**: [URL]
+
+## 技術概要
+[1-2行で記載]
+
+## インストール方法
+
+### npm
+```bash
+npm install [package-name]
+```
+
+### yarn
+```bash
+yarn add [package-name]
+```
+
+### pnpm
+```bash
+pnpm add [package-name]
+```
+
+## 基本的な使い方
+
+### 最小構成例
+```typescript
+// コピペで動く最小構成のコード例
+```
+
+### 主要なAPI/関数
+| API/関数 | 説明 |
+|----------|------|
+| `xxx()` | 説明 |
+| `yyy()` | 説明 |
+
+## よくあるエラーと対処
+
+| エラー | 原因 | 対処法 |
+|--------|------|--------|
+| Error: xxx | 原因の説明 | 対処法 |
+
+## メモ
+[必要に応じて追記]
+```
+
+**レポート構成（quick - 参照インデックス版）:**
 
 ```markdown
 # 技術調査レポート: [技術名]
@@ -169,21 +229,17 @@ React 19, Bun
 
 ---
 
----
-
 ### Phase 4: 基本設計への引き継ぎ
 
 **実行内容:**
 
-1. **技術調査レポートの要約生成**
-   - 設計に影響する重要ポイントを抽出
-   - 未解決課題（I-XXX）として記録
+1. **完了報告の生成**
+   - 調査結果一覧（技術名、現行→最新、影響度）
+   - 実装クイックリファレンス（インストールコマンド、リンク集）
+   - 成果物パス一覧
 
-2. **基本設計ワークフローへの連携準備**
-   - 技術調査レポートへのリンクを準備
-   - 技術スタック選定ヒアリングへのインプット整理
-
-3. **次ステップの案内**
+2. **次ステップの案内**
+   - `/basic-design-workflow` の実行を促す
 
 ---
 
@@ -314,31 +370,53 @@ def tech_catchup_workflow(input_args):
     
     tech_list_str = ", ".join([t.name for t in prioritized])
     
-    # 統合プロンプトの作成
-    prompt = f"""
-    Collect REFERENCE URLs and METADATA for the following technologies.
-    Target Technologies: {tech_list_str}
-    
-    For EACH technology, provide ONLY:
-    1. Latest Version Number (e.g., v15.1.0)
-    2. Official Documentation URL
-    3. GitHub Repository URL
-    
-    Use tools: websearch_exa (Preferred)
-    Output the result as a structured JSON list.
-    
-    IMPORTANT: Return ONLY the raw JSON list. No markdown formatting.
-    Start with [ and end with ].
-    
-    ===== RESTRICTIONS =====
-    - DO NOT summarize the technology
-    - DO NOT look for features or changes
-    - DO NOT download anything
-    - GOAL is just to create an index of links
-    ========================
-    """
+    # 統合プロンプトの作成（調査深度に応じて分岐）
+    if depth == 'quick':
+        prompt = f"""
+        Target: {tech_list_str}
+        
+        For EACH technology, collect:
+        - Latest version number
+        - Official documentation URL
+        - GitHub repository URL
+        
+        Output: JSON array. No markdown.
+        
+        Restrictions: Metadata only. No code examples.
+        """
+    elif depth == 'standard':
+        prompt = f"""
+        Target: {tech_list_str}
+        
+        For EACH technology, collect:
+        - Latest version, docs URL, GitHub URL, Getting Started URL
+        - Installation commands (npm/yarn/pnpm)
+        - Minimal working code example
+        - Top 3-5 APIs/functions
+        - Common errors and solutions (2-3)
+        
+        Output: JSON array. No markdown.
+        """
+    else:  # deep
+        prompt = f"""
+        Target: {tech_list_str}
+        
+        For EACH technology, collect:
+        - Latest version, docs URL, GitHub URL, Getting Started URL
+        - Installation commands (npm/yarn/pnpm)
+        - Minimal working code example
+        - Top 3-5 APIs/functions
+        - Common errors and solutions (2-3)
+        - Best practices and anti-patterns
+        - Ecosystem overview (related libraries)
+        - Competitor comparison (if applicable)
+        
+        Output: JSON array. No markdown.
+        """
 
-    # シングルエージェント起動
+    # シングルエージェント起動（タイムアウト付き）
+    timeout_minutes = {'quick': 15, 'standard': 45, 'deep': 90}.get(depth, 45)
+    
     task_id = call_omo_agent(
         subagent_type='librarian',
         run_in_background=True,
@@ -346,14 +424,21 @@ def tech_catchup_workflow(input_args):
         prompt=prompt
     )
     
-    # 結果待機
-    raw_result = background_output(task_id=task_id)
+    # 結果待機（タイムアウト処理）
+    try:
+        raw_result = background_output(task_id=task_id, timeout=timeout_minutes * 60)
+    except TimeoutError:
+        # サーキットブレーカー発動：中間レポート出力
+        return partial_success(
+            message=f"調査時間超過（{timeout_minutes}分）。中間レポートを出力しました。",
+            partial_reports=get_partial_results(task_id)
+        )
     
     # 結果のパース（JSONリストを辞書に変換）
     # 期待形式: [{ "name": "Next.js", "version": "v15.0", "docs": "...", "github": "..." }, ...]
     reports = parse_json_result(raw_result)
     
-    # Phase 3: レポート作成（リンク集のみ）
+    # Phase 3: レポート作成（調査深度に応じて分岐）
     report_paths = []
     
     if len(reports) > 1:
@@ -361,8 +446,8 @@ def tech_catchup_workflow(input_args):
         date_str = get_current_date_str()
         path = f"docs/research/TECH-REPORT-{date_str}_Combined.md"
         
-        # 統合インデックスレポートの作成
-        create_combined_index_report(path, reports)
+        # 統合レポートの作成（調査深度に応じた詳細度）
+        create_combined_report(path, reports, depth)
         report_paths.append(path)
     else:
         # 単体の場合は個別ファイル作成
@@ -371,7 +456,11 @@ def tech_catchup_workflow(input_args):
             next_id = get_next_report_id(category)
             path = f"docs/research/TECH-{category}-{next_id}_{tech.get('name', 'unknown')}.md"
             
-            create_index_report(path, tech)
+            # 調査深度に応じたレポート作成
+            if depth == 'quick':
+                create_index_report(path, tech)
+            else:
+                create_detailed_report(path, tech, depth)
             report_paths.append(path)
     
     # Phase 4: 基本設計への引き継ぎ
