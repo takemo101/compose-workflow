@@ -1,5 +1,16 @@
 {
+  "scripts": {
+    "test": "vitest run .opencode",
+    "test:watch": "vitest .opencode",
+    "format": "biome format .opencode/plugin --write",
+    "lint": "biome check .opencode/plugin --write --unsafe"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "1.1.12"
+  },
   "devDependencies": {
-    "@playwright/test": "^1.57.0"
+    "@biomejs/biome": "2.3.11",
+    "@playwright/test": "^1.57.0",
+    "vitest": "^4.0.16"
   }
 }

@@ -13,6 +13,7 @@ USE_EXCLUDE=false
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 OPENCODE_SOURCE="${SOURCE_DIR}/.opencode"
+TEMPLATES_DIR="${SOURCE_DIR}/templates"
 
 GITIGNORE_ENTRIES=(
     "# OpenCode workflow"
@@ -183,31 +184,31 @@ echo "  Source: ${OPENCODE_SOURCE}"
 echo "  Link:   ${TARGET_LINK}"
 
 TARGET_OPENCODE_JSON="${TARGET_DIR}/opencode.json"
-SOURCE_OPENCODE_JSON="${SOURCE_DIR}/opencode.json"
+SOURCE_OPENCODE_JSON="${TEMPLATES_DIR}/opencode.template.json"
 
 if [[ -f "$SOURCE_OPENCODE_JSON" ]]; then
     if [[ -e "$TARGET_OPENCODE_JSON" ]]; then
         echo -e "${YELLOW}⏭ opencode.json already exists, skipping.${NC}"
     else
-        execute "Copy opencode.json" "cp '$SOURCE_OPENCODE_JSON' '$TARGET_OPENCODE_JSON'"
-        [[ "$DRY_RUN" == false ]] && echo -e "${GREEN}✓ opencode.json copied.${NC}"
+        execute "Copy opencode.json from template" "cp '$SOURCE_OPENCODE_JSON' '$TARGET_OPENCODE_JSON'"
+        [[ "$DRY_RUN" == false ]] && echo -e "${GREEN}✓ opencode.json copied from template.${NC}"
     fi
 else
-    echo -e "${YELLOW}⚠ Source opencode.json not found, skipping.${NC}"
+    echo -e "${YELLOW}⚠ Template opencode.template.json not found, skipping.${NC}"
 fi
 
 TARGET_PACKAGE_JSON="${TARGET_DIR}/package.json"
-SOURCE_PACKAGE_JSON="${SOURCE_DIR}/package.json"
+SOURCE_PACKAGE_JSON="${TEMPLATES_DIR}/package.template.json"
 
 if [[ -f "$SOURCE_PACKAGE_JSON" ]]; then
     if [[ -e "$TARGET_PACKAGE_JSON" ]]; then
         echo -e "${YELLOW}⏭ package.json already exists, skipping.${NC}"
     else
-        execute "Copy package.json" "cp '$SOURCE_PACKAGE_JSON' '$TARGET_PACKAGE_JSON'"
-        [[ "$DRY_RUN" == false ]] && echo -e "${GREEN}✓ package.json copied.${NC}"
+        execute "Copy package.json from template" "cp '$SOURCE_PACKAGE_JSON' '$TARGET_PACKAGE_JSON'"
+        [[ "$DRY_RUN" == false ]] && echo -e "${GREEN}✓ package.json copied from template.${NC}"
     fi
 else
-    echo -e "${YELLOW}⚠ Source package.json not found, skipping.${NC}"
+    echo -e "${YELLOW}⚠ Template package.template.json not found, skipping.${NC}"
 fi
 
 MEMOS_DIR="${TARGET_DIR}/docs/memos"

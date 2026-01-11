@@ -1,4 +1,4 @@
 node_modules
-
-# ローカル環境データ（コンテナ環境IDはマシン固有のため共有不可）
-environments.json
+package.json
+bun.lock
+.gitignore

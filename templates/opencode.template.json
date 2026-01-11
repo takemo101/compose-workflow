@@ -5,6 +5,11 @@
     "ignore": [".opencode/node_modules/**"]
   },
   "mcp": {
+    "container-use": {
+      "type": "local",
+      "command": ["container-use", "stdio"],
+      "enabled": true
+    },
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
@@ -18,6 +23,11 @@
         "@modelcontextprotocol/server-sequential-thinking"
       ],
       "enabled": true
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "-y", "@playwright/mcp@latest"],
+      "enabled": false
     },
     "serena": {
       "type": "local",
