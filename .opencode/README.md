@@ -409,6 +409,7 @@ container-use_environment_run_cmd(command="npm test")
 
 | 日付 | バージョン | 変更内容 |
 |:---|:---|:---|
+| 2026-01-11 | 3.30.0 | **Security Scan Plugin**: OpenCodeプラグインとして`plugin/security-scan/`を導入（TypeScript、テスト付き）。センシティブファイル（.env, *.pem, credentials.json, secrets.yaml等）への書き込み・削除をブロック。コンテンツスキャン（AWS/GitHub/OpenAI/Anthropic/Slack等14種のAPIキー検出）、bashコマンド経由の書き込みも防止 |
 | 2026-01-11 | 3.29.0 | **P0 Refactoring (500行ルール適用)**: 巨大コマンドファイルを分割・スリム化。(1) **implement-issues.md**: 1,442行→290行（**80%削減**）- 重複Python疑似コードを表形式に変換、CI/マージ処理をスキル参照に置換 (2) **bug-fix.md**: 1,402行→322行（**77%削減**）- Phase 2を`/implement-issues`内部呼び出しに統一、エスカレーション詳細をサマリー表に凝縮。DRY原則徹底適用 |
 | 2026-01-10 | 3.28.0 | **Token Consumption Optimization (トークン消費量最適化)**: 隠れた無駄を徹底排除。(1) **Diff-Driven Review** (レビュー時の全文読み込み禁止)、(2) **Test Log Compression** (テスト成功ログの抑制)、(3) **Context Pass-through** (設計書コンテキストの再利用による読み込みゼロ化) を実装 |
 | 2026-01-10 | 3.27.1 | **Stress Test Integration (ストレステスト統合)**: Phase 9 に「ストレステスト（任意）」を追加し、メインフローに正式統合。重要機能の実装時に自動的にマルチ視点検証を実行するフローを確立 |
