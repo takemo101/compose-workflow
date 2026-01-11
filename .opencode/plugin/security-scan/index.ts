@@ -63,7 +63,10 @@ interface Plugin {
  * extractString({filePath: "test.ts"}, "filePath", "file_path") // "test.ts"
  * extractString({file_path: "test.ts"}, "filePath", "file_path") // "test.ts"
  */
-function extractString(args: Record<string, unknown>, ...keys: string[]): string {
+function extractString(
+  args: Record<string, unknown>,
+  ...keys: string[]
+): string {
   for (const key of keys) {
     const value = args?.[key];
     if (typeof value === "string") return value;
@@ -97,7 +100,9 @@ export default async function SecurityScanPlugin(): Promise<Plugin> {
        * セキュリティ違反を検出した場合は操作を拒否し、
        * 問題がなければnullを返して他のプラグインやデフォルト処理に委譲します。
        */
-      async handler(request: PermissionRequest): Promise<PermissionResponse | null> {
+      async handler(
+        request: PermissionRequest,
+      ): Promise<PermissionResponse | null> {
         const { tool, arguments: args } = request;
 
         // ファイル書き込み操作（write, edit）のチェック

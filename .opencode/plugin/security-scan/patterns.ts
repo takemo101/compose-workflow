@@ -28,13 +28,13 @@ export const SENSITIVE_FILE_PATTERNS: RegExp[] = [
 
   // 秘密鍵・証明書ファイル
   // SSL/TLS証明書、SSH鍵、コード署名用の鍵など
-  /\.pem$/,   // PEM形式の鍵・証明書
-  /\.key$/,   // 秘密鍵ファイル
-  /\.p12$/,   // PKCS#12形式（証明書と秘密鍵のバンドル）
-  /\.pfx$/,   // PFX形式（Windowsで使用されるPKCS#12）
-  /id_rsa/,      // RSA SSH秘密鍵
-  /id_ed25519/,  // Ed25519 SSH秘密鍵
-  /id_ecdsa/,    // ECDSA SSH秘密鍵
+  /\.pem$/, // PEM形式の鍵・証明書
+  /\.key$/, // 秘密鍵ファイル
+  /\.p12$/, // PKCS#12形式（証明書と秘密鍵のバンドル）
+  /\.pfx$/, // PFX形式（Windowsで使用されるPKCS#12）
+  /id_rsa/, // RSA SSH秘密鍵
+  /id_ed25519/, // Ed25519 SSH秘密鍵
+  /id_ecdsa/, // ECDSA SSH秘密鍵
 
   // シークレット管理ファイル
   // Kubernetes Secrets、アプリケーション設定など
@@ -110,7 +110,10 @@ export const SENSITIVE_CONTENT_PATTERNS: SecretPattern[] = [
 
   // SendGrid API Key
   // 形式: "SG." + 22文字 + "." + 43文字
-  { pattern: /SG\.[a-zA-Z0-9]{22}\.[a-zA-Z0-9-_]{43}/, name: "SendGrid API Key" },
+  {
+    pattern: /SG\.[a-zA-Z0-9]{22}\.[a-zA-Z0-9-_]{43}/,
+    name: "SendGrid API Key",
+  },
 
   // Stripe Live Secret Key
   // 形式: "sk_live_" + 24文字以上の英数字

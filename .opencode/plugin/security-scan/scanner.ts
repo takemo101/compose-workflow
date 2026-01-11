@@ -17,9 +17,7 @@ import {
  * blocked: false - 操作を許可
  * blocked: true  - 操作をブロック（reasonに理由を含む）
  */
-export type ScanResult =
-  | { blocked: false }
-  | { blocked: true; reason: string };
+export type ScanResult = { blocked: false } | { blocked: true; reason: string };
 
 /**
  * セキュリティスキャナークラス
@@ -60,7 +58,9 @@ export class SecurityScanner {
   detectSecret(content: string): string | null {
     if (!content) return null;
     // パターン配列を順番にチェックし、最初にマッチしたものを返す
-    const found = SENSITIVE_CONTENT_PATTERNS.find(({ pattern }) => pattern.test(content));
+    const found = SENSITIVE_CONTENT_PATTERNS.find(({ pattern }) =>
+      pattern.test(content),
+    );
     return found?.name ?? null;
   }
 

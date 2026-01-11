@@ -9,7 +9,8 @@ const DUMMY = {
   githubFinePat: "github_pat_" + "x".repeat(22),
   openaiKey: "sk-" + "x".repeat(48),
   openaiProjectKey: "sk-proj-" + "x".repeat(48),
-  slackToken: "xoxb-" + "0".repeat(12) + "-" + "0".repeat(13) + "-" + "a".repeat(24),
+  slackToken:
+    "xoxb-" + "0".repeat(12) + "-" + "0".repeat(13) + "-" + "a".repeat(24),
   googleApiKey: "AIzaSy" + "x".repeat(33),
   sendgridKey: "SG." + "x".repeat(22) + "." + "x".repeat(43),
   stripeLiveKey: "sk_live_" + "x".repeat(24),
@@ -62,18 +63,28 @@ describe("SecurityScanner", () => {
 
     it("detects Private Key", () => {
       expect(scanner.detectSecret(DUMMY.privateKeyHeader)).toBe("Private Key");
-      expect(scanner.detectSecret("-----BEGIN PRIVATE KEY-----")).toBe("Private Key");
+      expect(scanner.detectSecret("-----BEGIN PRIVATE KEY-----")).toBe(
+        "Private Key",
+      );
     });
 
     it("detects GitHub tokens", () => {
-      expect(scanner.detectSecret(DUMMY.githubPat)).toBe("GitHub Personal Access Token");
-      expect(scanner.detectSecret(DUMMY.githubOauth)).toBe("GitHub OAuth Token");
-      expect(scanner.detectSecret(DUMMY.githubFinePat)).toBe("GitHub Fine-grained PAT");
+      expect(scanner.detectSecret(DUMMY.githubPat)).toBe(
+        "GitHub Personal Access Token",
+      );
+      expect(scanner.detectSecret(DUMMY.githubOauth)).toBe(
+        "GitHub OAuth Token",
+      );
+      expect(scanner.detectSecret(DUMMY.githubFinePat)).toBe(
+        "GitHub Fine-grained PAT",
+      );
     });
 
     it("detects OpenAI keys", () => {
       expect(scanner.detectSecret(DUMMY.openaiKey)).toBe("OpenAI API Key");
-      expect(scanner.detectSecret(DUMMY.openaiProjectKey)).toBe("OpenAI Project API Key");
+      expect(scanner.detectSecret(DUMMY.openaiProjectKey)).toBe(
+        "OpenAI Project API Key",
+      );
     });
 
     it("detects Slack token", () => {
@@ -90,19 +101,27 @@ describe("SecurityScanner", () => {
 
     it("detects Stripe keys", () => {
       expect(scanner.detectSecret(DUMMY.stripeLiveKey)).toBe("Stripe Live Key");
-      expect(scanner.detectSecret(DUMMY.stripeRestrictedKey)).toBe("Stripe Restricted Key");
+      expect(scanner.detectSecret(DUMMY.stripeRestrictedKey)).toBe(
+        "Stripe Restricted Key",
+      );
     });
 
     it("detects Square token", () => {
-      expect(scanner.detectSecret(DUMMY.squareToken)).toBe("Square Access Token");
+      expect(scanner.detectSecret(DUMMY.squareToken)).toBe(
+        "Square Access Token",
+      );
     });
 
     it("detects Anthropic key", () => {
-      expect(scanner.detectSecret(DUMMY.anthropicKey)).toBe("Anthropic API Key");
+      expect(scanner.detectSecret(DUMMY.anthropicKey)).toBe(
+        "Anthropic API Key",
+      );
     });
 
     it("returns null for safe content", () => {
-      expect(scanner.detectSecret("const apiKey = process.env.API_KEY")).toBeNull();
+      expect(
+        scanner.detectSecret("const apiKey = process.env.API_KEY"),
+      ).toBeNull();
       expect(scanner.detectSecret("export const config = {}")).toBeNull();
     });
 
@@ -146,7 +165,10 @@ describe("SecurityScanner", () => {
     });
 
     it("blocks content with secrets", () => {
-      const result = scanner.scanFileWrite("config.ts", `const key = '${DUMMY.awsKey}'`);
+      const result = scanner.scanFileWrite(
+        "config.ts",
+        `const key = '${DUMMY.awsKey}'`,
+      );
       expect(result.blocked).toBe(true);
       expect(result.blocked && result.reason).toContain("SECRET DETECTED");
     });
