@@ -51,11 +51,14 @@ export const SecurityScanPlugin: Plugin = async ({ project, client }) => {
 	const scanner = new SecurityScanner();
 
 	// プラグイン初期化ログ
+	// client.app.log() は { body: {...} } 形式で引数を渡す必要がある
 	await client.app.log({
-		service: "security-scan",
-		level: "info",
-		message: "Security Scan Plugin initialized",
-		extra: { project: project.name },
+		body: {
+			service: "security-scan",
+			level: "info",
+			message: "Security Scan Plugin initialized",
+			extra: { projectId: project.id },
+		},
 	});
 
 	return {
