@@ -135,12 +135,19 @@ Issueのコメントをスキャンし、未完了の申し送り事項があれ
 
 設計の矛盾が見つかった場合は `/request-design-fix` を実行。
 
-### Phase 6.5: 実装完了自己チェック
+### Phase 6.5: 実装完了自己チェック ⚠️ 必須
 
-| チェック項目 | コマンド | アクション |
-|-------------|---------|-----------|
-| TODO/unimplemented残存 | `grep -r 'todo!\|unimplemented!' src/` | 実装して解消 or Issue作成 |
-| Smoke Test | `cargo run -- --help` | 起動失敗なら修正必須 |
+> **重要**: 以下の全チェックを通過しないとPR作成に進めない。
+> **詳細**: {{skill:quality-review-flow}} セクション2（客観的品質基準）を参照
+
+| チェック項目 | アクション |
+|-------------|-----------|
+| TODO/unimplemented残存 | `grep -r 'todo!\|unimplemented!' src/` → 実装して解消 or Issue作成 |
+| Smoke Test | `cargo run -- --help` / `npm run dev` → 起動失敗なら修正必須 |
+| **到達可能性** | エントリポイントから実装コードが呼ばれているか確認 |
+| **定義-使用相関** | 未使用の引数/Props/パラメータがないか確認（スタブ検出） |
+
+> ※ 到達可能性・定義-使用相関の詳細な確認方法は {{skill:quality-review-flow}} セクション2.2, 2.3 を参照
 
 ### Phase 7: 品質レビュー & 客観的基準
 

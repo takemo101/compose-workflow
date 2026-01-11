@@ -54,56 +54,64 @@ prompt = """
 
 ---
 
-## 2. 客観的品質基準（必須条件）
+## 2. 客観的品質基準（必須条件）★SSOT★
+
+> **このセクションが客観的品質基準の唯一の定義（Single Source of Truth）です。**
+> 他ファイルからはこのセクションを参照してください。
 
 レビュースコアに加え、以下の**客観的基準**を満たす必要があります。
 これらはAIの主観に依存せず、ツールで検証可能です。
 
-| 基準 | 検証コマンド | 必須 |
-|------|-------------|------|
-| **Lintエラー 0件** | `cargo clippy -- -D warnings` / `npm run lint` | ✅ |
-| **型エラー 0件** | `cargo check` / `npm run type-check` | ✅ |
-| **フォーマット準拠** | `cargo fmt --check` / `npm run format:check` | ✅ |
-| **テスト全通過** | `cargo test` / `npm test` | ✅ |
-| **カバレッジ 80%以上** | `cargo tarpaulin` / `npm run coverage` | 推奨 |
+### 2.1 ツール検証可能な基準
 
-```python
-def check_objective_criteria(env_id: str, language: str) -> ObjectiveCriteriaResult:
-    """客観的品質基準のチェック"""
-    
-    checks = {
-        "rust": {
-            "lint": "cargo clippy -- -D warnings",
-            "type": "cargo check",
-            "format": "cargo fmt --check",
-            "test": "cargo test -- --quiet",  # ログ抑制
-        },
-        "typescript": {
-            "lint": "npm run lint -- --quiet",
-            "type": "npm run type-check",
-            "format": "npm run format:check",
-            "test": "npm test -- --silent",  # ログ抑制
-        }
-    }
-    
-    results = {}
-    lang_checks = checks.get(language, {})
-    
-    for check_name, command in lang_checks.items():
-        result = container-use_environment_run_cmd(
-            environment_id=env_id,
-            command=command
-        )
-        results[check_name] = result.exit_code == 0
-    
-    all_passed = all(results.values())
-    
-    return ObjectiveCriteriaResult(
-        passed=all_passed,
-        details=results,
-        message="全ての客観的基準を満たしています" if all_passed else f"失敗: {[k for k, v in results.items() if not v]}"
-    )
-```
+| 基準 | 検証コマンド（Rust） | 検証コマンド（TypeScript） | 必須 |
+|------|---------------------|--------------------------|------|
+| **Lintエラー 0件** | `cargo clippy -- -D warnings` | `npm run lint` | ✅ |
+| **型エラー 0件** | `cargo check` | `npm run type-check` | ✅ |
+| **フォーマット準拠** | `cargo fmt --check` | `npm run format:check` | ✅ |
+| **テスト全通過** | `cargo test` | `npm test` | ✅ |
+| **カバレッジ 80%以上** | `cargo tarpaulin` | `npm run coverage` | 推奨 |
+
+### 2.2 到達可能性チェック（Reachability Check）
+
+実装したコードがエントリポイントから呼び出されることを確認する。
+
+| プロジェクト種別 | エントリポイント | 確認コマンド例 |
+|-----------------|-----------------|---------------|
+| Rust CLI | `src/main.rs` | `grep -E 'handler_name\|mod handler' src/main.rs` |
+| Next.js App Router | `app/**/page.tsx` | 実装コンポーネントの import 確認 |
+| Next.js Pages Router | `pages/**/*.tsx` | 実装コンポーネントの import 確認 |
+| Express/Fastify | `src/app.ts` or `src/index.ts` | route/controller 参照確認 |
+| Spring Boot | `*Application.java` | Bean/Component 参照確認 |
+
+**アクション**:
+- 参照がない場合 → エントリポイントを修正して統合
+- import されていない場合 → use/import 文を追加
+- **このチェックを通過しないとPR作成不可**
+
+### 2.3 定義-使用相関チェック（Definition-Usage Correlation Check）
+
+定義された引数/Props/パラメータが実際に使用されているかを確認する。
+
+| プロジェクト種別 | 定義元 | 使用先 | 確認コマンド例 |
+|-----------------|--------|-------|---------------|
+| Rust CLI | `args.rs` (struct fields) | `handlers.rs` | `grep 'args\.field_name' src/` |
+| Python CLI | `argparse.add_argument()` | handler関数 | 引数変数の使用確認 |
+| REST API | OpenAPI spec / DTO | Controller | パラメータ使用確認 |
+| React/Vue | Props 定義 | Component 本体 | props 参照確認 |
+
+**アクション**:
+- 未使用の定義がある場合 → **スタブとして報告**（実装を追加 or 定義を削除）
+- **スタブ残存時の減点**: **-2点**
+
+### 2.4 判定ルール
+
+| 条件 | 結果 |
+|------|------|
+| 全基準クリア | PR作成可 |
+| ツール検証失敗（Lint/型/テスト） | 修正必須、PR作成不可 |
+| 到達可能性NG | 統合必須、PR作成不可 |
+| 定義-使用相関NG（スタブあり） | -2点減点、軽微なら警告付きで続行可 |
 
 > **Note**: 客観的基準が未達の場合、レビュースコアに関係なく PR 作成不可。
 
@@ -113,48 +121,23 @@ def check_objective_criteria(env_id: str, language: str) -> ObjectiveCriteriaRes
 
 同じ指摘が繰り返される場合は即座にエスカレーションします。
 
-```python
-def detect_repeated_issues(current_issues: list[str], previous_issues: list[str]) -> bool:
-    """前回と同じ指摘が繰り返されているか検出"""
-    
-    normalize = lambda s: s.lower().strip()
-    current_set = set(normalize(i) for i in current_issues)
-    previous_set = set(normalize(i) for i in previous_issues)
-    
-    overlap = current_set & previous_set
-    if previous_set and len(overlap) / len(previous_set) >= 0.5:
-        return True
-    return False
+### 検出ルール
 
-def review_with_repeat_detection(env_id: str, subtask_id: int) -> ReviewResult:
-    """同一指摘検出付きレビューループ"""
-    
-    MAX_RETRIES = 3
-    previous_issues = []
-    
-    for attempt in range(MAX_RETRIES):
-        # レビュー実行（各エージェント呼び出し）
-        review = run_quality_review(env_id, subtask_id)
-        
-        # 客観的基準チェック
-        objective_result = check_objective_criteria(env_id, detect_language())
-        if not objective_result.passed:
-             report_to_user(f"⚠️ 客観的基準未達: {objective_result.message}")
-             fix_issues(env_id, ["Objective criteria failure"])
-             continue
+| 条件 | アクション |
+|------|----------|
+| 前回指摘と50%以上重複 | 即座にエスカレーション |
+| 3回連続で9点未満 | Blocked状態へ移行 |
 
-        if review.score >= 9:
-            return ReviewResult(status="passed", score=review.score)
-        
-        # 同一指摘検出
-        if attempt > 0 and detect_repeated_issues(review.issues, previous_issues):
-            report_to_user(f"⚠️ 同一指摘が繰り返されています（Issue #{subtask_id}）\n前回: {previous_issues}\n今回: {review.issues}")
-            return ReviewResult(status="escalated", score=review.score, reason="repeated_issues")
-        
-        previous_issues = review.issues
-        fix_issues(env_id, review.issues)
-    
-    return ReviewResult(status="escalated", score=review.score, reason="max_retries")
+### レビューループフロー
+
+```
+レビュー実行 → スコア9点以上? → Yes → PR作成へ
+                    ↓ No
+              同一指摘50%以上? → Yes → エスカレーション
+                    ↓ No
+              リトライ回数 < 3? → Yes → 修正 → 再レビュー
+                    ↓ No
+              Blocked状態へ移行
 ```
 
 ---
@@ -168,37 +151,27 @@ def review_with_repeat_detection(env_id: str, subtask_id: int) -> ReviewResult:
 
 レビュー指摘事項を構造化TODOファイルに保存：
 
-```python
-def save_review_todo(env_id: str, subtask_id: int, review_result: ReviewResult) -> str:
-    """レビュー指摘をTODOファイルに保存（トークン節約）"""
-    
-    todo_content = f"""# Review TODO: Issue #{subtask_id}
-## Review Score: {review_result.score}/10
-## Attempt: {review_result.attempt}/3
+**保存先**: `.review-todo/issue-{subtask_id}-attempt-{attempt}.md`
+
+**TODOファイル形式**:
+```markdown
+# Review TODO: Issue #42
+## Review Score: 7/10
+## Attempt: 1/3
 
 ### 指摘事項（優先度順）
-
-{chr(10).join(f"- [ ] **{issue.severity}**: {issue.description} (File: {issue.file}, Line: {issue.line})" for issue in sorted(review_result.issues, key=lambda x: x.severity_order))}
+- [ ] **HIGH**: エラーハンドリング不足 (File: handlers.rs, Line: 45)
+- [ ] **MEDIUM**: 命名規則違反 (File: args.rs, Line: 12)
 
 ### 修正ガイド
-
 | 指摘 | 修正方針 | 参照セクション |
 |------|---------|--------------|
-{chr(10).join(f"| {issue.description[:30]}... | {issue.fix_hint} | {issue.design_section or 'N/A'} |" for issue in review_result.issues)}
+| エラーハンドリング... | Result型でラップ | ## エラー処理 |
+| 命名規則違反... | snake_caseに修正 | N/A |
 
 ### ⚠️ 再実装時の注意
 - このTODOファイルのみ参照して修正
 - 設計書の再読み込みは「参照セクション」が指定された場合のみ
-- 修正後、このファイルの該当行にチェックを入れる
-"""
-    
-    todo_path = f".review-todo/issue-{subtask_id}-attempt-{review_result.attempt}.md"
-    container_use_environment_file_write(
-        environment_id=env_id,
-        target_file=todo_path,
-        contents=todo_content
-    )
-    return todo_path
 ```
 
 ### 4.2 TODO駆動の再実装フロー
@@ -218,37 +191,17 @@ def save_review_todo(env_id: str, subtask_id: int, review_result: ReviewResult) 
 📝 再レビュー依頼（修正サマリ付き）
 ```
 
-### 4.3 再レビュー呼び出し（TODO参照版）
+### 4.3 再レビュー呼び出し
 
-```python
-# 修正後の再レビュー呼び出し例（トークン最適化版）
-todo_content = container_use_environment_file_read(
-    environment_id=env_id,
-    target_file=f".review-todo/issue-{subtask_id}-attempt-{attempt}.md"
-)
+再レビュー時は以下の情報のみを渡す（トークン最適化）：
 
-task(
-    subagent_type="backend-reviewer",
-    description="Issue #{issue_id} 修正後再レビュー",
-    prompt=f"""
-## 前回レビュー
-- スコア: {previous_score}/10
-- 指摘事項: {len(issues)}件
+| 渡す情報 | 内容 |
+|---------|------|
+| 前回スコア | `7/10` など |
+| 修正TODOファイル | `.review-todo/issue-N-attempt-M.md` の内容 |
+| 修正サマリ | 何を修正したかの簡潔な説明 |
 
-## 修正TODOファイル
-```
-{todo_content}
-```
-
-## 修正サマリ
-{fix_summary}
-
-## 再レビュー依頼
-TODOファイルの指摘事項が適切に修正されたか確認し、再スコアリングしてください。
-新規の問題があれば指摘してください。
-"""
-)
-```
+> **禁止**: 設計書・コード全文の再読み込み
 
 ### 4.4 Token節約効果
 
@@ -266,52 +219,11 @@ TODOファイルの指摘事項が適切に修正されたか確認し、再ス�
 
 #### environments.json との連携
 
-```python
-def sync_review_todo_to_environments_json(env_id: str, subtask_id: int, attempt: int):
-    """レビューTODOをenvironments.jsonにも記録（復旧用）"""
-    from pathlib import Path
-    import json
-    
-    # environments.jsonに pending_issues として記録
-    todo_path = f".review-todo/issue-{subtask_id}-attempt-{attempt}.md"
-    
-    add_pending_issue(env_id, {
-        "type": "review_todo",
-        "todo_file": todo_path,
-        "attempt": attempt,
-        "subtask_id": subtask_id
-    })
-    
-    # Phaseを review-fix に更新
-    update_phase(env_id, phase=7, step="review-fix")
-```
-
-#### セッション再開時の復旧
-
-```python
-def resume_review_fix(env_id: str) -> str | None:
-    """セッション再開時にレビューTODOを復旧"""
-    env = find_environment_by_id(env_id)
-    
-    if not env:
-        return None
-    
-    # pending_issues からレビューTODOを検索
-    for issue in env.get("pending_issues", []):
-        if issue.get("type") == "review_todo":
-            todo_path = issue["todo_file"]
-            
-            # container-use環境からTODOファイルを読み込み
-            content = container_use_environment_file_read(
-                environment_id=env_id,
-                target_file=todo_path,
-                should_read_entire_file=True
-            )
-            
-            return content
-    
-    return None
-```
+| タイミング | 操作 |
+|-----------|------|
+| TODOファイル生成時 | `pending_issues` に `{type: "review_todo", todo_file, attempt, subtask_id}` を追加 |
+| Phaseを `review-fix` に更新 | `update_phase(env_id, phase=7, step="review-fix")` |
+| セッション再開時 | `pending_issues` から `review_todo` を検索してTODOファイルを読み込み |
 
 #### ディレクトリ構造
 
@@ -327,26 +239,14 @@ def resume_review_fix(env_id: str) -> str | None:
 
 レビュー3回失敗時、`environments.json` を `blocked` 状態に更新：
 
-```python
-def escalate_to_blocked(env_id: str, subtask_id: int, last_score: int, issues: list):
-    """レビュー3回失敗時にBlocked状態に移行"""
-    
-    set_blocked(
-        env_id=env_id,
-        reason="review_loop_exceeded",
-        description=f"Issue #{subtask_id}: レビュー3回失敗（最終スコア: {last_score}/10）",
-        suggested_action="設計書の該当セクションを見直し、要件の曖昧さを解消してください",
-        context={
-            "subtask_id": subtask_id,
-            "review_attempts": 3,
-            "last_score": last_score,
-            "unresolved_issues": issues
-        }
-    )
-    
-    # Draft PR作成
-    create_draft_pr(env_id, subtask_id, issues)
-```
+| 設定項目 | 値 |
+|---------|-----|
+| reason | `review_loop_exceeded` |
+| description | `Issue #N: レビュー3回失敗（最終スコア: X/10）` |
+| suggested_action | 設計書の該当セクションを見直し |
+| context | `{subtask_id, review_attempts: 3, last_score, unresolved_issues}` |
+
+その後、Draft PRを作成して中断。
 
 ---
 

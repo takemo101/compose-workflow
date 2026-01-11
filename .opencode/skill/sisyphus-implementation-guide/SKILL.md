@@ -112,6 +112,7 @@ Subtask #N:
 | **4** | container-worker | TDD: テスト作成（Red） | context, test_spec | test_files | 中 |
 | **5** | container-worker | TDD: 実装（Green） | test_files | impl_files | 中 |
 | **6** | container-worker | TDD: リファクタ | impl_files | impl_files (refined) | 低 |
+| **6.5** | container-worker | **実装完了自己チェック** | impl_files | **到達可能性/定義-使用相関 OK/NG** | 低 |
 | **7** | container-worker | 品質レビュー依頼 | impl_files | review_result | 低（レビュアーがトークン消費） |
 | **8** | container-worker | TODO駆動再実装（必要時） | review_todo_file | impl_files (fixed) | **低**（TODO参照のみ） |
 | **9** | container-worker | **ストレステスト（任意）** | impl_files | stress_report | 中（重要機能のみ） |
@@ -127,6 +128,7 @@ Subtask #N:
 |-------|-----------|------|
 | Phase 2 | 設計書参照マトリクス（必須セクションのみ） | 60-70%削減 |
 | Phase 3 | **設計書実現性チェック**（Gate） | **手戻り防止**（無限Token消費回避） |
+| Phase 6.5 | **実装完了自己チェック**（到達可能性/定義-使用相関） | **統合漏れ/スタブ残存防止** |
 | Phase 8 | TODO駆動再実装（TODOファイルのみ参照） | 60-70%削減 |
 | Phase 9 | ストレステスト（読み取り専用エージェント並列） | 単一エージェント比50%削減 |
 | Phase 7, 10 | Sisyphusからworkerへの委譲 | メインエージェントのコンテキスト維持 |
@@ -172,10 +174,15 @@ Sisyphus (親エージェント)
 
 ## ⛔ 必須チェックリスト
 
+### 実装前チェック
 ```
 □ 【単一Issue指定時】Subtask検出を実行したか? ★最優先★
 □ Issue粒度チェック（200行以下か?）
 □ 大きい場合は `/decompose-issue` を案内したか?
+```
+
+### 実装中チェック
+```
 □ 【Subtaskあり】各Subtaskに独立したfeatureブランチを作成したか? ★重要★
 □ 【Subtaskあり】各Subtaskに独立したcontainer-use環境を作成したか? ★重要★
 □ 【Subtaskあり】各Subtaskで独立したレビューループを実行したか? ★重要★
@@ -183,6 +190,22 @@ Sisyphus (親エージェント)
 □ 【レビュー】各Subtaskが9点以上を獲得するまでループしたか?
 □ background_task を使用しているか?（⛔ task 禁止）
 □ Subtaskは順次処理しているか?（1つ完了してから次へ）
+```
+
+### 機能完了チェック（PRマージ後の再確認）
+
+> **重要**: Phase 6.5 で既にチェック済みだが、PRマージ後に再確認を推奨。
+> **詳細**: {{skill:quality-review-flow}} セクション2（客観的品質基準）を参照
+
+| チェック | 確認方法 | 必須 |
+|---------|---------|------|
+| **到達可能性** | エントリポイントからの参照確認（Phase 6.5で実施済み） | 再確認推奨 |
+| **定義-使用相関** | 未使用の引数/Props/パラメータがないこと（Phase 6.5で実施済み） | 再確認推奨 |
+| **Smoke Test** | `cargo run` / `npm run dev` で基本動作確認 | ✅ |
+| Epic紐付け | Epic Issue の機能リスト（F-XXX）に完了マーク | 推奨 |
+
+```
+□ 【Smoke Test】アプリケーションが正常に起動・動作するか?
 □ 全Subtask完了後、親Issueをクローズしたか?
 ```
 
