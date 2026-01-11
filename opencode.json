@@ -5,11 +5,6 @@
     "ignore": [".opencode/node_modules/**"]
   },
   "mcp": {
-    "context7": {
-      "type": "remote",
-      "url": "https://mcp.context7.com/mcp",
-      "enabled": true
-    },
     "sequential-thinking": {
       "type": "local",
       "command": [
