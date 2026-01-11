@@ -1,4 +1,4 @@
-# 詳細設計・完全ワークフロー (v2.8)
+# 詳細設計・完全ワークフロー (v2.9)
 
 基本設計書を入力として、詳細設計書を作成し、モックアップ生成とテスト設計までを一貫して行うワークフロー。
 
@@ -55,6 +55,7 @@ flowchart TB
             P3_1["テスト項目書作成<br/>@test-spec-writer"]
             P3_2["Epic Issue作成"]
             P3_3["子Issue作成"]
+            P3_5["ドキュメントIssue作成"]
             P3_4["Sub-issue連携"]
         end
         
@@ -87,7 +88,7 @@ flowchart TB
         PHASE25 -->|修正| PHASE1
         PHASE25 -->|中断| ABORT(("中断"))
         
-        P3_1 --> P3_2 --> P3_3 --> P3_4
+        P3_1 --> P3_2 --> P3_3 --> P3_5 --> P3_4
         PHASE3 --> OUTPUT
     end
     
@@ -100,6 +101,9 @@ flowchart TB
 ```
 
 ---
+
+**変更点(v2.9)**:
+- **ドキュメント更新Issue自動作成**: 実装Issue作成後、README.md/USAGE.md/CHANGELOG.md等のドキュメント更新IssueをEpicのSub-issueとして自動作成。
 
 **変更点(v2.8)**:
 - **Sub-issue登録をGraphQL APIに変更**: REST APIのバグ（HTTP 500/404）を回避するため、GraphQL APIを使用するように修正。
@@ -550,6 +554,7 @@ const {feature}Schema = z.object({
 2. **Issue化**:
    - Epic Issue作成
    - 子Issue作成（200行以下に分割）
+   - **ドキュメント更新Issue作成**（実装完了後に必要なドキュメント整備）
    - Sub-issue連携（GraphQL API使用）
    - 依存関係図作成（Mermaid）
 > **重要**: Issueは**200行以下・3ファイル以下**の粒度で作成する。
@@ -614,6 +619,7 @@ After（OK）:
 - 技術スタック
 - 工数見積もり
 - 子Issue一覧（**各200行以下**）
+- **ドキュメント更新Issue**（実装完了後のドキュメント整備）← v2.9
 - **依存関係（Mermaid形式で記述）**
 
 **依存関係の記述方法**:
@@ -639,8 +645,13 @@ flowchart LR
         A_FE["#50 FE (100行)"]
     end
     
+    subgraph ドキュメント
+        DOC["#51 📝 ドキュメント更新"]
+    end
+    
     DB --> SEC
     SEC --> A_BE --> A_FE
+    A_FE --> DOC
 ```
 ````
 
@@ -690,6 +701,54 @@ flowchart LR
 - #{依存するIssue番号}（このIssue完了後に着手可能）
 ```
 
+#### 5.2.1 ドキュメント更新Issue（v2.9 NEW）
+
+実装完了後に必要なドキュメント整備をIssue化する。
+
+**作成条件**:
+
+| ドキュメント | 作成条件 | ラベル |
+|-------------|---------|--------|
+| `README.md` | 新規機能追加 または 既存README存在時 | `documentation` |
+| `USAGE.md` | CLI/API変更時 | `documentation` |
+| `CHANGELOG.md` / `RELEASE.md` | 全実装完了後（**必須**） | `documentation`, `release` |
+
+**依存関係**: 全実装Issueが完了後に着手可能。
+
+**Sub-issue登録**: ドキュメント更新IssueもEpic IssueのSub-issueとして登録する（実装Issueと同様）。
+
+**テンプレート（ドキュメント更新Issue）**:
+
+```markdown
+## 概要
+{機能名}の実装完了に伴い、関連ドキュメントを更新する。
+
+## 親Issue
+- Epic: #{epic_issue_number}（**Sub-issueとして登録**）
+
+## 対象ドキュメント
+| ファイル | 更新内容 | 必須/任意 |
+|----------|---------|----------|
+| `README.md` | {機能概要、インストール手順、使用例の追記} | 必須 |
+| `USAGE.md` | {新規コマンド/APIの使用方法} | {該当時のみ} |
+| `CHANGELOG.md` | {変更履歴の追記} | 必須 |
+
+## 更新内容
+- [ ] README.md: 機能概要セクションに{機能名}を追加
+- [ ] README.md: 使用例セクションにサンプルコードを追加
+- [ ] USAGE.md: 新規CLI/APIコマンドのドキュメント追加
+- [ ] CHANGELOG.md: バージョン・変更内容・日付を追記
+
+## 完了条件
+- [ ] 全対象ドキュメントが更新されている
+- [ ] マークダウンの構文エラーがない
+- [ ] リンク切れがない（相対パス確認）
+- [ ] 既存フォーマットとの整合性が取れている
+
+## 依存
+- 全実装Issue完了後に着手可能
+```
+
 #### 5.3 分割が必要な場合の手順
 
 ```python
@@ -733,7 +792,56 @@ def create_issues_with_optimal_granularity(design_doc):
     for child in created_issues:
         add_sub_issue(epic_issue.number, child.number)
     
-    return created_issues
+    # 7. ドキュメント更新Issueを作成（v2.9 NEW）
+    doc_issues = create_documentation_issues(epic_issue, created_issues, design_doc)
+    for doc_issue in doc_issues:
+        add_sub_issue(epic_issue.number, doc_issue.number)
+    
+    return created_issues + doc_issues
+
+
+def create_documentation_issues(epic_issue, impl_issues, design_doc):
+    """実装完了後に必要なドキュメント更新Issueを作成"""
+    
+    doc_issues = []
+    feature_name = extract_feature_name(design_doc)
+    
+    # 更新対象ドキュメントを判定
+    docs_to_update = []
+    
+    # README.md: 新規機能追加時は必須
+    if path_exists("README.md") or is_new_feature(design_doc):
+        docs_to_update.append({
+            "file": "README.md",
+            "action": "機能概要・使用例の追記",
+            "required": True
+        })
+    
+    # USAGE.md: CLI/API変更時
+    if has_cli_changes(design_doc) or has_api_changes(design_doc):
+        docs_to_update.append({
+            "file": "USAGE.md",
+            "action": "コマンド/API使用方法の追記",
+            "required": True
+        })
+    
+    # CHANGELOG.md: 常に必須
+    docs_to_update.append({
+        "file": "CHANGELOG.md",
+        "action": "変更履歴の追記",
+        "required": True
+    })
+    
+    # ドキュメント更新Issueを作成
+    if docs_to_update:
+        doc_issue = gh_issue_create(
+            title=f"[{epic_label}] 📝 ドキュメント更新: {feature_name}",
+            body=format_doc_issue_body(docs_to_update, impl_issues),
+            labels=["documentation"]
+        )
+        doc_issues.append(doc_issue)
+    
+    return doc_issues
 ```
 
 ---
@@ -801,6 +909,7 @@ grep -r -c -E '(├|└|│).*─' docs/designs/detailed/{機能名}/**/画面�
 - [ ] **各子Issueに推定コード量が記載されている** ← v3.0
 - [ ] **依存関係がMermaid形式で記述されている（ASCII禁止）** ← v2.5
 - [ ] **子IssueがEpicのSub-issueとして登録されている** ← v2.7
+- [ ] **ドキュメント更新IssueがEpicのSub-issueとして登録されている** ← v2.9
 - [ ] 工数見積もりが記載されている
 - [ ] 設計書へのリンクが含まれている
 
