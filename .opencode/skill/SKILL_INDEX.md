@@ -1,7 +1,7 @@
 # Skill Index
 
 > **Purpose**: Lazy loading guide for skills. Load only when trigger condition matches.
-> **Total skills**: 29 | **Total lines**: ~6,700
+> **Total skills**: 29 | **Total lines**: ~7,000
 
 ---
 
@@ -21,15 +21,15 @@
 |-------|-------|---------|-------------|
 | `container-use-guide` | 383 | Environment creation | Container setup, services, commands |
 | `tech-stack-configs` | 246 | Tech stack setup | Stack-specific configs, DB migrations |
-| `environments-json-management` | 477 | Session recovery, env tracking | SSOT for environment state |
+| `environments-json-management` | 476 | Session recovery, env tracking | SSOT for environment state |
 | `delete-environment` | 105 | Environment cleanup | Container, file, metadata removal |
 
 ### Implementation Flow (load during coding)
 
 | Skill | Lines | Trigger | Description |
 |-------|-------|---------|-------------|
-| `sisyphus-implementation-guide` | 247 | Issue implementation | Sisyphus agent flow, checklists |
-| `implement-subtask-rules` | 313 | Subtask execution | Design doc reference matrix |
+| `sisyphus-implementation-guide` | 270 | Issue implementation | Sisyphus agent flow, checklists |
+| `implement-subtask-rules` | 317 | Subtask execution | Design doc reference matrix |
 | `tdd-implementation` | 113 | Test writing | Red-Green-Refactor cycle |
 | `code-quality-rules` | 223 | Code writing | 500-line rule, architecture |
 | `issue-size-estimation` | 104 | Issue planning | Size labels, line estimates |
@@ -38,7 +38,7 @@
 
 | Skill | Lines | Trigger | Description |
 |-------|-------|---------|-------------|
-| `quality-review-flow` | 361 | Before PR creation | Score criteria, TODO-driven fix |
+| `quality-review-flow` | 261 | Before PR creation | Score criteria, TODO-driven fix |
 | `stress-test-flow` | 353 | Critical features | Parallel security/perf/edge tests |
 | `reviewer-common` | 141 | Review execution | Reviewer shared guidelines |
 | `review-guidelines` | 293 | Detailed review | Domain-specific review points |
@@ -47,17 +47,17 @@
 
 | Skill | Lines | Trigger | Description |
 |-------|-------|---------|-------------|
-| `pr-merge-workflow` | 200 | PR to merge | Full PR lifecycle |
+| `pr-merge-workflow` | 203 | PR to merge | Full PR lifecycle |
 | `pr-and-cleanup` | 93 | After PR merge | Worktree cleanup |
-| `ci-workflow` | 211 | CI failure | CI monitoring, fix flow |
+| `ci-workflow` | 214 | CI failure | CI monitoring, fix flow |
 | `github-graphql-api` | 132 | Sub-issue creation | GraphQL API patterns |
 
 ### Workflow Control (load when managing phases)
 
 | Skill | Lines | Trigger | Description |
 |-------|-------|---------|-------------|
-| `workflow-phase-convention` | 145 | Phase management | Phase numbering, gates |
-| `approval-gate` | 139 | User approval needed | Approval prompt format |
+| `workflow-phase-convention` | 218 | Phase management | Phase numbering, gates |
+| `approval-gate` | 148 | User approval needed | Approval prompt format |
 | `subtask-detection` | 178 | Issue decomposition | Dependency resolution |
 | `handover-process` | 100 | BE/FE handoff | Cross-domain requests |
 
@@ -102,7 +102,7 @@
 | Simple fix | 2-3 | ~600 | **90% saved** |
 | Standard impl | 4-5 | ~1,200 | **80% saved** |
 | Full workflow | 8-10 | ~2,500 | **60% saved** |
-| All skills | 26 | ~6,000 | baseline |
+| All skills | 29 | ~7,000 | baseline |
 
 ---
 

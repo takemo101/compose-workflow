@@ -108,6 +108,16 @@ grep -r -l '┌\|┐\|└\|┘\|│\|─' docs/designs/detailed/{機能名}/**/�
 
 ## Phase 3: 成果物作成 & Issue化
 
+### ⚠️ 責任分離（重複防止）
+
+| ステップ | 担当 | 成果物 | 制約 |
+|---------|------|--------|------|
+| 3.1 テスト項目書作成 | `test-spec-writer` | `.md` ファイルのみ | **Issue作成禁止** |
+| 3.2 Epic Issue作成 | メインエージェント | GitHub Issue | 重複チェック必須 |
+| 3.3 子Issue作成 | メインエージェント | GitHub Issue | 重複チェック必須 |
+| 3.4 ドキュメントIssue | メインエージェント | GitHub Issue | 重複チェック必須 |
+| 3.5 Sub-issue連携 | メインエージェント | GraphQL API | - |
+
 ### Issue粒度ルール
 
 | 制約 | 上限 |
@@ -118,14 +128,36 @@ grep -r -l '┌\|┐\|└\|┘\|│\|─' docs/designs/detailed/{機能名}/**/�
 
 ### 作成フロー
 
-1. **テスト項目書作成**: `test-spec-writer` が作成
-2. **Epic Issue作成**: 機能全体のEpic
-3. **子Issue作成**: 200行以下に分割
-4. **ドキュメント更新Issue**: README/CHANGELOG等
-5. **Sub-issue連携**: GraphQL APIで親子関係設定
+#### Step 3.1: テスト項目書作成
+
+`test-spec-writer` エージェントに以下を指示：
+
+```
+MUST DO:
+- テスト項目書を {出力パス} に作成する
+- 設計書のテスト観点を網羅する
+
+MUST NOT DO:
+- GitHub Issue を作成しない（Issue作成は後続ステップで行う）
+- gh コマンドを実行しない
+- 設計書内の TASK-XXX を Issue 化しない
+```
+
+#### Step 3.2-3.4: Issue作成（重複チェック必須）
+
+```bash
+# Issue作成前に既存Issueを確認
+gh issue list --repo $REPO --search "{機能ID}" --json number,title
+
+# 重複がなければ作成
+gh issue create --title "..." --body "..."
+```
+
+#### Step 3.5: Sub-issue連携
+
+> **GraphQL API**: {{skill:github-graphql-api}} を参照
 
 > **テンプレート**: {{skill:detailed-design-templates}} を参照
-> **GraphQL API**: {{skill:github-graphql-api}} を参照
 
 ---
 
@@ -179,6 +211,7 @@ grep -r -l '┌\|┐\|└\|┘\|│\|─' docs/designs/detailed/{機能名}/**/�
 
 | バージョン | 変更内容 |
 |-----------|---------|
+| v2.10 | Phase 3の責任分離明確化（Issue重複作成防止）、test-spec-writerへのMUST NOT DO追加 |
 | v2.9 | ドキュメント更新Issue自動作成 |
 | v2.8 | Sub-issue登録をGraphQL APIに変更 |
 | v2.7 | Sub-issue連携の自動化 |
