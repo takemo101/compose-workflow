@@ -169,53 +169,23 @@ container-use_environment_config(
 
 ### Step 4: サービス追加 (必要に応じて)
 
-#### PostgreSQL
+> **詳細な設定例**: {{skill:tech-stack-configs}} を参照
+
+| サービス | image | ポート |
+|---------|-------|--------|
+| PostgreSQL | `postgres:15-alpine` | 5432 |
+| MySQL | `mysql:8` | 3306 |
+| Redis | `redis:7-alpine` | 6379 |
 
 ```python
 container-use_environment_add_service(
     environment_source="/path/to/repo",
     environment_id=env_id,
-    name="postgres",
+    name="postgres",  # サービス名 = ホスト名
     image="postgres:15-alpine",
-    envs=[
-        "POSTGRES_USER=app",
-        "POSTGRES_PASSWORD=password",
-        "POSTGRES_DB=testdb"
-    ],
+    envs=["POSTGRES_USER=app", "POSTGRES_PASSWORD=password", "POSTGRES_DB=testdb"],
     ports=[5432],
     explanation="Add PostgreSQL for database tests"
-)
-```
-
-#### MySQL
-
-```python
-container-use_environment_add_service(
-    environment_source="/path/to/repo",
-    environment_id=env_id,
-    name="mysql",
-    image="mysql:8",
-    envs=[
-        "MYSQL_ROOT_PASSWORD=root",
-        "MYSQL_DATABASE=testdb",
-        "MYSQL_USER=app",
-        "MYSQL_PASSWORD=password"
-    ],
-    ports=[3306],
-    explanation="Add MySQL for database tests"
-)
-```
-
-#### Redis
-
-```python
-container-use_environment_add_service(
-    environment_source="/path/to/repo",
-    environment_id=env_id,
-    name="redis",
-    image="redis:7-alpine",
-    ports=[6379],
-    explanation="Add Redis for caching tests"
 )
 ```
 
@@ -298,169 +268,88 @@ container-use_environment_file_edit(
 
 ## 技術スタック別設定例
 
-### Node.js / TypeScript
+> **詳細**: {{skill:tech-stack-configs}} を参照
 
-```python
-config = {
-    "base_image": "node:20-slim",
-    "setup_commands": [
-        "npm ci",
-        "npx playwright install chromium --with-deps"
-    ],
-    "envs": [
-        "NODE_ENV=test",
-        "DATABASE_URL=postgresql://app:password@postgres:5432/testdb"
-    ]
-}
-```
-
-### Python / FastAPI
-
-```python
-config = {
-    "base_image": "python:3.11-slim",
-    "setup_commands": [
-        "pip install --no-cache-dir -r requirements.txt",
-        "pip install --no-cache-dir -r requirements-dev.txt"
-    ],
-    "envs": [
-        "PYTHONPATH=/workspace",
-        "DATABASE_URL=postgresql://app:password@postgres:5432/testdb"
-    ]
-}
-```
-
-### Go
-
-```python
-config = {
-    "base_image": "golang:1.21-alpine",
-    "setup_commands": [
-        "go mod download",
-        "go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest"
-    ],
-    "envs": [
-        "CGO_ENABLED=0",
-        "DATABASE_URL=postgres://app:password@postgres:5432/testdb?sslmode=disable"
-    ]
-}
-```
-
-### Rust
-
-```python
-config = {
-    "base_image": "rust:1.85-slim",
-    "setup_commands": [
-        "cargo fetch",
-        "cargo build --release"
-    ],
-    "envs": [
-        "DATABASE_URL=postgres://app:password@postgres:5432/testdb"
-    ]
-}
-```
+| 技術スタック | base_image | 主な設定 |
+|-------------|-----------|---------|
+| Node.js/TypeScript | `node:20-slim` | `npm ci`, Playwright対応 |
+| Python/FastAPI | `python:3.11-slim` | `pip install -r requirements.txt` |
+| Go | `golang:1.21-alpine` | `go mod download`, migrate対応 |
+| Rust | `rust:1.85-slim` | `cargo fetch`, `cargo build` |
 
 ## DBマイグレーションのテスト
 
-### Flyway (SQL migrations)
+> **詳細**: {{skill:tech-stack-configs}} を参照
 
-```python
-# マイグレーション実行
-container-use_environment_run_cmd(
-    environment_id=env_id,
-    environment_source="/path/to/repo",
-    command="flyway -url=jdbc:postgresql://postgres:5432/testdb -user=app -password=password migrate",
-    explanation="Run Flyway migrations"
-)
-
-# ロールバック
-container-use_environment_run_cmd(
-    environment_id=env_id,
-    environment_source="/path/to/repo",
-    command="flyway -url=jdbc:postgresql://postgres:5432/testdb -user=app -password=password undo",
-    explanation="Rollback last migration"
-)
-```
-
-### Prisma (TypeScript)
-
-```python
-# マイグレーション実行
-container-use_environment_run_cmd(
-    environment_id=env_id,
-    environment_source="/path/to/repo",
-    command="npx prisma migrate deploy",
-    explanation="Run Prisma migrations"
-)
-
-# リセット (開発用)
-container-use_environment_run_cmd(
-    environment_id=env_id,
-    environment_source="/path/to/repo",
-    command="npx prisma migrate reset --force",
-    explanation="Reset database and rerun migrations"
-)
-```
-
-### SQLAlchemy / Alembic (Python)
-
-```python
-# マイグレーション実行
-container-use_environment_run_cmd(
-    environment_id=env_id,
-    environment_source="/path/to/repo",
-    command="alembic upgrade head",
-    explanation="Run Alembic migrations"
-)
-
-# ロールバック
-container-use_environment_run_cmd(
-    environment_id=env_id,
-    environment_source="/path/to/repo",
-    command="alembic downgrade -1",
-    explanation="Rollback one migration"
-)
-```
+| ORM/ツール | マイグレーション | ロールバック |
+|-----------|----------------|-------------|
+| Flyway | `flyway migrate` | `flyway undo` |
+| Prisma | `npx prisma migrate deploy` | `npx prisma migrate reset` |
+| Alembic | `alembic upgrade head` | `alembic downgrade -1` |
 
 ## トラブルシューティング
 
-> **障害対応・セッション復旧の詳細手順**: [container-useエージェントルール](../../instructions/container-use.md) を参照
-> - Docker障害時のフォールバック手順
-> - セッション復旧プロトコル
-> - 継続プロンプトのベストプラクティス
+### Docker障害時のフォールバック
+
+**Diagnosis Commands:**
+
+```bash
+docker system df     # Check disk usage
+df -h                # Check available disk space
+docker info          # Check daemon status
+```
+
+**Decision Tree:**
+
+| Condition | Action |
+|-----------|--------|
+| Disk space < 10GB | `docker system prune -af` and retry |
+| Docker daemon not running | Start Docker Desktop, wait 30s, retry |
+| After prune still failing | **User escalation required** |
+
+**User Escalation (MANDATORY):**
+
+When container-use cannot function:
+
+1. **Report the failure clearly**:
+   ```
+   ⚠️ Container-use is unavailable due to: [specific error]
+   
+   Attempted recovery:
+   - [action 1]: [result]
+   - [action 2]: [result]
+   ```
+
+2. **Present options**:
+   ```
+   Options:
+   A) Wait for Docker recovery (manual intervention needed)
+   B) Proceed with direct host operations (breaks isolation)
+   C) Abort and resume later
+   
+   Which would you prefer?
+   ```
+
+3. **If user chooses direct host operations**:
+   - Commit message: `[non-containerized]`
+   - Add warning comment to changed files
+   - Create follow-up issue to verify in container
+
+**CRITICAL**: Never silently fall back. Always get explicit user approval.
+
+> **セッション復旧の詳細手順**: [container-useエージェントルール](../../instructions/container-use.md) を参照
 
 ### サービスに接続できない
 
 1. サービス名をホスト名として使用 (例: `postgres`, `redis`)
 2. ポートが正しいか確認
-3. サービスの起動を待つ
-
-```python
-# サービス起動待ち
-container-use_environment_run_cmd(
-    environment_id=env_id,
-    environment_source="/path/to/repo",
-    command="until pg_isready -h postgres -p 5432; do sleep 1; done",
-    explanation="Wait for PostgreSQL to be ready"
-)
-```
+3. サービスの起動を待つ（{{skill:tech-stack-configs}} の「サービス起動待機」参照）
 
 ### 依存関係のインストールに失敗
 
 1. base imageを確認
 2. setup_commandsの順序を確認
-3. 必要なシステムパッケージを追加
-
-```python
-config = {
-    "base_image": "node:20-slim",
-    "setup_commands": [
-        "apt-get update && apt-get install -y build-essential python3",  # ネイティブモジュール用
-        "npm ci"
-    ]
-}
-```
+3. 必要なシステムパッケージを追加（{{skill:tech-stack-configs}} の「ネイティブモジュール対応」参照）
 
 ### 環境が重い
 
@@ -478,7 +367,7 @@ config = {
 
 ## 環境ID管理 (environments.json)
 
-PRレビュー後の修正作業で環境を再利用するため、環境IDを `.opencode/environments.json` で追跡します。
+PRレビュー後の修正作業で環境を再利用するため、環境IDを `environments.json`（プロジェクトルート）で追跡します。
 
 > **詳細**: [environments.json管理](../environments-json-management/SKILL.md) を参照
 

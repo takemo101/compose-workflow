@@ -20,9 +20,9 @@ tools:
 
 Container-use環境内で**Subtask**を実装する専門エージェント。
 
-> **⚠️ 最初に必ず実行**: `read(".opencode/skill/implement-subtask-rules/SKILL.md")` でルールを読み込む
+> **⚠️ 最初に必ず実行**: {{skill:implement-subtask-rules}} を `read()` で読み込む
 > 
-> 詳細ルール: [implement-subtask-rules.md](../skill/implement-subtask-rules/SKILL.md)
+> パス: `.opencode/skill/implement-subtask-rules/SKILL.md`
 
 ---
 
@@ -107,7 +107,7 @@ Issue受領 → 準備(設計書確認→ブランチ作成→環境作成→サ
 4. **環境設定**: 技術スタックに応じて `environment_config`
 5. **サービス追加**: 必要に応じて `environment_add_service`
 
-詳細は [container-use-guide.md](../skill/container-use-guide/SKILL.md) を参照。
+詳細は {{skill:container-use-guide}} を参照。
 
 ---
 

@@ -11,7 +11,7 @@ description: container-use環境の状態管理のためのSingle Source of Trut
 
 ## 概要
 
-**ALL container-use operations MUST update `.opencode/environments.json`** to track Issue/PR/Environment relationships.
+**ALL container-use operations MUST update `environments.json` (project root)** to track Issue/PR/Environment relationships.
 
 ---
 
@@ -20,7 +20,7 @@ description: container-use環境の状態管理のためのSingle Source of Trut
 ### パス
 
 ```
-.opencode/environments.json
+environments.json  # プロジェクトルート直下
 ```
 
 ### 初期化
@@ -29,7 +29,6 @@ description: container-use環境の状態管理のためのSingle Source of Trut
 
 ```json
 {
-  "$schema": "./environments.schema.json",
   "environments": []
 }
 ```
@@ -154,7 +153,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-ENVIRONMENTS_FILE = ".opencode/environments.json"
+ENVIRONMENTS_FILE = "environments.json"  # project root
 
 def load_environments() -> dict:
     """環境情報を読み込み"""
@@ -307,7 +306,7 @@ def clear_pending_issues(env_id: str):
 作業再開時、**environments.json を最優先で参照**：
 
 ```bash
-# 1. Read .opencode/environments.json
+# 1. Read environments.json (project root)
 # 2. Find entry matching the Issue number or PR number
 # 3. Use the stored env_id to reopen environment
 ```

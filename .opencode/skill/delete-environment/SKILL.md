@@ -12,7 +12,7 @@ container-use環境（Dockerコンテナ、ファイルシステム、environmen
 環境削除は以下の3つのリソースをクリーンアップする必要があります：
 1. **Docker Resources**: 実行中のコンテナ、ネットワーク、ボリューム
 2. **Filesystem**: 作業ディレクトリ（Worktree または サブディレクトリ）
-3. **Metadata**: `.opencode/environments.json` のエントリ
+3. **Metadata**: `environments.json` のエントリ（プロジェクトルート）
 
 ---
 

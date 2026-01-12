@@ -20,7 +20,7 @@ set -euo pipefail
 # ============================================================================
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-ENVIRONMENTS_JSON="${REPO_ROOT}/.opencode/environments.json"
+ENVIRONMENTS_JSON="${REPO_ROOT}/environments.json"
 LOCK_DIR="${ENVIRONMENTS_JSON}.lock"
 
 RED='\033[0;31m'

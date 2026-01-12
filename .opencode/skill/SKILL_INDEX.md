@@ -1,7 +1,7 @@
 # Skill Index
 
 > **Purpose**: Lazy loading guide for skills. Load only when trigger condition matches.
-> **Total skills**: 26 | **Total lines**: ~6,000
+> **Total skills**: 29 | **Total lines**: ~6,700
 
 ---
 
@@ -19,7 +19,8 @@
 
 | Skill | Lines | Trigger | Description |
 |-------|-------|---------|-------------|
-| `container-use-guide` | 494 | Environment creation | Container setup, services, commands |
+| `container-use-guide` | 383 | Environment creation | Container setup, services, commands |
+| `tech-stack-configs` | 246 | Tech stack setup | Stack-specific configs, DB migrations |
 | `environments-json-management` | 477 | Session recovery, env tracking | SSOT for environment state |
 | `delete-environment` | 105 | Environment cleanup | Container, file, metadata removal |
 
@@ -65,6 +66,8 @@
 | Skill | Lines | Trigger | Description |
 |-------|-------|---------|-------------|
 | `design-document-types` | 321 | Design creation | Required doc types per project |
+| `detailed-design-templates` | 335 | Detailed design | Issue templates, review prompts |
+| `tech-stack-selection` | 174 | Basic design | Stack selection criteria |
 | `infra-workflow` | 360 | Infra design | Terraform, Docker Compose |
 | `release-workflow` | 439 | Release creation | Version, changelog, GitHub Release |
 

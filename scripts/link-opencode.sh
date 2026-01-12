@@ -20,6 +20,8 @@ GITIGNORE_ENTRIES=(
     "node_modules/"
     "bun.lockb"
     ".serena/"
+    "environments.json"
+    "environments.json.lock"
 )
 
 EXCLUDE_ENTRIES=(

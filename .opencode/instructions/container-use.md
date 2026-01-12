@@ -26,7 +26,7 @@ If local build/test commands fail due to environment issues (e.g., wrong rustc v
 
 > **詳細**: {{skill:environments-json-management}} を参照
 
-**ALL container-use operations MUST update `.opencode/environments.json`** to track Issue/PR/Environment relationships.
+**ALL container-use operations MUST update `environments.json` (project root)** to track Issue/PR/Environment relationships.
 
 ### 必須更新ポイント（概要）
 
@@ -209,201 +209,48 @@ NEVER silently switch to non-container-use operations.
 
 ## Docker Resource Failures (Fallback Protocol)
 
-When Docker itself fails (disk space, daemon issues, resource exhaustion):
-
-### Diagnosis Commands
-
-```bash
-# Check Docker disk usage
-docker system df
-
-# Check available disk space
-df -h
-
-# Check Docker daemon status
-docker info
-```
-
-### Fallback Decision Tree
+> **詳細手順**: {{skill:container-use-guide}} の「トラブルシューティング」セクションを参照
 
 | Condition | Action |
 |-----------|--------|
-| Disk space < 10GB | Run `docker system prune -af` and retry |
+| Disk space < 10GB | `docker system prune -af` and retry |
 | Docker daemon not running | Start Docker Desktop, wait 30s, retry |
-| After prune still failing | **User decision required** |
+| After prune still failing | **User escalation required** |
 
-### User Escalation (MANDATORY)
-
-When container-use cannot function, you MUST:
-
-1. **Report the failure clearly**:
-   ```
-   ⚠️ Container-use is unavailable due to: [specific error]
-   
-   Attempted recovery:
-   - [action 1]: [result]
-   - [action 2]: [result]
-   ```
-
-2. **Present options**:
-   ```
-   Options:
-   A) Wait for Docker recovery (manual intervention needed)
-   B) Proceed with direct host operations (breaks isolation)
-   C) Abort and resume later
-   
-   Which would you prefer?
-   ```
-
-3. **If user chooses direct host operations**:
-   - Document clearly in commit message: `[non-containerized]`
-   - Add warning comment at top of changed files:
-     ```
-     // ⚠️ WARNING: Modified outside container-use (Docker unavailable)
-     // Verify in container environment before merging. Ref: Issue #XXX
-     ```
-   - Create follow-up issue to verify changes in container
-
-**CRITICAL**: Never silently fall back. Always get explicit user approval.
+**CRITICAL**: Never silently fall back. Always get explicit user approval before direct host operations.
 
 ---
 
 ## Session Recovery Protocol
 
-When resuming work from a previous session (e.g., after crash, timeout, or interruption):
+> **詳細**: {{skill:environments-json-management}} の「セッション復旧」セクションを参照
 
-### Mandatory State Verification (BEFORE any action)
+### Quick Reference
 
-**Step 1: Check environments.json FIRST (MANDATORY)**
-
-```bash
-# Read environments.json to find existing environment for the Issue/PR
-cat .opencode/environments.json
-```
-
-Look for entries matching:
-- `issue_number` for the Issue you're working on
-- `pr_number` if a PR was already created
-- `status: "active"` or `status: "pr_created"` (usable environments)
-
-**Step 2: If environment found in environments.json**
-
-```bash
-# Use the env_id from environments.json to reopen
-container-use_environment_open(environment_id="<env_id from json>")
-```
-
-**Step 3: If NO environment found, verify other state**
-
-```bash
-# 1. Check git state
-git status
-git log --oneline -3
-
-# 2. Check PR state (if PR was being created)
-gh pr list --head <branch-name>
-gh pr view <pr-number>  # if PR exists
-
-# 3. Check Issue state
-gh issue view <issue-number>
-
-# 4. Check environment state via tool
-container-use_environment_list
-```
-
-**Note**: `container-use_environment_list` is a tool call, not a bash command. Use the agent tool to check environment state.
+1. **environments.json を最優先で参照** - `cat environments.json`
+2. **Issue/PR番号でエントリ検索** - `status: "active"` or `status: "pr_created"` を探す
+3. **env_id で環境を再開** - `container-use_environment_open(environment_id="<env_id>")`
 
 ### Recovery Decision Matrix
 
-| Git State | PR State | Issue State | Action |
-|-----------|----------|-------------|--------|
-| Changes uncommitted | N/A | OPEN | Continue implementation |
-| Changes committed, not pushed | No PR | OPEN | Push and create PR |
-| Changes pushed | No PR | OPEN | Create PR |
-| Changes pushed | PR exists (open), CI passing | OPEN | Merge PR |
-| Changes pushed | PR exists (open), CI failing | OPEN | Fix issues, push, wait for CI |
-| Changes pushed | PR closed (not merged) | OPEN | Review feedback, fix, create new PR |
-| Changes pushed | PR merged | OPEN | Verify Issue auto-closed, close if needed |
-| Changes pushed | PR merged | CLOSED | **DONE** - verify and report |
-| Branch deleted on remote | N/A | OPEN | Re-push from local, or restart |
-| N/A | N/A | CLOSED (by others) | Verify completion, report status to user |
-
-**Note on Worktree Conflicts**: If `gh pr merge --delete-branch` fails with worktree error, merge without `--delete-branch` flag. Delete branch manually later if needed.
-
-### Continuation Prompt Best Practices
-
-When creating continuation prompts for future sessions:
-
-~~~markdown
-## Session Context
-- Branch: <branch-name>
-- Last commit: <commit-hash>
-- Environment ID: <env-id> (if using container-use)
-
-## Completed Steps
-- [x] Step 1 (evidence: commit abc123)
-- [x] Step 2 (evidence: PR #45)
-
-## Remaining Steps
-- [ ] Step 3: <specific action>
-- [ ] Step 4: <specific action>
-
-## Verification Commands (run BEFORE resuming)
-    git status
-    gh pr view <pr-number>
-    gh issue view <issue-number>
-
-## CRITICAL: Do NOT assume previous state. Always verify.
-~~~
-
-**Anti-pattern**: Blindly executing continuation prompts without state verification.
+| Entry Status | PR State | Action |
+|--------------|----------|--------|
+| `active` | No PR | `phase`/`step` から作業継続 |
+| `blocked` | N/A | **人間に通知**、解除後に再開 |
+| `pr_created` | PR open | `env_id` で環境再開し修正 |
+| `pr_created` | PR merged | `status: "merged"` に更新、環境削除 |
+| `merged` | N/A | クリーンアップ候補 |
+| `abandoned` | N/A | 環境とエントリを即削除 |
 
 ### Session State Management
 
-#### Single Source of Truth: environments.json
+**environments.json が唯一の状態管理ファイル（SSOT）です。**
 
-**environments.json が唯一の状態管理ファイルです。** 他のストレージ（Supermemory等）は補助的なログとして使用し、復旧時には参照しません。
-
-| 情報源 | 役割 | 復旧時の使用 |
-|-------|------|-------------|
-| **environments.json** | 状態管理（SSOT） | ✅ 最優先で参照 |
-| Git状態（remote/local） | 実際のコード状態 | ✅ 検証用に参照 |
-| Supermemory | 人間向けのログ | ❌ 自動復旧には使用しない |
-
-#### 復旧ロジック（簡素化版）
-
-```python
-def recover_session(issue_id: int) -> SessionState | None:
-    """セッション状態を復旧（environments.json のみ使用）"""
-    
-    # environments.json から検索
-    env_entry = find_environment_by_issue(issue_id)
-    if env_entry:
-        return SessionState(
-            env_id=env_entry["env_id"],
-            branch=env_entry["branch"],
-            pr_number=env_entry.get("pr_number"),
-            status=env_entry["status"]
-        )
-    
-    return None  # 環境なし → 新規作成が必要
-```
-
-#### Supermemory の使用（任意・補助的）
-
-Supermemory は**人間が後で参照するためのログ**として使用できます。自動復旧には使用しません。
-
-```python
-def log_session_summary_to_supermemory(issue_id: int, summary: str):
-    """人間向けのセッションログを保存（任意）"""
-    supermemory(
-        mode="add",
-        content=f"[Session Log] Issue #{issue_id}\n\n{summary}",
-        type="conversation",
-        scope="project"
-    )
-    # 注意: このログは自動復旧には使用されない
-```
+| 情報源 | 役割 | 復旧時 |
+|-------|------|--------|
+| **environments.json** | 状態管理 | ✅ 最優先 |
+| Git状態 | コード状態 | ✅ 検証用 |
+| Supermemory | 人間向けログ | ❌ 自動復旧には使用しない |
 
 ---
 
@@ -479,7 +326,7 @@ After ANY container-use session, ALWAYS provide:
 | Run command | `environment_run_cmd` |
 | Save progress | `environment_checkpoint` |
 | **Delete environment** | `container-use delete <env_id>` (CLI) |
-| **Update environments.json** | `Read` + `Edit` tools on `.opencode/environments.json` |
+| **Update environments.json** | `Read` + `Edit` tools on `environments.json` (project root) |
 
 ### Environment Naming Convention
 
@@ -526,8 +373,8 @@ issue_id = entry["issue_number"]  # Map JSON field to variable
 | [Design Sync Policy](./design-sync.md) | Keep design docs and implementation in sync | Before/during/after implementation |
 | [Testing Strategy](./testing-strategy.md) | Handle environment-dependent code testing | When writing tests for OS/hardware-dependent code |
 | [Platform Exception Policy](./platform-exception.md) | Platform-specific code exception rules | When implementing macOS/Windows-specific code |
-| [container-use Guide](../skill/container-use-guide.md) | Step-by-step container environment setup | First time using container-use |
-| [PR Merge Workflow](../skill/pr-merge-workflow.md) | PR creation to merge and cleanup | When creating/merging PRs |
+| {{skill:container-use-guide}} | Step-by-step container environment setup | First time using container-use |
+| {{skill:pr-merge-workflow}} | PR creation to merge and cleanup | When creating/merging PRs |
 
 ---
 
@@ -535,6 +382,7 @@ issue_id = entry["issue_number"]  # Map JSON field to variable
 
 | 日付 | バージョン | 変更内容 |
 |:---|:---|:---|
+| 2026-01-12 | 3.22.0 | Docker障害フォールバックとセッション復旧をスキル参照に置換（545→391行、**28%削減**）|
 | 2026-01-08 | 3.21.0 | PRマージフローをskill参照に置換（約130行削減）。Related Documentsにpr-merge-workflow追加 |
 | 2026-01-08 | 3.21.0 | environments.json管理をskill参照に置換（約85行削減）。environments-json-management.mdをSSOT化 |
 | 2026-01-07 | 3.15.1 | 命名規則ガイドライン追加: issue_id vs issue_number の使い分けを明文化 |
