@@ -6,6 +6,29 @@
 
 ---
 
+## 全体フロー
+
+| Phase | 名称 | 内容 |
+|-------|------|------|
+| 0 | ブランチ作成 | featureブランチ作成・プッシュ |
+| 0.5 | 設計書存在チェック | 詳細設計書の有無確認 |
+| 0.6 | 設計書参照ルール | トークン最適化のための部分参照 |
+| 1 | 環境構築 | container-use環境作成・設定 |
+| 2 | 申し送り確認 | 未完了事項の優先対応 |
+| 3-5 | TDD実装 | Red → Green → Refactor |
+| 6 | 設計不備対応 | `/request-design-fix` 実行（必要時） |
+| 6.5 | 実装完了自己チェック | TODO残存・Smoke Test・到達可能性 |
+| 7 | 品質レビュー | スコア9点以上、客観的基準クリア |
+| 7.1 | ユーザー承認 | {{skill:approval-gate}} ※`--auto`時スキップ |
+| 8 | コミット & プッシュ | git操作 |
+| 9 | PR作成 | `gh pr create` |
+| 10-11 | CI監視 & マージ | CI成功→自動マージ、環境削除 |
+| 12 | 親Issueクローズ | 全Subtask完了時 |
+
+> **Phase規約**: {{skill:workflow-phase-convention}} を参照
+
+---
+
 ## オプション
 
 | オプション | 説明 | デフォルト |
@@ -326,3 +349,4 @@ def collect_worker_result(task_id: str) -> dict:
 | {{skill:approval-gate}} | ユーザー承認ゲート |
 | {{skill:implement-subtask-rules}} | Subtask実装ルール |
 | {{skill:environments-json-management}} | 環境ID管理 |
+| {{skill:workflow-phase-convention}} | Phase命名規約 |

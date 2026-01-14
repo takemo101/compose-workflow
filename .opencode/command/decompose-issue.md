@@ -13,6 +13,22 @@ $ARGUMENTS（Issue番号）
 
 ---
 
+## 全体フロー
+
+| Phase | 名称 | 内容 |
+|-------|------|------|
+| 0 | 入力解析 | Issue番号の解析、Issue情報取得 |
+| 1 | Issue分析 | 規模分析、設計書特定、コード量推定 |
+| 2 | 分解計画 | Subtask分割、200行/3ファイル制約適用 |
+| 3 | 依存関係解析 | Subtask間の依存関係を解析 |
+| 3.5 | ユーザー確認 | 分解計画の承認（{{skill:approval-gate}}） |
+| 4 | Subtask作成 | GitHub Issue作成、Sub-issue連携 |
+| 5 | 親Issue更新 | サマリーコメント追加 |
+
+> **Phase規約**: {{skill:workflow-phase-convention}} を参照
+
+---
+
 ## いつ使うか
 
 | 状況 | 使用するコマンド |
@@ -121,7 +137,9 @@ def analyze_dependencies(subtasks: list[Subtask]) -> dict[int, list[int]]:
     return dependencies
 ```
 
-### Phase 4: ユーザー確認
+### Phase 3.5: ユーザー確認
+
+> **共通仕様**: {{skill:approval-gate}} を参照
 
 分解計画をユーザーに提示し、承認を得る。
 
@@ -162,7 +180,7 @@ def analyze_dependencies(subtasks: list[Subtask]) -> dict[int, list[int]]:
 - `カスタム指示` → 特定の分割方法を指定
 ```
 
-### Phase 5: Subtask Issue作成
+### Phase 4: Subtask Issue作成
 
 ```python
 def create_subtask_issues(
@@ -306,7 +324,7 @@ def handle_partial_creation_failure(
 """)
 ```
 
-### Phase 6: 親Issue更新
+### Phase 5: 親Issue更新
 
 ```python
 def add_decomposition_summary(

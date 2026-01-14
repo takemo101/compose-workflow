@@ -23,8 +23,12 @@ description: ワークフローの重要なフェーズ移行前にユーザー�
 |-------------|---------|-----------------|---------|---------------|
 | `/req-workflow` | Phase 2.5 | 要件定義書 | 8点以上 | 成果物サマリー → 基本設計へ |
 | `/basic-design-workflow` | Phase 2.5 | 基本設計書 | 9点以上 | 詳細設計準備へ |
-| `/detailed-design-workflow` | Phase 4.5 | 詳細設計書群 | 9点以上 | Issue作成へ |
+| `/detailed-design-workflow` | Phase 2.5 | 詳細設計書群 | 9点以上 | 成果物作成へ |
 | `/implement-issues` | Phase 7.1 | 実装コード | 9点以上 | PR作成へ |
+| `/tech-catchup-workflow` | Phase 2.5 | 技術調査結果 | - | レポート作成へ |
+| `/decompose-issue` | Phase 3.5 | Issue分解計画 | - | Subtask作成へ |
+| `/release` | Phase 2.5 | バージョン提案 | - | リリース実行へ |
+| `/reverse-engineer` | Phase 3.8 | 設計書生成結果 | 8点以上 | ファイル出力へ |
 
 ---
 

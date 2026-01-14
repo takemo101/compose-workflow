@@ -36,8 +36,10 @@ $ARGUMENTS（対象モジュール/ディレクトリのパス）
 | 2 | 設計書生成 | テンプレートに従い設計書作成 |
 | 3 | 品質検証 | 整合性・網羅性チェック |
 | 3.5 | AIレビュー | @detailed-design-reviewer（8点以上、オプション） |
-| 3.8 | ユーザー確認 | 生成前の最終確認 |
+| 3.8 | ユーザー承認 | 生成前の最終確認（{{skill:approval-gate}}） |
 | 4 | 出力 | ファイル生成 |
+
+> **Phase規約**: {{skill:workflow-phase-convention}} を参照
 
 ---
 
@@ -148,13 +150,15 @@ task(subagent_type="detailed-design-reviewer", prompt="設計書をレビュー.
 
 ---
 
-## Phase 3.8: ユーザー確認【必須】
+## Phase 3.8: ユーザー承認【必須】
+
+> **共通仕様**: {{skill:approval-gate}} を参照
 
 生成結果サマリー（抽出シンボル数、未解決事項数）を表示し確認。
 
 | 選択肢 | アクション |
 |--------|----------|
-| `生成` | Phase 4へ |
+| `承認` | Phase 4へ |
 | `修正` | Phase 2に戻る |
 | `中断` | キャンセル |
 
@@ -229,6 +233,8 @@ task(subagent_type="detailed-design-reviewer", prompt="設計書をレビュー.
 | スキル/ドキュメント | 用途 |
 |-------------------|------|
 | {{skill:detailed-design-templates}} | 設計書テンプレート |
+| {{skill:workflow-phase-convention}} | Phase命名規約 |
+| {{skill:approval-gate}} | ユーザー承認ゲート |
 | [詳細設計ワークフロー](./detailed-design-workflow.md) | 新規設計時 |
 
 ---

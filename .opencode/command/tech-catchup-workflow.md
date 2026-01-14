@@ -59,7 +59,33 @@ React 19, Bun
 
 ---
 
+## 全体フロー
+
+| Phase | 名称 | 内容 |
+|-------|------|------|
+| 0 | 入力解析 | 技術リスト・深度・目的の解析 |
+| 0.5 | コンテキスト確認 | 既存バージョン確認、重複調査防止 |
+| 1 | 調査対象特定 | 優先度付け、スキップ判定 |
+| 2 | 最新情報収集 | librarianエージェントによる調査 |
+| 2.5 | ユーザー確認 | 調査結果の確認・承認 |
+| 3 | レポート作成 | 技術調査レポート生成 |
+| 4 | 引き継ぎ | 基本設計への引き継ぎ情報出力 |
+
+> **Phase規約**: {{skill:workflow-phase-convention}} を参照
+
+---
+
 ## 実行プロセス
+
+### Phase 0: 入力解析
+
+入力引数から以下を抽出：
+- 調査対象技術リスト
+- 調査深度（quick/standard/deep）
+- 要件定義書パス（任意）
+- 調査目的（任意）
+
+---
 
 ### Phase 0.5: コンテキスト確認
 
@@ -126,6 +152,20 @@ React 19, Bun
 - RFC / Proposal（deep のみ）
 - 公式Getting Started / Quickstart（standard以上）
 - 公式Examples / Tutorials（standard以上）
+
+---
+
+### Phase 2.5: ユーザー確認
+
+調査結果のサマリーを提示し、承認を得る。
+
+> **共通仕様**: {{skill:approval-gate}} を参照
+
+| 選択肢 | アクション |
+|--------|----------|
+| `続行` | Phase 3（レポート作成）へ |
+| `追加調査` | 追加の技術を指定して Phase 2 に戻る |
+| `中断` | 調査を中止 |
 
 ---
 
@@ -489,3 +529,7 @@ def tech_catchup_workflow(input_args):
 |--------|------|
 | {{skill:workflow-phase-convention}} | Phase番号体系・承認ゲート規約 |
 | {{skill:approval-gate}} | ユーザー承認ゲートの共通フォーマット |
+
+---
+
+> **Phase規約**: {{skill:workflow-phase-convention}} を参照

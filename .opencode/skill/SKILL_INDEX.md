@@ -1,7 +1,7 @@
 # Skill Index
 
 > **Purpose**: Lazy loading guide for skills. Load only when trigger condition matches.
-> **Total skills**: 29 | **Total lines**: ~7,000
+> **Total skills**: 30 | **Total lines**: ~7,300
 
 ---
 
@@ -70,6 +70,7 @@
 | `tech-stack-selection` | 174 | Basic design | Stack selection criteria |
 | `infra-workflow` | 360 | Infra design | Terraform, Docker Compose |
 | `release-workflow` | 439 | Release creation | Version, changelog, GitHub Release |
+| `wireframe-generator` | 288 | Screen design mockup | YAML→Chakra UI wireframe screenshots |
 
 ### Special Cases (load when applicable)
 

@@ -82,11 +82,17 @@ grep -r -l '┌\|┐\|└\|┘\|│\|─' docs/designs/detailed/{機能名}/**/�
 
 ### モックアップ生成
 
-1. `mockup.html` (Desktop)
-2. `mockup-mobile.html` (Mobile, 固定幅375px)
-3. `mockup-error.html`
-4. Playwrightでスクリーンショット撮影
-5. 画面設計書に画像埋め込み
+> **ツール**: {{skill:wireframe-generator}} を使用
+
+1. 画面設計書から Wireframe DSL を生成
+2. `bun run generate.ts` で `mockup.html` 等を生成
+3. Playwrightでスクリーンショット撮影
+4. 画面設計書に画像埋め込み
+
+**生成対象**:
+- `mockup.html` (Desktop)
+- `mockup-mobile.html` (Mobile, 固定幅375px)
+- `mockup-error.html`
 
 ---
 
@@ -204,6 +210,7 @@ gh issue create --title "..." --body "..."
 | {{skill:workflow-phase-convention}} | Phase命名規約 |
 | {{skill:github-graphql-api}} | Sub-issue登録 |
 | {{skill:design-document-types}} | 設計書タイプ判定 |
+| {{skill:wireframe-generator}} | Phase 1.5 モックアップ生成 |
 
 ---
 
