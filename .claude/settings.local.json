@@ -24,10 +24,6 @@
 	"env": {
 		"CLAUDE_CODE_ENABLE_TELEMETRY": "0"
 	},
-	"attribution": {
-		"commit": "🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
-		"pr": "🤖 Generated with Claude Code"
-	},
 	"enableAllProjectMcpServers": false,
 	"enabledMcpjsonServers": ["sequential-thinking", "serena", "container-use"],
 	"hooks": {}

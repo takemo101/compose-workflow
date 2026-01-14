@@ -35,7 +35,7 @@ usage() {
 Usage: $0 [OPTIONS] <target-directory>
 
 Creates a symbolic link to .claude in the specified directory.
-Also copies .mcp.json (if not already present).
+.mcp.json is included in the .claude symlink or copied from template.
 CLAUDE.md is included in the .claude symlink.
 Creates docs/memos directory with .gitkeep for project documentation.
 Creates or updates .gitignore (or .git/info/exclude) with Claude Code-related entries.
@@ -189,16 +189,16 @@ echo "  Source: ${CLAUDE_SOURCE}"
 echo "  Link:   ${TARGET_LINK}"
 
 # --- Copy .mcp.json ---
-TARGET_MCP_JSON="${TARGET_DIR}/.mcp.json"
+TARGET_MCP_JSON="${TARGET_DIR}/.claude/.mcp.json"
 SOURCE_MCP_JSON="${TEMPLATES_DIR}/mcp.template.json"
 
 echo ""
 if [[ -f "$SOURCE_MCP_JSON" ]]; then
     if [[ -e "$TARGET_MCP_JSON" ]]; then
-        echo -e "${YELLOW}⏭ .mcp.json already exists, skipping.${NC}"
+        echo -e "${YELLOW}⏭ .claude/.mcp.json already exists, skipping.${NC}"
     else
         execute "Copy .mcp.json from template" "cp '$SOURCE_MCP_JSON' '$TARGET_MCP_JSON'"
-        [[ "$DRY_RUN" == false ]] && echo -e "${GREEN}✓ .mcp.json copied from template.${NC}"
+        [[ "$DRY_RUN" == false ]] && echo -e "${GREEN}✓ .claude/.mcp.json copied from template.${NC}"
     fi
 else
     echo -e "${YELLOW}⚠ Template mcp.template.json not found, skipping.${NC}"
@@ -279,11 +279,10 @@ else
     echo "Claude Code configurations are now available in ${TARGET_DIR}"
     echo ""
     echo "Created/Linked:"
-    echo "  • .claude/          → Symlink to shared agents, commands, skills, CLAUDE.md"
-    echo "  • .mcp.json         → MCP server configuration"
+    echo "  • .claude/          → Symlink to shared agents, commands, skills, CLAUDE.md, .mcp.json"
     echo "  • docs/memos/       → Project documentation directory"
     echo ""
     echo "Next steps:"
-    echo "  1. Adjust .mcp.json if you need different MCP servers"
+    echo "  1. Adjust .claude/.mcp.json if you need different MCP servers"
     echo "  2. Run 'claude' to start Claude Code"
 fi
