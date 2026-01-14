@@ -1,13 +1,5 @@
 ---
 description: 要件定義書から基本設計書を作成し、レビュー合格（9点以上）まで修正を繰り返す完全ワークフロー
-allowed-tools: Read, Write, Edit, Glob, Grep, Task, WebFetch
----
-
-## 現在の状態
-
-- **既存基本設計書**: !`ls docs/designs/basic/BASIC-*.md 2>/dev/null | wc -l | tr -d ' '` 件
-- **技術調査レポート**: !`ls docs/research/TECH-*.md 2>/dev/null | wc -l | tr -d ' '` 件
-
 ---
 
 # 基本設計・完全ワークフロー
@@ -17,6 +9,24 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Task, WebFetch
 ## 入力
 $ARGUMENTS (要件定義書のパスなど)
 
+---
+
+## 全体フロー
+
+| Phase | 名称 | 内容 |
+|-------|------|------|
+| 0 | 技術スタック完全性チェック | 要件定義書の技術スタック検証 |
+| 0.5-A | 技術スタック選定ヒアリング | 未定義レイヤーの選定（未定義時） |
+| 0.5-B | 既存設計整合性確認 | 既存基本設計書との整合性チェック（追加仕様時） |
+| 1 | コンテキスト解析 & ドラフト作成 | `@basic-design-writer` による作成 |
+| 2 | 品質保証ループ | `@basic-design-reviewer` によるレビュー（9点以上、最大3回） |
+| 2.5 | ユーザー承認 | @.claude/skills/approval-gate/SKILL.md |
+| 3 | 詳細設計準備 | フォルダ構造作成、リンク設定 |
+
+> **Phase規約**: @.claude/skills/workflow-phase-convention/SKILL.md を参照
+
+---
+
 ## 前提条件
 - 要件定義書が8点以上でレビュー合格済みであること
 - 要件定義書に技術スタックが定義されていること（未定義の場合は未解決課題として扱う）
@@ -24,10 +34,15 @@ $ARGUMENTS (要件定義書のパスなど)
   - 技術調査レポートがある場合、Phase 0.5-Aのヒアリングで参照される
   - 未実施でもワークフローは続行可能（ただし最新情報の把握漏れリスクあり）
 
+---
+
 ## サーキットブレーカー
-- **最大リトライ回数**: **3回**
-- **ギブアップ条件**: 3回修正しても9点に届かない場合、現状ファイルに警告マークを付与して終了
-- **スコア悪化検知**: 前回より低下した場合、即座に中断
+
+| 条件 | アクション |
+|------|----------|
+| **最大リトライ回数**: 3回 | 3回修正しても9点に届かない場合、現状ファイルに警告マークを付与して終了 |
+| **スコア悪化検知** | 前回より低下した場合、即座に中断 |
+| **技術スタック未定義** | 未解決課題として記録し、続行 |
 
 ---
 
@@ -416,6 +431,14 @@ def basic_design_workflow(req_path):
 - 前工程: `/req-workflow`
 - **推奨前工程**: `/tech-catchup-workflow`（技術キャッチアップ）
 - 次工程: `/detailed-design-workflow`
-- 技術スタック定義: @.claude/skills/design-document-types/SKILL.md
-- 技術調査レポート: `docs/research/TECH-*.md`
-- Phase規約: @.claude/skills/workflow-phase-convention/SKILL.md
+
+---
+
+## 参考スキル
+
+| スキル | 用途 |
+|--------|------|
+| @.claude/skills/approval-gate/SKILL.md | ユーザー承認ゲート |
+| @.claude/skills/workflow-phase-convention/SKILL.md | Phase命名規約 |
+| @.claude/skills/design-document-types/SKILL.md | 技術スタック定義 |
+| @.claude/skills/tech-stack-selection/SKILL.md | 技術スタック選定ヒアリング |

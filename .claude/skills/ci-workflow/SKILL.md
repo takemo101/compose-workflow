@@ -5,13 +5,24 @@ description: PR作成後のCI監視、失敗時の分類と対応、自動マー
 
 # CI監視 & マージワークフロー
 
+> **責任境界**: このスキルは「CI監視」「失敗分析」「自動修正」を担当。
+> PR作成・マージ・ロールバックの全体フローは @.claude/skills/pr-merge-workflow/SKILL.md を参照。
+
+> **参照元**: implement-issues.md から分離されたCI監視・修正・マージフロー
+
+---
+
 ## 実行者の責任分担
 
 | フェーズ | 実行者 | 理由 |
 |---------|--------|------|
-| 0-9 (実装→PR作成) | container-worker / メイン | container-use環境内での作業 |
-| **10 (CI監視→マージ)** | **メイン** | GitHub API操作、環境外での監視 |
-| **11 (環境クリーンアップ)** | **メイン** | 環境管理はホスト側で実行 |
+| 0-9 (実装→PR作成) | `container-worker` / `Sisyphus` | container-use環境内での作業 |
+| **10 (CI監視→マージ)** | **`Sisyphus`** | GitHub API操作、環境外での監視 |
+| **11 (環境クリーンアップ)** | **`Sisyphus`** | 環境管理はホスト側で実行 |
+
+> **Note**: CI監視やPRマージは `bash` ツールでGitHub APIを呼び出す。
+
+---
 
 ## メインフロー
 
@@ -33,6 +44,8 @@ def post_pr_workflow(pr_number: int, env_id: str):
         handle_ci_timeout(pr_number, env_id)  # 環境保持
 ```
 
+---
+
 ## 1. CI完了待機
 
 ```python
@@ -46,6 +59,8 @@ def wait_for_ci(pr_number: int, timeout: int = 600) -> CIResult:
     return TIMEOUT
 ```
 
+---
+
 ## 2. CI失敗の分類と対応
 
 | 失敗カテゴリ | 検出パターン | 対応方法 |
@@ -55,6 +70,23 @@ def wait_for_ci(pr_number: int, timeout: int = 600) -> CIResult:
 | **ビルドエラー** | `error[E`, `cannot find` | コード修正 |
 | **フォーマット** | `Diff in`, `would have been reformatted` | `cargo fmt` |
 | **環境依存** | `platform exception` | 環境再開 |
+
+```python
+def analyze_failure(log: str) -> CIFailureAnalysis:
+    """CIログを分析して失敗種別を特定"""
+    if "clippy::" in log or "warning:" in log:
+        return CIFailureAnalysis(type="lint", auto_fixable=True, 
+            fix_command="cargo clippy --fix --allow-dirty --allow-staged")
+    if "FAILED" in log:
+        return CIFailureAnalysis(type="test", auto_fixable=False)
+    if "error[E" in log:
+        return CIFailureAnalysis(type="build", auto_fixable=False)
+    if "would have been reformatted" in log:
+        return CIFailureAnalysis(type="format", auto_fixable=True, fix_command="cargo fmt")
+    return CIFailureAnalysis(type="unknown")
+```
+
+---
 
 ## 3. CI修正フロー
 
@@ -70,7 +102,23 @@ def handle_ci_failure(pr_number: int, env_id: str) -> bool:
         if wait_for_ci(pr_number) == SUCCESS:
             return True
     return False  # リトライ超過 → escalate_ci_failure()
+
+def fix_in_container(env_id: str, analysis: CIFailureAnalysis):
+    """既存のcontainer環境で修正を実施"""
+    # 1. 環境を再開
+    container-use_environment_open(environment_id=env_id, ...)
+    # 2. リモートの最新状態を取得
+    container-use_environment_run_cmd(command="git pull origin HEAD")
+    # 3. 修正を実施
+    if analysis.auto_fixable:
+        container-use_environment_run_cmd(command=analysis.fix_command)
+    # 4. ローカルで検証
+    container-use_environment_run_cmd(command="cargo clippy -- -D warnings && cargo test")
+    # 5. 修正をpush
+    container-use_environment_run_cmd(command="git add . && git commit -m 'fix: CI修正' && git push")
 ```
+
+---
 
 ## 4. 自動マージ
 
@@ -85,38 +133,82 @@ def auto_merge_pr(pr_number: int, env_id: str) -> bool:
     return handle_merge_failure(pr_number, error=result.stderr)
 ```
 
+---
+
 ## 5. エスカレーション
 
 ```python
 def escalate_ci_failure(pr_number: int, env_id: str):
     """PRをDraft化、失敗ログをコメント、ユーザーに報告"""
     bash(f"gh pr ready {pr_number} --undo")
-    bash(f"gh pr comment {pr_number} --body 'CI修正3回失敗。env_id: {env_id}'")
-    report_to_user(f"PR #{pr_number} 手動確認が必要")
+    bash(f"gh pr comment {pr_number} --body '⚠️ CI修正3回失敗。env_id: {env_id}'")
+    report_to_user(f"⚠️ PR #{pr_number} 手動確認が必要")
 ```
+
+---
 
 ## 6. 環境クリーンアップ
 
 ```python
 def cleanup_environment(env_id: str, pr_number: int) -> bool:
     """delete-environment スキルを実行（最大2回リトライ）"""
-    script = ".claude/skills/delete-environment/scripts/delete_env.sh"
+    script = ".opencode/skill/delete-environment/scripts/delete_env.sh"
     
     for _ in range(3):
         if bash(f"bash {script} {env_id}").exit_code == 0:
-            report_to_user(f"PR #{pr_number} マージ済み、環境 {env_id} 削除済み")
+            report_to_user(f"✅ PR #{pr_number} マージ済み、環境 {env_id} 削除済み")
             return True
         wait(5)
-    report_to_user(f"環境削除失敗。手動: bash {script} {env_id}")
+    report_to_user(f"⚠️ 環境削除失敗。手動: bash {script} {env_id}")
     return False
 ```
+
+> **Note**: `mark_environment_merged()` は [environments-json-management](../environments-json-management/SKILL.md) で定義。
 
 ### クリーンアップタイミング
 
 | 状況 | 環境の扱い |
 |------|----------|
-| PRマージ成功 | 即座に削除 |
-| PRクローズ（マージなし） | 即座に削除 |
-| CI修正中（リトライ中） | 削除しない |
-| Draft PR（エスカレーション中） | 削除しない |
-| PRレビュー修正待ち | 削除しない |
+| PRマージ成功 | ✅ 即座に削除 |
+| PRクローズ（マージなし） | ✅ 即座に削除 |
+| CI修正中（リトライ中） | ❌ 削除しない |
+| Draft PR（エスカレーション中） | ❌ 削除しない |
+| PRレビュー修正待ち | ❌ 削除しない |
+
+---
+
+## 関連ドキュメント
+
+| ドキュメント | 内容 |
+|-------------|------|
+| @.claude/skills/pr-merge-workflow/SKILL.md | PR作成〜マージ〜ロールバックの全体フロー |
+| @.claude/skills/environments-json-management/SKILL.md | 環境ID管理・ステータス更新 |
+| @.claude/skills/delete-environment/SKILL.md | 環境削除手順 |
+
+---
+
+## CLIスクリプト
+
+**CI待機の自動化スクリプト：**
+
+```bash
+bash .opencode/skill/ci-workflow/scripts/ci-wait.sh <pr-number> [timeout-seconds]
+```
+
+| 引数 | 説明 | デフォルト |
+|------|------|-----------|
+| `pr-number` | PR番号 | 必須 |
+| `timeout-seconds` | 最大待機時間（秒） | 600 |
+
+**終了コード：**
+| コード | 意味 |
+|--------|------|
+| 0 | 全CIチェック成功 |
+| 1 | CIチェック失敗 |
+| 2 | タイムアウト |
+| 3 | 引数エラー |
+
+**使用例：**
+```bash
+bash .opencode/skill/ci-workflow/scripts/ci-wait.sh 42 1800
+```

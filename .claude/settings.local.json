@@ -1,0 +1,14 @@
+{
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "sequential-thinking",
+    "serena",
+    "container-use",
+    "playwright"
+  ],
+  "permissions": {
+    "allow": [
+      "mcp__container-use__environment_create"
+    ]
+  }
+}

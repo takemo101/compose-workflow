@@ -1,14 +1,6 @@
 ---
 description: 既存コードを分析して詳細設計書を自動生成
 argument-hint: "<target-path> (例: src/notification/)"
-allowed-tools: Read, Write, Edit, Glob, Grep, Task
----
-
-## 現在の状態
-
-- **既存リバース設計書**: !`ls docs/designs/reverse/*.md 2>/dev/null | wc -l | tr -d ' '` 件
-- **Serena有効**: !`which serena >/dev/null 2>&1 && echo "あり" || echo "なし"`
-
 ---
 
 # リバースエンジニアリング・ワークフロー (v1.3)
@@ -44,8 +36,10 @@ $ARGUMENTS（対象モジュール/ディレクトリのパス）
 | 2 | 設計書生成 | テンプレートに従い設計書作成 |
 | 3 | 品質検証 | 整合性・網羅性チェック |
 | 3.5 | AIレビュー | @detailed-design-reviewer（8点以上、オプション） |
-| 3.8 | ユーザー確認 | 生成前の最終確認 |
+| 3.8 | ユーザー承認 | 生成前の最終確認（@.claude/skills/approval-gate/SKILL.md） |
 | 4 | 出力 | ファイル生成 |
+
+> **Phase規約**: @.claude/skills/workflow-phase-convention/SKILL.md を参照
 
 ---
 
@@ -86,10 +80,10 @@ serena_find_symbol(name_path_pattern="MainStruct", include_body=True)
 
 ```
 # Rust
-serena_search_for_pattern(substring_pattern="^use\s+", relative_path="src/xxx/")
+serena_search_for_pattern(substring_pattern="^use\\s+", relative_path="src/xxx/")
 
 # TypeScript
-serena_search_for_pattern(substring_pattern="^import\s+", relative_path="src/xxx/")
+serena_search_for_pattern(substring_pattern="^import\\s+", relative_path="src/xxx/")
 ```
 
 ### 1.3 テストケース分析
@@ -103,7 +97,7 @@ serena_get_symbols_overview(relative_path="tests/xxx_test.rs", depth=1)
 
 ```
 # Rust: ///
-serena_search_for_pattern(substring_pattern="^\s*///", relative_path="src/xxx/")
+serena_search_for_pattern(substring_pattern="^\\s*///", relative_path="src/xxx/")
 
 # Python: docstring
 serena_search_for_pattern(substring_pattern='"""', relative_path="src/xxx/")
@@ -156,13 +150,15 @@ task(subagent_type="detailed-design-reviewer", prompt="設計書をレビュー.
 
 ---
 
-## Phase 3.8: ユーザー確認【必須】
+## Phase 3.8: ユーザー承認【必須】
+
+> **共通仕様**: @.claude/skills/approval-gate/SKILL.md を参照
 
 生成結果サマリー（抽出シンボル数、未解決事項数）を表示し確認。
 
 | 選択肢 | アクション |
 |--------|----------|
-| `生成` | Phase 4へ |
+| `承認` | Phase 4へ |
 | `修正` | Phase 2に戻る |
 | `中断` | キャンセル |
 
@@ -237,6 +233,8 @@ task(subagent_type="detailed-design-reviewer", prompt="設計書をレビュー.
 | スキル/ドキュメント | 用途 |
 |-------------------|------|
 | @.claude/skills/detailed-design-templates/SKILL.md | 設計書テンプレート |
+| @.claude/skills/workflow-phase-convention/SKILL.md | Phase命名規約 |
+| @.claude/skills/approval-gate/SKILL.md | ユーザー承認ゲート |
 | [詳細設計ワークフロー](./detailed-design-workflow.md) | 新規設計時 |
 
 ---

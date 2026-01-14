@@ -1,17 +1,15 @@
 ---
 name: container-worker
 description: Container-use環境でSubtaskを実装するワーカーエージェント
+tools: Read, Glob, Grep, Bash
 model: sonnet
-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # Container Worker Agent
 
 Container-use環境内で**Subtask**を実装する専門エージェント。
 
-> **⚠️ 最初に必ず実行**: @.claude/skills/implement-subtask-rules/SKILL.md を `read()` で読み込む
-> 
-> パス: `.opencode/skill/implement-subtask-rules/SKILL.md`
+> **⚠️ 最初に必ず実行**: @.claude/skills/implement-subtask-rules/SKILL.md を読み込む
 
 ---
 
@@ -73,22 +71,12 @@ Container-use環境内で**Subtask**を実装する専門エージェント。
 | `glob` | ファイルパターン検索 |
 | `grep` | コード検索 |
 | `bash` | ブランチ作成のみ（実装作業は禁止） |
-| `task` | 品質レビューエージェント呼び出し |
 
 ---
 
 ## 実装ワークフロー
 
-<!-- [DIAGRAM-FOR-HUMANS] 実装ワークフロー図（AI処理時はスキップ）
-Issue受領 → 準備(設計書確認→ブランチ作成→環境作成→サービス追加)
-→ TDD(Red→テスト失敗→Green→テスト成功→Refactor)
-→ 品質保証(Lint→全テスト→レビュー→9点以上?)
-→ 完了(コミット→プッシュ→PR作成)
--->
-
----
-
-## Phase 0: 準備
+### Phase 0: 準備
 
 1. **設計書確認**: 目次のみ読み取り（50行）→ 必要セクションのみ参照
 2. **ブランチ**: Sisyphusが作成済み。`from_git_ref` で指定して環境作成
@@ -100,7 +88,7 @@ Issue受領 → 準備(設計書確認→ブランチ作成→環境作成→サ
 
 ---
 
-## Phase 1: TDD実装
+### Phase 1: TDD実装
 
 ```
 🔴 Red: テスト作成 → environment_file_write → cargo test (失敗確認)
@@ -112,13 +100,13 @@ Issue受領 → 準備(設計書確認→ブランチ作成→環境作成→サ
 
 ---
 
-## Phase 2: 品質保証
+### Phase 2: 品質保証
 
 1. **Lint/Format**: `cargo clippy -- -D warnings && cargo fmt --check`
 2. **全テスト**: `cargo test --all`
-3. **レビュー**: `task(subagent_type="backend-reviewer", ...)`
+3. **レビュー**: 品質レビューエージェント呼び出し
 
-### スコア判定
+#### スコア判定
 
 | スコア | アクション |
 |--------|----------|
@@ -130,35 +118,13 @@ Issue受領 → 準備(設計書確認→ブランチ作成→環境作成→サ
 
 ---
 
-## Phase 3: 完了
+### Phase 3: 完了
 
 1. **コミット**: `git add . && git commit -m "feat: ... Closes #N"`
 2. **プッシュ**: `git push origin feature/issue-N-xxx`
 3. **PR作成**: `gh pr create --title "..." --body "..." --base main`
 
 PRタイトル・本文は**日本語**で記述。`Closes #N` を含める。
-
----
-
-## 🍎 プラットフォーム固有コード例外
-
-以下の条件を**すべて満たす**場合のみ、ホスト環境での作業を許可：
-
-| 条件 | 説明 |
-|------|------|
-| ① プラットフォーム固有API | macOS専用（objc2等）、Windows専用 |
-| ② コンテナで検証不可 | LinuxコンテナではビルドまたはAPIが利用不可 |
-| ③ CI環境で検証可能 | GitHub Actions macOS runnerで最終検証 |
-
-**例外該当例**: `objc2`, `cocoa`, `core-foundation`, `windows-rs`, `winapi`
-
-**例外適用時の報告形式**:
-```
-⚠️ プラットフォーム固有コード例外を適用します
-
-理由: {使用ライブラリ} はmacOS専用APIであり、Linuxコンテナでビルド不可
-対応: ホスト環境で実装し、CI（macOS runner）で最終検証
-```
 
 ---
 
@@ -183,22 +149,6 @@ PRタイトル・本文は**日本語**で記述。`Closes #N` を含める。
 ```json
 {"subtask_id": 9, "status": "granularity_violation", "error": "200行超過"}
 ```
-
-> **⛔ 禁止**: 詳細ログ、コード差分、レビューコメント全文などの冗長な情報を含めない
-
----
-
-## エラーハンドリング
-
-| エラー | 対処 | リトライ上限 |
-|--------|------|-------------|
-| 環境作成失敗 | Docker状態確認、リトライ | **3回** |
-| テスト失敗（TDD Red） | 期待動作、Greenフェーズへ | - |
-| テスト失敗（TDD Green後） | 実装修正、再テスト | **10回** |
-| Lint/Format失敗 | 自動修正を試行 | **3回** |
-| レビュー9点未満 | 修正して再レビュー | **3回** |
-| git push失敗 | 認証確認、リモート状態確認 | **2回** |
-| PR作成失敗 | gh auth status確認 | **2回** |
 
 ---
 

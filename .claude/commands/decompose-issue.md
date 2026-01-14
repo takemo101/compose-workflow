@@ -1,12 +1,6 @@
 ---
-description: "既存の大きなIssueを適切な粒度のSubtaskに分解します。200行以下・3ファイル以下の粒度で子Issueを作成し、並列実装を可能にします。"
-allowed-tools: Read, Glob, Grep, Task, Bash(gh:*)
----
-
-## 現在の状態
-
-- **オープンIssue数**: !`gh issue list --state open --json number 2>/dev/null | jq 'length' || echo "0"` 件
-
+description: 既存の大きなIssueを適切な粒度のSubtaskに分解します。200行以下・3ファイル以下の粒度で子Issueを作成し、並列実装を可能にします。
+argument-hint: "[Issue番号]"
 ---
 
 # Issue分解コマンド
@@ -21,6 +15,22 @@ allowed-tools: Read, Glob, Grep, Task, Bash(gh:*)
 $ARGUMENTS（Issue番号）
 
 例: `/decompose-issue 8`
+
+---
+
+## 全体フロー
+
+| Phase | 名称 | 内容 |
+|-------|------|------|
+| 0 | 入力解析 | Issue番号の解析、Issue情報取得 |
+| 1 | Issue分析 | 規模分析、設計書特定、コード量推定 |
+| 2 | 分解計画 | Subtask分割、200行/3ファイル制約適用 |
+| 3 | 依存関係解析 | Subtask間の依存関係を解析 |
+| 3.5 | ユーザー確認 | 分解計画の承認（@.claude/skills/approval-gate/SKILL.md） |
+| 4 | Subtask作成 | GitHub Issue作成、Sub-issue連携 |
+| 5 | 親Issue更新 | サマリーコメント追加 |
+
+> **Phase規約**: @.claude/skills/workflow-phase-convention/SKILL.md を参照
 
 ---
 
@@ -132,14 +142,16 @@ def analyze_dependencies(subtasks: list[Subtask]) -> dict[int, list[int]]:
     return dependencies
 ```
 
-### Phase 4: ユーザー確認
+### Phase 3.5: ユーザー確認
+
+> **共通仕様**: @.claude/skills/approval-gate/SKILL.md を参照
 
 分解計画をユーザーに提示し、承認を得る。
 
 **出力形式**:
 
 ```markdown
-## Issue分解計画
+## 📋 Issue分解計画
 
 ### 親Issue
 - **#{issue_id}**: {title}
@@ -163,7 +175,7 @@ def analyze_dependencies(subtasks: list[Subtask]) -> dict[int, list[int]]:
 | Phase | 並列実行可能 | Subtask |
 |-------|------------|---------|
 | 1 | - | #1（基盤） |
-| 2 | Yes | #2, #3（#1完了後） |
+| 2 | ✅ | #2, #3（#1完了後） |
 | 3 | - | #4（#1, #2完了後） |
 
 ---
@@ -173,7 +185,7 @@ def analyze_dependencies(subtasks: list[Subtask]) -> dict[int, list[int]]:
 - `カスタム指示` → 特定の分割方法を指定
 ```
 
-### Phase 5: Subtask Issue作成
+### Phase 4: Subtask Issue作成
 
 ```python
 def create_subtask_issues(
@@ -222,7 +234,7 @@ def create_subtask_issues(
 {deps_text}
 
 ---
-このIssueは `/decompose-issue {parent_issue_id}` により自動生成されました
+🤖 このIssueは \`/decompose-issue {parent_issue_id}\` により自動生成されました
 " \
                   --label "subtask,automated"
             ''')
@@ -262,7 +274,7 @@ def handle_partial_creation_failure(
     
     # 2. 親Issueにエラー報告をコメント
     error_comment = f"""
-## Subtask作成エラー
+## ⚠️ Subtask作成エラー
 
 ### 状況
 - 作成予定: {total_count}件
@@ -300,14 +312,14 @@ def handle_partial_creation_failure(
 ```
 
 ---
-自動ロールバックは行いません（作成済みIssueには有用な情報が含まれる可能性があるため）
+🤖 自動ロールバックは行いません（作成済みIssueには有用な情報が含まれる可能性があるため）
 """
     
     bash(f"gh issue comment {parent_issue_id} --body '{error_comment}'")
     
     # 3. ユーザーに報告
     report_to_user(f"""
-Subtask作成が途中で失敗しました。
+⚠️ Subtask作成が途中で失敗しました。
 
 - 親Issue: #{parent_issue_id}
 - 作成済み: {created_count}/{total_count}件
@@ -317,7 +329,7 @@ Subtask作成が途中で失敗しました。
 """)
 ```
 
-### Phase 6: 親Issue更新
+### Phase 5: 親Issue更新
 
 ```python
 def add_decomposition_summary(
@@ -328,7 +340,7 @@ def add_decomposition_summary(
     """親IssueにSubtask一覧をコメント"""
     
     summary = f"""
-## Issue分解完了
+## 🔄 Issue分解完了
 
 このIssueは以下のSubtaskに分解されました。
 
@@ -339,7 +351,7 @@ def add_decomposition_summary(
 """
     
     for subtask, issue_id in zip(subtasks, created_ids):
-        summary += f"| #{issue_id} {subtask.title} | {subtask.estimated_lines}行 | {subtask.deps_text} | 未着手 |\n"
+        summary += f"| #{issue_id} {subtask.title} | {subtask.estimated_lines}行 | {subtask.deps_text} | ⏳ 未着手 |\n"
     
     summary += f"""
 ### 実装方法
@@ -373,7 +385,7 @@ def add_decomposition_summary(
 ## 出力形式
 
 ```markdown
-## Issue分解完了
+## ✅ Issue分解完了
 
 ### 親Issue
 - **#{parent_id}**: {parent_title}

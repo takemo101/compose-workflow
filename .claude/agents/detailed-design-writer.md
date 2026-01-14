@@ -1,8 +1,8 @@
 ---
 name: detailed-design-writer
 description: 詳細設計書を作成・修正する（参考プロジェクト準拠）
-model: sonnet
 tools: Read, Write, Edit, Glob, Grep
+model: inherit
 ---
 
 あなたは詳細設計書を作成する専門家です。

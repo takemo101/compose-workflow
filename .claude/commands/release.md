@@ -1,7 +1,6 @@
 ---
 description: バージョン提案からGitHub Release作成までの完全ワークフロー
 argument-hint: "[version]（省略時は自動提案）"
-allowed-tools: Read, Write, Edit, Bash(git:*), Bash(gh:*)
 ---
 
 # リリースワークフロー
@@ -10,11 +9,18 @@ allowed-tools: Read, Write, Edit, Bash(git:*), Bash(gh:*)
 
 ---
 
-## 現在の状態
+## 全体フロー
 
-- **現在のバージョン**: !`grep '^version = ' Cargo.toml 2>/dev/null | head -1 | sed 's/version = "\(.*\)"/\1/' || echo "不明"`
-- **最新タグ**: !`git tag --sort=-version:refname 2>/dev/null | head -1 || echo "タグなし"`
-- **前回リリースからのコミット数**: !`git rev-list $(git tag --sort=-version:refname | head -1)..HEAD --count 2>/dev/null || echo "0"`
+| Phase | 名称 | 内容 |
+|-------|------|------|
+| 0 | 入力解析 | バージョン引数の解析（省略時は自動提案） |
+| 1 | 状態確認 | 現在バージョン取得、前回リリースからの変更取得 |
+| 2 | バージョン提案 | セマンティックバージョニングに基づく提案 |
+| 2.5 | ユーザー承認 | バージョン確認（@.claude/skills/approval-gate/SKILL.md） |
+| 3 | リリース実行 | Cargo.toml更新、CHANGELOG更新、タグ作成、Push、Release作成 |
+| 4 | 完了報告 | リリース結果の報告 |
+
+> **Phase規約**: @.claude/skills/workflow-phase-convention/SKILL.md を参照
 
 ---
 
@@ -33,8 +39,14 @@ allowed-tools: Read, Write, Edit, Bash(git:*), Bash(gh:*)
 
 ### Phase 1: 状態確認
 
-前回リリースからの変更:
-!`git log $(git tag --sort=-version:refname | head -1)..HEAD --oneline 2>/dev/null | head -20 || echo "変更なし"`
+```bash
+# 現在のバージョンを取得
+current_version=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+last_tag=$(git tag --sort=-version:refname | head -1)
+
+# 前回リリースからの変更を取得
+git log ${last_tag}..HEAD --oneline
+```
 
 ### Phase 2: バージョン提案
 
@@ -51,10 +63,14 @@ allowed-tools: Read, Write, Edit, Bash(git:*), Bash(gh:*)
 - 提案バージョン
 - 変更種別の内訳
 
+### Phase 2.5: ユーザー承認
+
+> **共通仕様**: @.claude/skills/approval-gate/SKILL.md を参照
+
 **ユーザーの選択を待つ**:
-- 提案を承認
-- 別のバージョンを指定
-- キャンセル
+- `承認` → 提案バージョンで続行
+- `変更` → 別のバージョンを指定
+- `中断` → キャンセル
 
 ### Phase 3: リリース実行
 

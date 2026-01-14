@@ -1,22 +1,39 @@
 ---
 description: バグ報告から修正完了までの完全ワークフロー（Issue作成→実装→PR→マージ）
 argument-hint: "[Issue番号] または バグの説明"
-allowed-tools: Read, Write, Edit, Glob, Grep, Task, Bash(git:*), Bash(gh:*), Bash(cargo:*), Bash(npm:*), Bash(container-use:*)
----
-
-## 現在の状態
-
-- **現在のブランチ**: !`git branch --show-current`
-- **オープンなバグIssue**: !`gh issue list --state open --label bug --json number 2>/dev/null | jq 'length' || echo "0"` 件
-- **environments.json**: !`cat environments.json 2>/dev/null | jq 'length' || echo "0"` 環境
-
 ---
 
 # バグ修正完全ワークフロー
 
 バグ発見から修正完了までの完全なライフサイクルを自動化します。
 
+---
+
+## 全体フロー
+
+| Phase | 名称 | 内容 |
+|-------|------|------|
+| 0 | バグ報告検出 | 会話からバグ報告を自動検出 |
+| 1 | Issue確認/作成 | 既存Issue確認、または新規作成提案 |
+| 1.5 | 環境選択 | container-use or worktree |
+| 2 | 実装 | `/implement-issues` 内部呼び出し（Bugfix Rule適用） |
+| 2.5 | ユーザー承認 | @.claude/skills/approval-gate/SKILL.md ※PR作成前 |
+| 3 | PR作成 | バグ修正専用テンプレートでPR作成 |
+| 4 | CI監視 & マージ | CI成功→自動マージ |
+| 5 | クリーンアップ | 環境削除 |
+
 > **Phase規約**: @.claude/skills/workflow-phase-convention/SKILL.md を参照
+
+---
+
+## サーキットブレーカー
+
+| 条件 | アクション |
+|------|----------|
+| **Issue作成拒否** | 修正を中断 |
+| **CI修正3回失敗** | Draft PR化、手動確認依頼 |
+| **品質レビュー3回失敗** | Draft PR作成 → ユーザー判断 |
+| **環境削除3回失敗** | 手動削除依頼 |
 
 ---
 
@@ -55,39 +72,6 @@ keywords = ["バグ", "bug", "不具合", "動かない", "エラー"]
 
 ---
 
-## 実装環境の選択
-
-バグ修正には**必ず隔離された環境**を使用。
-
-| 条件 | 環境 | 理由 |
-|------|------|------|
-| 通常のバグ修正 | **container-use** | 環境分離、再現性 |
-| macOS固有API | **worktree** | Linuxコンテナで動作しない |
-| Windows固有API | **worktree** | Linuxコンテナで動作しない |
-| ハードウェア依存 | **worktree** | コンテナでアクセス不可 |
-
-> **詳細**: @.claude/skills/container-use-guide/SKILL.md, @.claude/skills/worktree-workflow/SKILL.md
-
----
-
-## ワークフロー全体図
-
-```
-[Phase 0] バグ報告（会話から自動検出）
-  ↓
-[Phase 1] Issue確認/作成 → ユーザー承認
-  ↓
-[Phase 1.5] 環境選択 → container-use or worktree
-  ↓
-[Phase 2] /implement-issues 内部呼び出し（Bugfix Rule適用）
-  ↓
-[Phase 3] PR作成 → CI監視 → マージ → クリーンアップ
-```
-
-> **Note**: Phase 0 は会話からの自動検出で完了。上記「自動検出トリガー」セクションを参照。
-
----
-
 ## Phase 1: Issue確認/作成
 
 ### 既存Issue確認
@@ -116,6 +100,19 @@ gh issue list --state open --label bug --limit 20 --json number,title
 - `既存利用 #XX`: 既存Issue #XX を使用
 - `キャンセル`: 中断
 ```
+
+---
+
+## Phase 1.5: 環境選択
+
+| 条件 | 環境 | 理由 |
+|------|------|------|
+| 通常のバグ修正 | **container-use** | 環境分離、再現性 |
+| macOS固有API | **worktree** | Linuxコンテナで動作しない |
+| Windows固有API | **worktree** | Linuxコンテナで動作しない |
+| ハードウェア依存 | **worktree** | コンテナでアクセス不可 |
+
+> **詳細**: @.claude/skills/container-use-guide/SKILL.md, @.claude/skills/worktree-workflow/SKILL.md
 
 ---
 
@@ -154,6 +151,30 @@ gh issue list --state open --label bug --limit 20 --json number,title
 | 既存テストがバグを検出していた | 免除可 | 既存テストの修正のみ |
 | タイポ修正（コメント・文字列） | 免除可 | 影響範囲が限定的であることを明記 |
 | ロジック修正 | 必須 | 例外なし |
+
+---
+
+## Phase 2.5: ユーザー承認ゲート
+
+> **共通仕様**: @.claude/skills/approval-gate/SKILL.md を参照
+
+```markdown
+## 承認リクエスト: バグ修正PR作成
+
+**Issue**: #{issue_id}
+**修正内容**: {fix_summary}
+**変更行数**: {changed_lines}行（{changed_files}ファイル）
+
+### レビュー結果
+- スコア: {score}/10
+- Regression Test: 追加済み
+
+---
+**選択肢**:
+- `approve` → PR作成へ進む
+- `reject` → 修正を中断
+- `revise` → 指摘箇所を修正
+```
 
 ---
 
@@ -316,6 +337,8 @@ Sisyphus:
 | @.claude/skills/ci-workflow/SKILL.md | PR作成後のCI監視 |
 | @.claude/skills/pr-merge-workflow/SKILL.md | PRマージ〜クリーンアップ |
 | @.claude/skills/tdd-implementation/SKILL.md | テスト追加時 |
+| @.claude/skills/approval-gate/SKILL.md | ユーザー承認ゲート |
+| @.claude/skills/workflow-phase-convention/SKILL.md | Phase命名規約 |
 | [プラットフォーム例外](../instructions/platform-exception.md) | 固有コードの修正時 |
 | [設計書同期ポリシー](../instructions/design-sync.md) | 設計書更新時 |
 | [テスト戦略](../instructions/testing-strategy.md) | Regression Test追加時 |

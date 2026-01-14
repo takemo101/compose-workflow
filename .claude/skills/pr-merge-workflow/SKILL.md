@@ -7,6 +7,11 @@ description: PRの作成からマージ、クリーンアップ、ロールバ�
 
 PRの作成からマージ、クリーンアップまでの標準フローを定義する。
 
+> **責任境界**: このスキルは「PR作成」「マージ」「クリーンアップ」を担当。
+> CI監視・修正の詳細は @.claude/skills/ci-workflow/SKILL.md を参照。
+
+---
+
 ## PR作成
 
 ### 基本コマンド
@@ -39,6 +44,8 @@ EOF
 | Summary | 変更概要（1-3行） | バグ修正、機能追加等 |
 | Changes | 具体的な変更リスト | ファイル、関数等 |
 
+---
+
 ## CIチェック待機
 
 PR作成後、CIが完了するまで待機する。
@@ -49,6 +56,8 @@ gh pr checks <pr-number> --watch
 ```
 
 **重要**: CIが失敗した場合はマージせず、修正を行う。
+
+---
 
 ## PRマージ
 
@@ -79,6 +88,8 @@ gh pr merge <pr-number> --merge
 git push origin --delete <branch-name>
 ```
 
+---
+
 ## マージ後クリーンアップ
 
 ### 必須手順
@@ -88,8 +99,15 @@ git push origin --delete <branch-name>
 gh issue view <issue-number>  # Should show "CLOSED"
 
 # 2. 環境削除（コンテナ・ファイル・JSON一括削除）
-bash .claude/skills/delete-environment/scripts/delete_env.sh <env_id>
+bash .opencode/skill/delete-environment/scripts/delete_env.sh <env_id>
 ```
+
+### environments.json更新
+
+`delete_env.sh` が自動的にJSONエントリを削除するため、手動更新は不要です。
+もし履歴を残したい場合は、削除前にバックアップするか、スクリプトのオプションを確認してください。
+
+---
 
 ## ロールバック手順
 
@@ -123,6 +141,8 @@ Reverts PR #<original-pr-number>
 gh pr merge <pr-number> --admin --merge
 ```
 
+---
+
 ## チェックリスト
 
 ### PR作成前
@@ -142,4 +162,42 @@ gh pr merge <pr-number> --admin --merge
 
 ### マージ後
 - [ ] Issue自動クローズ確認
-- [ ] 環境削除実行
+- [ ] 環境削除（`delete_env.sh` 実行）
+- [ ] environments.json更新（スクリプトが自動実行）
+
+---
+
+## 関連ドキュメント
+
+| ドキュメント | 内容 |
+|-------------|------|
+| @.claude/skills/ci-workflow/SKILL.md | CI監視・修正フロー |
+| @.claude/skills/environments-json-management/SKILL.md | 環境ID管理 |
+| @.claude/skills/delete-environment/SKILL.md | 環境削除手順 |
+| @.claude/skills/quality-review-flow/SKILL.md | 品質レビュー基準 |
+
+---
+
+## CLIスクリプト
+
+**PRマージ完全フローの自動化スクリプト：**
+
+```bash
+bash .opencode/skill/pr-merge-workflow/scripts/pr-merge-full.sh <pr-number> [env-id]
+```
+
+| 引数 | 説明 | 必須 |
+|------|------|------|
+| `pr-number` | PR番号 | ✅ |
+| `env-id` | container-use環境ID（クリーンアップ用） | - |
+
+**処理フロー：**
+1. CI完了待機（ci-wait.sh呼び出し）
+2. PRマージ（`gh pr merge --merge --delete-branch`）
+3. environments.json更新
+4. 環境削除（env-id指定時）
+
+**使用例：**
+```bash
+bash .opencode/skill/pr-merge-workflow/scripts/pr-merge-full.sh 42 abc-123-def
+```

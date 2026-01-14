@@ -1,14 +1,6 @@
 ---
-description: "指定されたGitHub Issueを実装します。TDD（テスト駆動開発）を強制し、container-use環境でクローズドな開発・テストを行います。"
-allowed-tools: Read, Write, Edit, Glob, Grep, Task, Bash(git:*), Bash(gh:*), Bash(cargo:*), Bash(npm:*), Bash(container-use:*)
----
-
-## 現在の状態
-
-- **現在のブランチ**: !`git branch --show-current`
-- **未コミット変更**: !`git status --porcelain | wc -l | tr -d ' '` 件
-- **environments.json**: !`cat environments.json 2>/dev/null | jq 'length' || echo "0"` 環境
-
+description: 指定されたGitHub Issueを実装します。TDD（テスト駆動開発）を強制し、container-use環境でクローズドな開発・テストを行います。
+argument-hint: "[Issue番号] [--auto]"
 ---
 
 # Issue実装コマンド (TDD + container-use)
@@ -16,6 +8,29 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Task, Bash(git:*), Bash(gh:*), Bas
 指定されたGitHub Issueを実装します。
 **TDD（テスト駆動開発）を強制**し、品質基準を満たすまでリトライします。
 **container-use環境**でクローズドな開発・テストを行います。
+
+---
+
+## 全体フロー
+
+| Phase | 名称 | 内容 |
+|-------|------|------|
+| 0 | ブランチ作成 | featureブランチ作成・プッシュ |
+| 0.5 | 設計書存在チェック | 詳細設計書の有無確認 |
+| 0.6 | 設計書参照ルール | トークン最適化のための部分参照 |
+| 1 | 環境構築 | container-use環境作成・設定 |
+| 2 | 申し送り確認 | 未完了事項の優先対応 |
+| 3-5 | TDD実装 | Red → Green → Refactor |
+| 6 | 設計不備対応 | `/request-design-fix` 実行（必要時） |
+| 6.5 | 実装完了自己チェック | TODO残存・Smoke Test・到達可能性 |
+| 7 | 品質レビュー | スコア9点以上、客観的基準クリア |
+| 7.1 | ユーザー承認 | @.claude/skills/approval-gate/SKILL.md ※`--auto`時スキップ |
+| 8 | コミット & プッシュ | git操作 |
+| 9 | PR作成 | `gh pr create` |
+| 10-11 | CI監視 & マージ | CI成功→自動マージ、環境削除 |
+| 12 | 親Issueクローズ | 全Subtask完了時 |
+
+> **Phase規約**: @.claude/skills/workflow-phase-convention/SKILL.md を参照
 
 ---
 
@@ -69,7 +84,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Task, Bash(git:*), Bash(gh:*), Bas
 ### プラットフォーム例外
 
 macOS/Windows固有APIはコンテナでビルド不可の場合のみ例外適用。
-詳細は @.claude/skills/worktree-workflow/SKILL.md を参照。
+詳細は [プラットフォーム例外ポリシー](../instructions/platform-exception.md) を参照。
 
 ---
 
@@ -164,7 +179,7 @@ Issueのコメントをスキャンし、未完了の申し送り事項があれ
 
 設計の矛盾が見つかった場合は `/request-design-fix` を実行。
 
-### Phase 6.5: 実装完了自己チェック
+### Phase 6.5: 実装完了自己チェック ⚠️ 必須
 
 > **重要**: 以下の全チェックを通過しないとPR作成に進めない。
 > **詳細**: @.claude/skills/quality-review-flow/SKILL.md セクション2（客観的品質基準）を参照
@@ -275,10 +290,10 @@ gh issue close {parent_issue_id} --reason completed
 ### 必須実装パターン
 
 ```python
-# 禁止: 生の結果をそのまま使用
+# ⛔ 禁止: 生の結果をそのまま使用
 result = background_output(task_id=task_id)  # 5,000トークン消費
 
-# 必須: 最小化関数を経由
+# ✅ 必須: 最小化関数を経由
 def collect_worker_result(task_id: str) -> dict:
     raw = background_output(task_id=task_id)
     return {k: raw.get(k) for k in ["subtask_id", "pr_number", "status", "score", "env_id"]}
@@ -339,3 +354,4 @@ def collect_worker_result(task_id: str) -> dict:
 | @.claude/skills/approval-gate/SKILL.md | ユーザー承認ゲート |
 | @.claude/skills/implement-subtask-rules/SKILL.md | Subtask実装ルール |
 | @.claude/skills/environments-json-management/SKILL.md | 環境ID管理 |
+| @.claude/skills/workflow-phase-convention/SKILL.md | Phase命名規約 |

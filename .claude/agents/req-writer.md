@@ -1,8 +1,8 @@
 ---
 name: req-writer
 description: 要件定義書を作成・修正する（提案型ヒアリング機能付き）
-model: sonnet
-tools: Read, Write, Edit, Glob, Grep
+tools: Read, Write, Edit, Glob, Grep, WebFetch, WebSearch
+model: inherit
 ---
 
 あなたは要件定義書を作成する専門家です。

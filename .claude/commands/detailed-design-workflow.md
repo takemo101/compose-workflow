@@ -1,13 +1,6 @@
 ---
-description: "基本設計書を入力として、詳細設計書を作成し、モックアップ生成とテスト設計までを一貫して行うワークフロー。"
-allowed-tools: Read, Write, Edit, Glob, Grep, Task, Bash(gh:*), Bash(npx playwright:*)
----
-
-## 現在の状態
-
-- **既存詳細設計書**: !`find docs/designs/detailed -name "*.md" 2>/dev/null | wc -l | tr -d ' '` 件
-- **オープンIssue数**: !`gh issue list --state open --json number 2>/dev/null | jq 'length' || echo "0"`
-
+description: 基本設計書を入力として、詳細設計書を作成し、モックアップ生成とテスト設計までを一貫して行うワークフロー。
+argument-hint: "[基本設計書のパス]"
 ---
 
 # 詳細設計・完全ワークフロー (v2.9)
@@ -94,11 +87,17 @@ grep -r -l '┌\|┐\|└\|┘\|│\|─' docs/designs/detailed/{機能名}/**/�
 
 ### モックアップ生成
 
-1. `mockup.html` (Desktop)
-2. `mockup-mobile.html` (Mobile, 固定幅375px)
-3. `mockup-error.html`
-4. Playwrightでスクリーンショット撮影
-5. 画面設計書に画像埋め込み
+> **ツール**: @.claude/skills/wireframe-generator/SKILL.md を使用
+
+1. 画面設計書から Wireframe DSL を生成
+2. `bun run generate.ts` で `mockup.html` 等を生成
+3. Playwrightでスクリーンショット撮影
+4. 画面設計書に画像埋め込み
+
+**生成対象**:
+- `mockup.html` (Desktop)
+- `mockup-mobile.html` (Mobile, 固定幅375px)
+- `mockup-error.html`
 
 ---
 
@@ -120,7 +119,7 @@ grep -r -l '┌\|┐\|└\|┘\|│\|─' docs/designs/detailed/{機能名}/**/�
 
 ## Phase 3: 成果物作成 & Issue化
 
-### 責任分離（重複防止）
+### ⚠️ 責任分離（重複防止）
 
 | ステップ | 担当 | 成果物 | 制約 |
 |---------|------|--------|------|
@@ -216,6 +215,7 @@ gh issue create --title "..." --body "..."
 | @.claude/skills/workflow-phase-convention/SKILL.md | Phase命名規約 |
 | @.claude/skills/github-graphql-api/SKILL.md | Sub-issue登録 |
 | @.claude/skills/design-document-types/SKILL.md | 設計書タイプ判定 |
+| @.claude/skills/wireframe-generator/SKILL.md | Phase 1.5 モックアップ生成 |
 
 ---
 

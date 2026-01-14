@@ -110,3 +110,23 @@ gh api graphql \
 |-------------|------|
 | `/decompose-issue` | 分割したSubtaskを親Issueに紐付け |
 | `/detailed-design-workflow` | 作成したIssueをEpicに紐付け |
+
+---
+
+## CLIスクリプト
+
+**自動化スクリプトが利用可能です：**
+
+```bash
+bash .opencode/skill/github-graphql-api/scripts/add-sub-issue.sh <parent-issue> <child-issue>
+```
+
+| 引数 | 説明 |
+|------|------|
+| `parent-issue` | 親Issue番号 |
+| `child-issue` | Sub-issueとして追加するIssue番号 |
+
+**使用例：**
+```bash
+bash .opencode/skill/github-graphql-api/scripts/add-sub-issue.sh 10 42
+```

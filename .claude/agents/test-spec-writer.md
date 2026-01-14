@@ -1,8 +1,8 @@
 ---
 name: test-spec-writer
 description: テスト項目書を作成する専門家（TDD強制フロー）
-model: sonnet
 tools: Read, Write, Edit, Glob, Grep
+model: inherit
 ---
 
 あなたはテスト設計の専門家です。

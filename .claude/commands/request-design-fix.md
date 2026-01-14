@@ -1,13 +1,6 @@
 ---
-description: "実装フェーズ等で発覚した設計不備を修正し、整合性を回復させるためのコマンド。"
-allowed-tools: Read, Write, Edit, Glob, Grep, Task, Bash(gh:*)
----
-
-## 現在の状態
-
-- **現在のブランチ**: !`git branch --show-current`
-- **詳細設計書数**: !`find docs/designs/detailed -name "*.md" 2>/dev/null | wc -l | tr -d ' '` 件
-
+description: 実装フェーズ等で発覚した設計不備を修正し、整合性を回復させるためのコマンド。
+argument-hint: "issue=[Issue番号] target=[設計書パス] problem=[問題の説明]"
 ---
 
 # 設計修正リクエスト (Design Fix)
@@ -21,9 +14,28 @@ $ARGUMENTS
 
 | パラメータ | 必須 | 説明 |
 |-----------|:----:|------|
-| `issue` | Yes | 関連するGitHub Issue番号 |
-| `target` | Yes | 修正対象の設計書パス |
-| `problem` | Yes | 発生している問題・不備の説明 |
+| `issue` | ✅ | 関連するGitHub Issue番号 |
+| `target` | ✅ | 修正対象の設計書パス |
+| `problem` | ✅ | 発生している問題・不備の説明 |
+
+---
+
+## 全体フロー
+
+| Phase | 名称 | 内容 |
+|-------|------|------|
+| 0 | 入力検証 | 設計書の存在確認、Issue番号の検証 |
+| 0.5 | 影響分析 | 変更の影響範囲、関連設計書の特定 |
+| 1 | 問題分析 & 方針策定 | 問題の特定、修正方針の決定 |
+| 2 | 設計書修正 | `@detailed-design-writer` による修正 |
+| 2.5 | ユーザー承認（大規模時） | @.claude/skills/approval-gate/SKILL.md ※3ファイル以上の場合 |
+| 3 | レビューループ | `@detailed-design-reviewer` によるレビュー（最大3回） |
+| 4 | テスト項目書更新 | `@test-spec-writer` による追従（存在する場合） |
+| 5 | 完了通知 | GitHub Issueへのコメント |
+
+> **Phase規約**: @.claude/skills/workflow-phase-convention/SKILL.md を参照
+
+---
 
 ## サーキットブレーカー
 
@@ -31,41 +43,95 @@ $ARGUMENTS
 |------|----------|
 | **最大リトライ回数**: 3回 | 3回修正してもレビュー通過しない場合、現状をユーザーに報告して判断を仰ぐ |
 | **スコア悪化検知** | 修正後にスコアが悪化した場合、即座に中断 |
-| **大規模変更検知** | 変更が3ファイル以上に及ぶ場合、ユーザーに確認 |
+| **大規模変更検知** | 変更が3ファイル以上に及ぶ場合、Phase 2.5でユーザーに確認 |
 
-## 実行フロー
+---
 
-```mermaid
-flowchart TB
-    REQ[リクエスト受信] --> ANA[問題分析]
-    ANA --> PLAN[修正方針策定]
-    PLAN --> EDIT[設計書修正<br/>@detailed-design-writer]
-    EDIT --> REV{レビュー<br/>@detailed-design-reviewer}
-    REV -->|NG| EDIT
-    REV -->|OK| TEST_UPD[テスト項目書更新<br/>@test-spec-writer]
-    TEST_UPD --> COMMENT[Issueコメント通知]
+## Phase 0: 入力検証
+
+1. 設計書パス (`target`) の存在確認
+2. GitHub Issue番号の有効性確認
+
+```bash
+# 設計書の存在確認
+test -f "{target}" || echo "Error: 設計書が見つかりません"
+
+# Issue番号の確認
+gh issue view {issue} --json state
 ```
 
-### 1. 問題分析 & 方針策定
-- 入力された `problem` と現在の設計書を比較。
-- どの部分（ロジック、データ構造、API定義など）を修正すべきか特定する。
+---
 
-### 2. 設計書修正 (`@detailed-design-writer`)
-- 修正方針に基づき、設計書 (`.md`) を更新する。
-- **注意**: 既存の整合性を壊さないよう、変更は局所化する。大規模な変更が必要な場合はユーザーに確認する。
+## Phase 0.5: 影響分析
 
-### 3. レビュー (`@detailed-design-reviewer`)
-- 修正内容が妥当かレビューする。
-- 2次災害（修正により別の矛盾が生まれること）を防ぐ。
+| チェック項目 | 確認内容 |
+|-------------|---------|
+| 影響ファイル数 | 修正が複数ファイルに波及するか |
+| 関連設計書 | 同一機能の他設計書への影響 |
+| API互換性 | 既存APIシグネチャへの影響 |
 
-### 4. テスト項目書の追従 (`@test-spec-writer`)
-- 設計変更によりテストケースに影響がある場合、テスト項目書も更新する。
+---
 
-### 5. 完了通知
-- GitHub Issueに以下のフォーマットでコメントする。
+## Phase 1: 問題分析 & 方針策定
+
+1. 入力された `problem` と現在の設計書を比較
+2. どの部分（ロジック、データ構造、API定義など）を修正すべきか特定
+3. 修正方針を決定
+
+---
+
+## Phase 2: 設計書修正 (`@detailed-design-writer`)
+
+- 修正方針に基づき、設計書 (`.md`) を更新する
+- **注意**: 既存の整合性を壊さないよう、変更は局所化する
+
+---
+
+## Phase 2.5: ユーザー承認ゲート（大規模変更時）
+
+> **トリガー**: Phase 0.5で3ファイル以上の変更を検出した場合
+
+> **共通仕様**: @.claude/skills/approval-gate/SKILL.md を参照
 
 ```markdown
-## 設計修正完了 (Design Fix)
+## 承認リクエスト: 大規模設計修正
+
+**影響ファイル数**: {count}ファイル
+**影響範囲**:
+{affected_files_list}
+
+---
+**選択肢**:
+- `approve` → Phase 3（レビュー）へ進む
+- `reject` → 修正を中断、手動対応を推奨
+- `revise` → 影響範囲を絞って再分析
+```
+
+---
+
+## Phase 3: レビューループ (`@detailed-design-reviewer`)
+
+| 条件 | アクション |
+|------|----------|
+| スコア >= 9 | Phase 4へ |
+| スコア < 9 | Phase 2に戻り修正（最大3回） |
+| スコア悪化 | 即時中断 |
+
+---
+
+## Phase 4: テスト項目書の追従 (`@test-spec-writer`)
+
+- 設計変更によりテストケースに影響がある場合、テスト項目書も更新する
+- テスト項目書が存在しない場合は警告を出して続行
+
+---
+
+## Phase 5: 完了通知
+
+GitHub Issueに以下のフォーマットでコメントする。
+
+```markdown
+## :wrench: 設計修正完了 (Design Fix)
 
 **修正対象**: `{target}`
 **修正内容**:
@@ -176,7 +242,7 @@ def request_design_fix(issue: int, target: str, problem: str):
     
     # 4. Issue通知
     comment_on_issue(issue, f"""
-## 設計修正完了 (Design Fix)
+## :wrench: 設計修正完了 (Design Fix)
 
 **修正対象**: `{target}`
 **修正内容**: {analysis.summary}
@@ -190,8 +256,26 @@ def request_design_fix(issue: int, target: str, problem: str):
 
 ---
 
+## 参考スキル
+
+| スキル | 用途 |
+|--------|------|
+| @.claude/skills/approval-gate/SKILL.md | ユーザー承認ゲート（大規模変更時） |
+| @.claude/skills/workflow-phase-convention/SKILL.md | Phase命名規約 |
+
+---
+
 ## 関連ドキュメント
 
 - 呼び出し元: `/implement-issues`（実装中に設計不備を検知した場合）
 - 修正対象: `docs/designs/detailed/**/*.md`
 - レビュー: `@detailed-design-reviewer`
+
+---
+
+## 変更履歴
+
+| バージョン | 変更内容 |
+|-----------|---------|
+| v2.0 | Phase構造に再構成、全体フロー表追加、承認ゲート追加 |
+| v1.0 | 初版 |

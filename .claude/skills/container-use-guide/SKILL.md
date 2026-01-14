@@ -18,11 +18,13 @@ container-useは、Dockerコンテナ内で開発・テストを行うための�
 - チーム間で同一環境を共有
 - **複数Issueの並行作業が可能**（環境分離）
 
-## 必須ルール
+## ⚠️ 必須ルール
 
 > **実装作業は原則としてcontainer-use環境で行うこと。ホスト環境での直接実装は禁止。**
 
-## 並行作業ガイドライン
+例外については [implement-issues.md](../../command/implement-issues.md) の「プラットフォーム固有コード」セクションを参照。
+
+## 🔀 並行作業ガイドライン
 
 ### なぜcontainer-use環境が必須か
 
@@ -35,6 +37,31 @@ container-useは、Dockerコンテナ内で開発・テストを行うための�
 | ビルドキャッシュ | 異なるブランチの成果物が混在 |
 | 作業状態の保持 | 中断時に状態を失う |
 
+### container-use環境による解決
+
+```
+┌─────────────────────────────────────────────────────┐
+│ ホスト環境 (読み取り専用)                              │
+│  - gh issue/pr 操作のみ許可                          │
+│  - ファイル編集禁止                                   │
+└─────────────────────────────────────────────────────┘
+         │                    │
+         ▼                    ▼
+┌─────────────────┐  ┌─────────────────┐
+│ 環境A (Issue#42)│  │ 環境B (Issue#43)│
+│ env_id: abc-123 │  │ env_id: def-456 │
+│                 │  │                 │
+│ ブランチ:        │  │ ブランチ:        │
+│ feature/42-auth │  │ feature/43-pay  │
+│                 │  │                 │
+│ 状態: active    │  │ 状態: active    │
+└─────────────────┘  └─────────────────┘
+         │                    │
+         ▼                    ▼
+    独立した作業           独立した作業
+    （競合なし）           （競合なし）
+```
+
 ### 並行作業のベストプラクティス
 
 | ルール | 説明 |
@@ -44,12 +71,27 @@ container-useは、Dockerコンテナ内で開発・テストを行うための�
 | **作業再開時は既存環境を使用** | 毎回新規作成しない |
 | **PRマージ後に環境削除** | リソース節約 |
 
+## 🍎 プラットフォーム固有コードの制約
+
+container-use環境はLinuxコンテナのため、macOS/Windows固有APIはコンテナ内でビルド/テスト不可です。
+
+> **詳細**: [プラットフォーム例外ポリシー](../../instructions/platform-exception.md) を参照
+
+---
+
 ## 基本フロー
 
-```
-環境一覧確認 → 既存環境あり? → Yes → 環境を開く → サービス必要? → 作業開始
-                    ↓ No
-              環境を作成 → 環境設定 → サービス必要? → サービス追加 → 作業開始
+```mermaid
+flowchart LR
+    LIST[環境一覧確認] --> EXISTS{既存環境?}
+    EXISTS -->|あり| OPEN[環境を開く]
+    EXISTS -->|なし| CREATE[環境を作成]
+    CREATE --> CONFIG[環境設定]
+    CONFIG --> SERVICE{サービス必要?}
+    OPEN --> SERVICE
+    SERVICE -->|はい| ADD[サービス追加]
+    SERVICE -->|いいえ| WORK
+    ADD --> WORK[作業開始]
 ```
 
 ## ツール一覧
@@ -127,6 +169,8 @@ container-use_environment_config(
 
 ### Step 4: サービス追加 (必要に応じて)
 
+> **詳細な設定例**: @.claude/skills/tech-stack-configs/SKILL.md を参照
+
 | サービス | image | ポート |
 |---------|-------|--------|
 | PostgreSQL | `postgres:15-alpine` | 5432 |
@@ -171,6 +215,18 @@ container-use_environment_run_cmd(
 )
 ```
 
+### シェル指定
+
+```python
+container-use_environment_run_cmd(
+    environment_source="/path/to/repo",
+    environment_id=env_id,
+    command="source .env && npm test",
+    shell="bash",
+    explanation="Run with bash to source env file"
+)
+```
+
 ## ファイル操作
 
 ### ファイル読み取り
@@ -197,7 +253,22 @@ container-use_environment_file_write(
 )
 ```
 
+### ファイル編集
+
+```python
+container-use_environment_file_edit(
+    environment_source="/path/to/repo",
+    environment_id=env_id,
+    target_file="src/index.ts",
+    search_text="old code",
+    replace_text="new code",
+    explanation="Update import statement"
+)
+```
+
 ## 技術スタック別設定例
+
+> **詳細**: @.claude/skills/tech-stack-configs/SKILL.md を参照
 
 | 技術スタック | base_image | 主な設定 |
 |-------------|-----------|---------|
@@ -205,6 +276,16 @@ container-use_environment_file_write(
 | Python/FastAPI | `python:3.11-slim` | `pip install -r requirements.txt` |
 | Go | `golang:1.21-alpine` | `go mod download`, migrate対応 |
 | Rust | `rust:1.85-slim` | `cargo fetch`, `cargo build` |
+
+## DBマイグレーションのテスト
+
+> **詳細**: @.claude/skills/tech-stack-configs/SKILL.md を参照
+
+| ORM/ツール | マイグレーション | ロールバック |
+|-----------|----------------|-------------|
+| Flyway | `flyway migrate` | `flyway undo` |
+| Prisma | `npx prisma migrate deploy` | `npx prisma migrate reset` |
+| Alembic | `alembic upgrade head` | `alembic downgrade -1` |
 
 ## トラブルシューティング
 
@@ -226,11 +307,49 @@ docker info          # Check daemon status
 | Docker daemon not running | Start Docker Desktop, wait 30s, retry |
 | After prune still failing | **User escalation required** |
 
+**User Escalation (MANDATORY):**
+
+When container-use cannot function:
+
+1. **Report the failure clearly**:
+   ```
+   ⚠️ Container-use is unavailable due to: [specific error]
+   
+   Attempted recovery:
+   - [action 1]: [result]
+   - [action 2]: [result]
+   ```
+
+2. **Present options**:
+   ```
+   Options:
+   A) Wait for Docker recovery (manual intervention needed)
+   B) Proceed with direct host operations (breaks isolation)
+   C) Abort and resume later
+   
+   Which would you prefer?
+   ```
+
+3. **If user chooses direct host operations**:
+   - Commit message: `[non-containerized]`
+   - Add warning comment to changed files
+   - Create follow-up issue to verify in container
+
+**CRITICAL**: Never silently fall back. Always get explicit user approval.
+
+> **セッション復旧の詳細手順**: [container-useエージェントルール](../../instructions/container-use.md) を参照
+
 ### サービスに接続できない
 
 1. サービス名をホスト名として使用 (例: `postgres`, `redis`)
 2. ポートが正しいか確認
-3. サービスの起動を待つ
+3. サービスの起動を待つ（@.claude/skills/tech-stack-configs/SKILL.md の「サービス起動待機」参照）
+
+### 依存関係のインストールに失敗
+
+1. base imageを確認
+2. setup_commandsの順序を確認
+3. 必要なシステムパッケージを追加（@.claude/skills/tech-stack-configs/SKILL.md の「ネイティブモジュール対応」参照）
 
 ### 環境が重い
 
@@ -250,6 +369,8 @@ docker info          # Check daemon status
 
 PRレビュー後の修正作業で環境を再利用するため、環境IDを `environments.json`（プロジェクトルート）で追跡します。
 
+> **詳細**: [environments.json管理](../environments-json-management/SKILL.md) を参照
+
 ### クリーンアップポリシー
 
 | 条件 | 推奨アクション |
@@ -257,3 +378,6 @@ PRレビュー後の修正作業で環境を再利用するため、環境IDを 
 | PRマージから7日以上経過 | 環境削除 + エントリ削除 |
 | PRクローズ（マージなし） | 即時削除推奨 |
 | `last_used_at` が30日以上前 | 削除検討 |
+
+**注意**: `environments.json` はローカル環境データのため `.gitignore` に含まれています。
+チーム間で共有する必要がある場合は別途管理してください。

@@ -1,8 +1,8 @@
 ---
 name: detailed-design-reviewer
 description: 詳細設計書をレビューし10点満点でスコアリングする
-model: sonnet
 tools: Read, Glob, Grep
+model: sonnet
 ---
 
 あなたは詳細設計書をレビューする専門家です。
