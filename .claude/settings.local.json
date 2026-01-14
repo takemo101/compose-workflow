@@ -1,14 +1,34 @@
 {
-  "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "sequential-thinking",
-    "serena",
-    "container-use",
-    "playwright"
-  ],
-  "permissions": {
-    "allow": [
-      "mcp__container-use__environment_create"
-    ]
-  }
+	"permissions": {
+		"allow": [
+			"Bash(git:*)",
+			"Bash(gh:*)",
+			"Bash(npm:*)",
+			"Bash(npx:*)",
+			"Bash(cargo:*)",
+			"Bash(container-use:*)",
+			"Bash(uvx:*)",
+			"Read(~/.claude/*)",
+			"Read(~/.config/opencode/*)",
+			"mcp__sequential-thinking__*",
+			"mcp__serena__*",
+			"mcp__container-use__*"
+		],
+		"deny": [
+			"Read(./.env)",
+			"Read(./.env.*)",
+			"Read(./secrets/**)",
+			"Read(./**/credentials.json)"
+		]
+	},
+	"env": {
+		"CLAUDE_CODE_ENABLE_TELEMETRY": "0"
+	},
+	"attribution": {
+		"commit": "🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+		"pr": "🤖 Generated with Claude Code"
+	},
+	"enableAllProjectMcpServers": false,
+	"enabledMcpjsonServers": ["sequential-thinking", "serena", "container-use"],
+	"hooks": {}
 }
