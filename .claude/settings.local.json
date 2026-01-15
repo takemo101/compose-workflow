@@ -1,24 +1,19 @@
 {
 	"permissions": {
-		"allow": [
-			"Bash(git:*)",
-			"Bash(gh:*)",
-			"Bash(npm:*)",
-			"Bash(npx:*)",
-			"Bash(cargo:*)",
-			"Bash(container-use:*)",
-			"Bash(uvx:*)",
-			"Read(~/.claude/*)",
-			"Read(~/.config/opencode/*)",
-			"mcp__sequential-thinking__*",
-			"mcp__serena__*",
-			"mcp__container-use__*"
-		],
+		"allow": ["Bash(*)", "Read(*)", "Write(*)", "Edit(*)", "mcp__*"],
 		"deny": [
+			"Bash(rm -rf /)",
+			"Bash(rm -rf /*)",
+			"Bash(*--force*push*)",
+			"Bash(*push*--force*)",
+			"Bash(sudo *)",
 			"Read(./.env)",
 			"Read(./.env.*)",
 			"Read(./secrets/**)",
-			"Read(./**/credentials.json)"
+			"Read(./**/credentials.json)",
+			"Write(./.env)",
+			"Write(./.env.*)",
+			"Write(./secrets/**)"
 		]
 	},
 	"env": {
