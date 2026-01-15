@@ -1,3 +1,8 @@
+---
+description: 既存の大きなIssueを適切な粒度のSubtaskに分解します。200行以下・3ファイル以下の粒度で子Issueを作成し、並列実装を可能にします。
+argument-hint: "[Issue番号]"
+---
+
 # Issue分解コマンド
 
 既存の大きなIssueを適切な粒度のSubtaskに分解します。

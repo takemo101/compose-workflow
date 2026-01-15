@@ -1,6 +1,6 @@
 ---
-model: google/antigravity-gemini-3-flash
 description: 対象技術の最新情報を調査し、技術調査レポートを作成する
+argument-hint: "[対象技術リスト]"
 ---
 
 # 技術キャッチアップ・完全ワークフロー

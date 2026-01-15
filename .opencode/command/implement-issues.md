@@ -1,3 +1,8 @@
+---
+description: 指定されたGitHub Issueを実装します。TDD（テスト駆動開発）を強制し、container-use環境でクローズドな開発・テストを行います。
+argument-hint: "[Issue番号] [--auto]"
+---
+
 # Issue実装コマンド (TDD + container-use)
 
 指定されたGitHub Issueを実装します。
