@@ -259,229 +259,27 @@ flowchart LR
 
 ## Wireframe DSL スキーマ
 
-> **ツール**: {{skill:wireframe-generator}} でHTML/スクリーンショット生成
+> **詳細リファレンス**: {{skill:wireframe-generator}} を参照
 
 画面設計書内に ` ```yaml wireframe ` ブロックでYAML定義を記述する。
 
-### 対応タイプ一覧（26種類）
+### 対応タイプ（概要）
 
-| カテゴリ | タイプ | 用途 |
-|---------|--------|------|
-| **フォーム系** | `form` | 入力フォーム |
-| | `auth` | ログイン/登録/パスワードリセット |
-| | `wizard` | ステップ形式フォーム |
-| | `settings` | 設定画面 |
-| **一覧系** | `table` | データテーブル |
-| | `card-grid` | カードグリッド |
-| | `gallery` | 画像ギャラリー |
-| | `kanban` | カンバンボード |
-| | `calendar` | カレンダー |
-| | `timeline` | タイムライン |
-| **詳細系** | `detail` | 詳細表示 |
-| | `profile` | プロフィール |
-| **ダッシュボード系** | `dashboard` | ダッシュボード |
-| | `stats` | 統計表示 |
-| **複合系** | `crud` | CRUD（テーブル+フォーム） |
-| | `tabs` | タブ切り替え |
-| | `layout` | レイアウト（ヘッダー/サイドバー） |
-| **オーバーレイ系** | `modal` | モーダル |
-| | `drawer` | ドロワー |
-| | `confirm` | 確認ダイアログ |
-| | `alert` | アラート通知 |
-| **状態系** | `empty-state` | 空状態/エラー |
-| **マーケティング系** | `hero` | ヒーローセクション |
-| | `pricing` | 料金プラン |
-| | `faq` | FAQ |
-| **コミュニケーション系** | `chat` | チャット |
-
-### 共通プロパティ
-
-```yaml
-screen: "画面名"           # 必須: 画面識別名
-type: "form"              # 必須: タイプ（上記一覧から選択）
-title: "タイトル"          # 任意: 画面タイトル
-description: "説明"        # 任意: 説明文
-```
-
-### フィールド定義（FormField）
-
-```yaml
-fields:
-  - name: "email"           # 必須: フィールド名
-    label: "メールアドレス"  # 必須: ラベル
-    type: "email"           # 必須: text/email/password/number/textarea/select/checkbox/radio/date/file/time/datetime/color/range/tel/url/hidden
-    required: true          # 任意: 必須フラグ
-    placeholder: "例: user@example.com"
-    helperText: "ヘルプテキスト"
-    options:                # select/radio/checkbox用
-      - value: "opt1"
-        label: "選択肢1"
-```
-
-### ボタン定義（FormButton）
-
-```yaml
-buttons:
-  - label: "送信"
-    variant: "primary"      # primary/secondary/danger/ghost/link/outline
-    icon: "check"           # 任意: アイコン名
-```
-
-### アイコン一覧
-
-```
-users, currency, activity, chart, inbox, settings, home, search, plus, edit, 
-delete, check, close, arrow-left, arrow-right, download, upload, filter, 
-calendar, clock, star, heart, bell, mail, phone, map, link, image, file, 
-folder, lock, unlock, eye, eye-off, alert, info, help, warning, error, success
-```
-
-### 記述例
-
-#### フォーム（type: form）
-
-```yaml
-screen: "ユーザー登録"
-type: form
-title: "新規ユーザー登録"
-fields:
-  - name: "name"
-    label: "氏名"
-    type: "text"
-    required: true
-  - name: "email"
-    label: "メールアドレス"
-    type: "email"
-    required: true
-  - name: "role"
-    label: "権限"
-    type: "select"
-    options:
-      - value: "admin"
-        label: "管理者"
-      - value: "user"
-        label: "一般ユーザー"
-buttons:
-  - label: "登録"
-    variant: "primary"
-  - label: "キャンセル"
-    variant: "secondary"
-```
-
-#### テーブル（type: table）
-
-```yaml
-screen: "ユーザー一覧"
-type: table
-title: "ユーザー管理"
-columns:
-  - name: "name"
-    label: "氏名"
-    sortable: true
-  - name: "email"
-    label: "メールアドレス"
-  - name: "status"
-    label: "ステータス"
-    type: "badge"
-actions:
-  - search
-  - pagination
-  - create-button
-  - row-edit
-  - row-delete
-```
-
-#### 認証（type: auth）
-
-```yaml
-screen: "ログイン"
-type: auth
-variant: "login"
-title: "ログイン"
-logo:
-  text: "MyApp"
-fields:
-  - name: "email"
-    label: "メールアドレス"
-    type: "email"
-    required: true
-  - name: "password"
-    label: "パスワード"
-    type: "password"
-    required: true
-submitLabel: "ログイン"
-socialProviders:
-  - google
-  - github
-links:
-  - label: "パスワードを忘れた方"
-    href: "/forgot-password"
-  - label: "新規登録"
-    href: "/register"
-```
-
-#### ダッシュボード（type: dashboard）
-
-```yaml
-screen: "管理ダッシュボード"
-type: dashboard
-title: "ダッシュボード"
-stats:
-  - label: "総ユーザー数"
-    value: "1,234"
-    icon: "users"
-    trend: "+12%"
-    trendDirection: "up"
-  - label: "売上"
-    value: "¥1,234,567"
-    icon: "currency"
-widgets:
-  - type: "chart"
-    title: "月次推移"
-    chartType: "line"
-    span: 2
-  - type: "table"
-    title: "最近の注文"
-    columns:
-      - label: "注文ID"
-      - label: "金額"
-      - label: "ステータス"
-```
-
-### 画面設計書への記述方法
-
-画面設計書.md 内に以下のように記述：
-
-````markdown
-## 3. ワイヤーフレーム定義
-
-### 3.1 ユーザー登録フォーム
-
-```yaml wireframe
-screen: "ユーザー登録"
-type: form
-title: "新規ユーザー登録"
-fields:
-  - name: "name"
-    label: "氏名"
-    type: "text"
-    required: true
-  # ... 省略
-```
-
-### 3.2 生成されたモックアップ
-
-![ユーザー登録フォーム](./mockup-user-registration.png)
-````
+| カテゴリ | タイプ例 |
+|---------|---------|
+| フォーム系 | `form`, `auth`, `wizard`, `settings` |
+| 一覧系 | `table`, `card-grid`, `gallery`, `kanban`, `calendar`, `timeline` |
+| 詳細・ダッシュボード | `detail`, `profile`, `dashboard`, `stats` |
+| 複合・オーバーレイ | `crud`, `tabs`, `layout`, `modal`, `drawer`, `confirm`, `alert` |
+| その他 | `empty-state`, `hero`, `pricing`, `faq`, `chat` |
 
 ### 生成コマンド
 
 ```bash
 cd .opencode/skill/wireframe-generator/scripts
 bun install
-bun run generate.ts ../../../docs/designs/detailed/{機能名}/{サブ機能}/画面設計書.md ./output
+bun run generate.ts <markdown-file> [output-dir]
 ```
-
 ---
 
 ## リバースエンジニアリング設計書テンプレート
