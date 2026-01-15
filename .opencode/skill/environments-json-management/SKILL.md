@@ -148,138 +148,44 @@ environments.json  # プロジェクトルート直下
 
 ## API
 
-```python
-import json
-from pathlib import Path
-from datetime import datetime
+### 主要関数
 
-ENVIRONMENTS_FILE = "environments.json"  # project root
+| 関数 | 用途 |
+|------|------|
+| `register_environment(issue_id, env_id, branch)` | 環境作成時に登録 |
+| `update_phase(env_id, phase, step)` | Phase/Step更新（再開ポイント記録） |
+| `find_environment_by_issue(issue_id)` | Issue IDから環境を検索 |
 
-def load_environments() -> dict:
-    """環境情報を読み込み"""
-    path = Path(ENVIRONMENTS_FILE)
-    if not path.exists():
-        return {"environments": []}
-    return json.loads(path.read_text())
+### その他の関数（必要時のみ参照）
 
-def save_environments(data: dict):
-    """環境情報を保存"""
-    path = Path(ENVIRONMENTS_FILE)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+| 関数 | 用途 |
+|------|------|
+| `update_environment_pr(env_id, pr_number)` | PR作成時にPR番号を記録 |
+| `mark_environment_merged(env_id)` | PRマージ後にステータス更新 |
+| `remove_environment(env_id)` | 環境削除時にレコードを削除 |
+| `set_blocked(env_id, reason, description, suggested_action)` | Blocked状態に設定 |
+| `clear_blocked(env_id)` | Blocked状態を解除 |
+| `add_pending_issue(env_id, issue)` | レビュー指摘を追加 |
+| `clear_pending_issues(env_id)` | レビュー指摘をクリア |
 
-def register_environment(issue_id: int, env_id: str, branch: str):
-    """環境作成時に登録"""
-    data = load_environments()
-    data["environments"].append({
-        "issue_number": issue_id,  # JSON field name: issue_number
-        "env_id": env_id,
-        "branch": branch,
-        "status": "active",
-        "created_at": datetime.now().isoformat(),
-        "pr_number": None
-    })
-    save_environments(data)
+### データ構造
 
-def update_environment_pr(env_id: str, pr_number: int):
-    """PR作成時にPR番号を記録"""
-    data = load_environments()
-    for env in data["environments"]:
-        if env["env_id"] == env_id:
-            env["pr_number"] = pr_number
-            env["status"] = "pr_created"
-            break
-    save_environments(data)
-
-def mark_environment_merged(env_id: str):
-    """PRマージ後にステータス更新"""
-    data = load_environments()
-    for env in data["environments"]:
-        if env["env_id"] == env_id:
-            env["status"] = "merged"
-            env["merged_at"] = datetime.now().isoformat()
-            break
-    save_environments(data)
-
-def remove_environment(env_id: str):
-    """環境削除時にレコードを削除"""
-    data = load_environments()
-    data["environments"] = [
-        e for e in data["environments"] if e["env_id"] != env_id
-    ]
-    save_environments(data)
-
-def find_environment_by_issue(issue_id: int) -> dict | None:
-    """Issue IDから環境を検索（PR修正時の再利用用）"""
-    data = load_environments()
-    for env in data["environments"]:
-        if env["issue_number"] == issue_id and env["status"] in ["active", "blocked", "pr_created"]:
-            return env
-    return None
-
-def update_phase(env_id: str, phase: int, step: str):
-    """Phase/Step更新（再開ポイント記録）"""
-    data = load_environments()
-    for env in data["environments"]:
-        if env["env_id"] == env_id:
-            env["phase"] = phase
-            env["step"] = step
-            env["last_used_at"] = datetime.now().isoformat()
-            break
-    save_environments(data)
-
-def set_blocked(env_id: str, reason: str, description: str, suggested_action: str, context: dict = None):
-    """Blocked状態に設定（人間介入必要）"""
-    data = load_environments()
-    for env in data["environments"]:
-        if env["env_id"] == env_id:
-            env["status"] = "blocked"
-            env["blocked"] = {
-                "reason": reason,
-                "description": description,
-                "blocked_at": datetime.now().isoformat(),
-                "suggested_action": suggested_action,
-                "context": context or {}
-            }
-            env["last_used_at"] = datetime.now().isoformat()
-            break
-    save_environments(data)
-
-def clear_blocked(env_id: str):
-    """Blocked状態を解除"""
-    data = load_environments()
-    for env in data["environments"]:
-        if env["env_id"] == env_id:
-            env["status"] = "active"
-            env["blocked"] = None
-            env["last_used_at"] = datetime.now().isoformat()
-            break
-    save_environments(data)
-
-def add_pending_issue(env_id: str, issue: dict):
-    """レビュー指摘を追加"""
-    data = load_environments()
-    for env in data["environments"]:
-        if env["env_id"] == env_id:
-            if "pending_issues" not in env:
-                env["pending_issues"] = []
-            env["pending_issues"].append({
-                **issue,
-                "added_at": datetime.now().isoformat()
-            })
-            env["last_used_at"] = datetime.now().isoformat()
-            break
-    save_environments(data)
-
-def clear_pending_issues(env_id: str):
-    """レビュー指摘をクリア（修正完了時）"""
-    data = load_environments()
-    for env in data["environments"]:
-        if env["env_id"] == env_id:
-            env["pending_issues"] = []
-            env["last_used_at"] = datetime.now().isoformat()
-            break
-    save_environments(data)
+```json
+{
+  "environments": [{
+    "issue_number": 123,
+    "env_id": "uuid",
+    "branch": "feature/xxx",
+    "status": "active|blocked|pr_created|merged|abandoned",
+    "phase": 5,
+    "step": "tdd-red",
+    "created_at": "ISO8601",
+    "last_used_at": "ISO8601",
+    "pr_number": null,
+    "blocked": null,
+    "pending_issues": []
+  }]
+}
 ```
 
 ---

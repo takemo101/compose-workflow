@@ -369,153 +369,38 @@ pnpm add [package-name]
 
 ## Sisyphusへの指示
 
-```python
-def tech_catchup_workflow(input_args):
-    """
-    技術キャッチアップワークフローのメイン処理
-    
-    使用ツール:
-    - call_omo_agent(subagent_type='librarian'): 外部ドキュメント調査（並列実行）
-    - websearch_exa: Web検索
-    - context7_query-docs: ライブラリドキュメント検索
-    - webfetch: 公式ドキュメント取得
-    """
-    
-    # Phase 0.5: コンテキスト確認
-    # 既存プロジェクトのバージョン確認（package.json, Cargo.toml等）
-    current_versions = detect_current_versions()
-    
-    # 直近30日以内の同一技術調査レポートを確認
-    existing_reports = glob("docs/research/TECH-*.md")
-    recent_reports = filter_recent(existing_reports, days=30)
-    
-    # Phase 1: 調査対象の特定と優先度付け
-    technologies = parse_technologies(input_args)
-    req_path = input_args.get('requirements')
-    depth = input_args.get('depth', 'standard')
-    
-    if req_path:
-        # 要件定義書から追加の技術キーワード抽出
-        additional_techs = extract_tech_keywords(req_path)
-        technologies.extend(additional_techs)
-    
-    # 優先度付け（recent_reportsで調査済みはスキップ）
-    prioritized = prioritize_technologies(technologies, current_versions, recent_reports)
-    
-    # スキップ判定
-    if all(t.priority == 'low' for t in prioritized):
-        if await confirm_skip():
-            return skip_with_summary()
-    
-    # Phase 2: 最新情報収集（省エネモード：シングルエージェント）
-    # トークン節約のため、1つのlibrarianエージェントに全技術の調査を依頼する
-    
-    tech_list_str = ", ".join([t.name for t in prioritized])
-    
-    # 統合プロンプトの作成（調査深度に応じて分岐）
-    if depth == 'quick':
-        prompt = f"""
-        Target: {tech_list_str}
-        
-        For EACH technology, collect:
-        - Latest version number
-        - Official documentation URL
-        - GitHub repository URL
-        
-        Output: JSON array. No markdown.
-        
-        Restrictions: Metadata only. No code examples.
-        """
-    elif depth == 'standard':
-        prompt = f"""
-        Target: {tech_list_str}
-        
-        For EACH technology, collect:
-        - Latest version, docs URL, GitHub URL, Getting Started URL
-        - Installation commands (npm/yarn/pnpm)
-        - Minimal working code example
-        - Top 3-5 APIs/functions
-        - Common errors and solutions (2-3)
-        
-        Output: JSON array. No markdown.
-        """
-    else:  # deep
-        prompt = f"""
-        Target: {tech_list_str}
-        
-        For EACH technology, collect:
-        - Latest version, docs URL, GitHub URL, Getting Started URL
-        - Installation commands (npm/yarn/pnpm)
-        - Minimal working code example
-        - Top 3-5 APIs/functions
-        - Common errors and solutions (2-3)
-        - Best practices and anti-patterns
-        - Ecosystem overview (related libraries)
-        - Competitor comparison (if applicable)
-        
-        Output: JSON array. No markdown.
-        """
+### 使用ツール
 
-    # シングルエージェント起動（タイムアウト付き）
-    timeout_minutes = {'quick': 15, 'standard': 45, 'deep': 90}.get(depth, 45)
-    
-    task_id = call_omo_agent(
-        subagent_type='librarian',
-        run_in_background=True,
-        description=f"Batch Research: {tech_list_str}",
-        prompt=prompt
-    )
-    
-    # 結果待機（タイムアウト処理）
-    try:
-        raw_result = background_output(task_id=task_id, timeout=timeout_minutes * 60)
-    except TimeoutError:
-        # サーキットブレーカー発動：中間レポート出力
-        return partial_success(
-            message=f"調査時間超過（{timeout_minutes}分）。中間レポートを出力しました。",
-            partial_reports=get_partial_results(task_id)
-        )
-    
-    # 結果のパース（JSONリストを辞書に変換）
-    # 期待形式: [{ "name": "Next.js", "version": "v15.0", "docs": "...", "github": "..." }, ...]
-    reports = parse_json_result(raw_result)
-    
-    # Phase 3: レポート作成（調査深度に応じて分岐）
-    report_paths = []
-    
-    if len(reports) > 1:
-        # 複数技術の場合は統合レポートを作成
-        date_str = get_current_date_str()
-        path = f"docs/research/TECH-REPORT-{date_str}_Combined.md"
-        
-        # 統合レポートの作成（調査深度に応じた詳細度）
-        create_combined_report(path, reports, depth)
-        report_paths.append(path)
-    else:
-        # 単体の場合は個別ファイル作成
-        for tech in reports:
-            category = determine_category(tech.get('name', 'UNKNOWN'))
-            next_id = get_next_report_id(category)
-            path = f"docs/research/TECH-{category}-{next_id}_{tech.get('name', 'unknown')}.md"
-            
-            # 調査深度に応じたレポート作成
-            if depth == 'quick':
-                create_index_report(path, tech)
-            else:
-                create_detailed_report(path, tech, depth)
-            report_paths.append(path)
-    
-    # Phase 4: 基本設計への引き継ぎ
-    # 複雑な分析（impact_summary等）は廃止し、単純な完了報告のみ返す
-    
-    handoff = {
-        'reports': report_paths,
-        'status': 'completed',
-        'note': 'Technical details should be checked by humans using the provided links.'
-    }
-    
-    return success(handoff)
-```
+- `call_omo_agent(subagent_type='librarian')`: 外部ドキュメント調査（バックグラウンド実行）
+- `websearch_exa`: Web検索
+- `context7_query-docs`: ライブラリドキュメント検索
+
+### 処理フロー
+
+1. **Phase 0.5: コンテキスト確認**
+   - `package.json`, `Cargo.toml` 等から現在のバージョン確認
+   - `docs/research/TECH-*.md` で直近30日以内の調査レポート確認
+   - 調査済みの場合はスキップ候補としてユーザーに確認
+
+2. **Phase 1: 調査対象の特定**
+   - 引数から技術リストを抽出
+   - 要件定義書パスがあれば技術キーワードを追加抽出
+   - 既存調査済み技術を除外して優先度付け
+
+3. **Phase 2: 情報収集**（librarian エージェント使用）
+   - 調査深度に応じた収集項目:
+     - **quick**: バージョン、ドキュメントURL、GitHub URL のみ
+     - **standard**: + インストールコマンド、コード例、主要API、エラー対処
+     - **deep**: + ベストプラクティス、エコシステム、競合比較
+   - タイムアウト: quick=15分, standard=45分, deep=90分
+   - タイムアウト時は中間レポートを出力
+
+4. **Phase 3: レポート作成**
+   - 複数技術 → `docs/research/TECH-REPORT-{date}_Combined.md`
+   - 単体技術 → `docs/research/TECH-{category}-{id}_{name}.md`
+
+5. **Phase 4: 完了報告**
+   - レポートパスとステータスを返却
 
 ---
 

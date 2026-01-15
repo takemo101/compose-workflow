@@ -371,98 +371,44 @@ docs/designs/detailed/{親機能名}/
 
 ## Sisyphusへの指示
 
-```python
-def basic_design_workflow(req_path):
-    # Phase 0: 技術スタック完全性チェック
-    tech_stack = validate_tech_stack(req_path)
-    missing_layers = []
-    for layer in ['frontend', 'backend', 'database', 'auth']:
-        if not tech_stack.get(layer):
-            missing_layers.append(layer)
-    
-    # Phase 0.5-A: 技術スタック選定ヒアリング（未定義時）
-    if missing_layers:
-        # Web検索でベストプラクティス調査
-        best_practices = web_search(f"{domain} tech stack best practices 2026")
-        
-        # 提案形式でユーザーにヒアリング
-        tech_proposal = basic_writer.generate_tech_stack_proposal(
-            req_path, 
-            missing_layers, 
-            best_practices
-        )
-        # ユーザー回答を待機
-        user_selections = await_user_response(tech_proposal)
-        
-        # 選定結果を反映
-        tech_stack = merge_tech_stack(tech_stack, user_selections)
-        
-        # まだ未確定の項目は I-XXX として記録
-        unresolved_issues = []
-        for layer in missing_layers:
-            if not tech_stack.get(layer):
-                issue_id = generate_issue_id()
-                unresolved_issues.append(f"I-{issue_id}: {layer}技術選定")
-    else:
-        unresolved_issues = []
-    
-    # Phase 0.5-B: 既存設計書との整合性確認（追加仕様時）
-    existing_basic_docs = glob('docs/designs/basic/BASIC-*.md')
-    if existing_basic_docs:
-        # 整合性チェック実行
-        compatibility_report = check_design_compatibility(req_path, existing_basic_docs)
-        
-        if compatibility_report.has_conflicts:
-            # ユーザー確認
-            user_choice = await_user_response("""
-                ⚠️ 既存設計への影響が検出されました。
-                
-                対応方針を選択してください:
-                - `統合` → 既存基本設計書に追記
-                - `新規` → 新規基本設計書として独立作成
-                - `中断` → 確認後に再開
-            """)
-            
-            if user_choice == "中断":
-                return cancelled("User requested pause for review")
-    
-    # Phase 1: ドラフト作成（確定した技術スタックを反映）
-    basic_path = basic_writer.create_draft(req_path, tech_stack, unresolved_issues)
-    
-    # ⚡ Token Optimization:
-    # メインセッションで basic_path の中身を read してはいけない。
-    # レビュアーエージェントにパスだけを渡して、エージェント内で read させること。
-    
-    # Phase 2: 品質保証ループ
-    history = []
-    for i in range(4):
-        score, feedback = basic_reviewer.review(basic_path)
-        
-        if score >= 9:
-            # Phase 2.5: ユーザー承認ゲート
-            approval = await_user_approval(basic_path, score)
-            if approval == "修正":
-                continue  # 修正ループを継続
-            if approval == "中断":
-                return cancelled(basic_path)
-            
-            # Phase 3: 詳細設計準備（承認後）
-            prepare_detailed_design_folders(basic_path)
-            return success(basic_path, score)
-            
-        if i > 0 and score < history[-1]:
-            mark_as_failed(basic_path, "Score degraded")
-            return fail("Score degraded")
-            
-        if i == 3:
-            mark_as_failed(basic_path, "Max retries reached")
-            return fail("Max retries reached")
-            
-        history.append(score)
-        basic_writer.fix(basic_path, feedback)
+### 使用ツール
 
-    return fail("Unknown error")
-```
+- `basic-design-writer` エージェント: 基本設計書作成
+- `basic-design-reviewer` エージェント: レビュー（スコアリング）
+- `web_search`: 技術スタックベストプラクティス調査
+
+### 処理フロー
+
+1. **Phase 0: 技術スタック完全性チェック**
+   - 要件定義書から技術スタック定義を検証
+   - 不足レイヤー（frontend/backend/database/auth）を特定
+
+2. **Phase 0.5-A: 技術スタック選定ヒアリング**（未定義時のみ）
+   - Web検索でベストプラクティス調査
+   - 提案形式でユーザーにヒアリング
+   - 未確定項目は `I-XXX` として記録
+
+3. **Phase 0.5-B: 既存設計書との整合性確認**（追加仕様時のみ）
+   - `docs/designs/basic/BASIC-*.md` を確認
+   - コンフリクト検出時はユーザーに対応方針を確認（統合/新規/中断）
+
+4. **Phase 1: ドラフト作成**
+   - 確定した技術スタックを反映して基本設計書を作成
+   - ⚠️ メインセッションでドラフトをreadしない（レビュアーにパスのみ渡す）
+
+5. **Phase 2: 品質保証ループ**（最大4回）
+   - `basic-design-reviewer` でレビュー実行
+   - スコア9点以上で Phase 2.5 へ
+   - スコア低下時は即時失敗
+   - 最大リトライ到達時も失敗
+
+6. **Phase 2.5: ユーザー承認ゲート**
+   - 承認/修正/中断 を選択
+   - 修正選択時はループ継続
+
+7. **Phase 3: 詳細設計準備**（承認後）
+   - 詳細設計用フォルダを準備
+   - 成功を返却
 
 ---
 
