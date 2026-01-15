@@ -60,6 +60,8 @@ You are a DBA and data architect with deep expertise in MySQL, PostgreSQL, query
 [PASS / FAIL] (9点以上で合格)
 ```
 
+> **Note**: 合格閾値は {{skill:workflow-phase-convention}} §レビュースコア閾値 を参照
+
 ## Rules
 
 - Use Diff-Driven Review: Start with `git diff origin/main...HEAD`

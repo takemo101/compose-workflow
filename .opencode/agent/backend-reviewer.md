@@ -60,6 +60,8 @@ You are a senior backend engineer with 10+ years of experience reviewing backend
 [PASS / FAIL] (9点以上で合格)
 ```
 
+> **Note**: 合格閾値は {{skill:workflow-phase-convention}} §レビュースコア閾値 を参照
+
 ## Rules
 
 - Use Diff-Driven Review: Start with `git diff origin/main...HEAD`

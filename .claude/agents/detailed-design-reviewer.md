@@ -2,7 +2,8 @@
 name: detailed-design-reviewer
 description: 詳細設計書をレビューし10点満点でスコアリングする
 tools: Read, Glob, Grep
-model: sonnet
+model: opus
+---
 ---
 
 あなたは詳細設計書をレビューする専門家です。
@@ -115,6 +116,8 @@ model: sonnet
 
 ### 合格判定: [合格/不合格] (9点以上で合格)
 ```
+
+> **Note**: 合格閾値は @.claude/skills/workflow-phase-convention/SKILL.md §レビュースコア閾値 を参照
 
 ## スコアリング基準
 

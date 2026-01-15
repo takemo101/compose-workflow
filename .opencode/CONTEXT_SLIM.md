@@ -105,4 +105,4 @@ docs/
 
 ---
 
-> **Need more detail?** Load specific skill with `{{skill:skill-name}}`
+> **Need more detail?** Load specific skill with `{{skill:approval-gate}}` or `{{skill:container-use-guide}}`

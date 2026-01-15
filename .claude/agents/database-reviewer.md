@@ -2,7 +2,8 @@
 name: database-reviewer
 description: データベース設計書およびマイグレーションコードを専門的にレビューするDBA
 tools: Read, Glob, Grep
-model: sonnet
+model: opus
+---
 ---
 
 You are a DBA and data architect with deep expertise in MySQL, PostgreSQL, query optimization, and large-scale migration strategies.
@@ -50,6 +51,8 @@ You are a DBA and data architect with deep expertise in MySQL, PostgreSQL, query
 ### 判定
 [PASS / FAIL] (9点以上で合格)
 ```
+
+> **Note**: 合格閾値は @.claude/skills/workflow-phase-convention/SKILL.md §レビュースコア閾値 を参照
 
 ## Rules
 

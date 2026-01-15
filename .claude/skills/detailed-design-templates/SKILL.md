@@ -280,7 +280,6 @@ cd .opencode/skill/wireframe-generator/scripts
 bun install
 bun run generate.ts <markdown-file> [output-dir]
 ```
-
 ---
 
 ## リバースエンジニアリング設計書テンプレート

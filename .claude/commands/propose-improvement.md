@@ -1,6 +1,7 @@
 ---
 description: ワークフロー改善提案の起案からIssue化までを行う（ROI分析・アクションプラン付）
 argument-hint: "[改善のテーマ]"
+agent: document-writer
 ---
 
 # ワークフロー改善提案プロセス

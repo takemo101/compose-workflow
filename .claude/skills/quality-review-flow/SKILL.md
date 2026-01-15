@@ -46,6 +46,8 @@ prompt = """
 
 ### 1.4 スコア判定基準
 
+> **参照**: 閾値の正式定義は @.claude/skills/workflow-phase-convention/SKILL.md §レビュースコア閾値を参照
+
 | スコア | アクション |
 |--------|----------|
 | 9-10点 | ✅ PR作成へ |

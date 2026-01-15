@@ -77,6 +77,8 @@ Your mindset: "What happens in production when this fails?"
 
 **8点以上で合格** (他のレビュアーは9点だが、インフラは複雑性を考慮)
 
+> **参照**: 閾値の正式定義は {{skill:workflow-phase-convention}} §レビュースコア閾値
+
 ## Rules
 
 - Always consider failure scenarios first

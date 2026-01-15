@@ -97,6 +97,8 @@ tools:
 
 ## スコアリング基準
 
+> **参照**: 合格閾値の正式定義は @.claude/skills/workflow-phase-convention/SKILL.md §レビュースコア閾値を参照
+
 ### 配点ガイドライン
 
 | 合計点 | 領域数 | 推奨配点例 |

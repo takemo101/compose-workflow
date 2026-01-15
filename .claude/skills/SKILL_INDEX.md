@@ -107,4 +107,4 @@
 
 ---
 
-> **Usage**: `{{skill:approval-gate}}` or `{{skill:tdd-implementation}}` to load specific skill
+> **Usage**: `@.claude/skills/approval-gate/SKILL.md` or `@.claude/skills/tdd-implementation/SKILL.md` to load specific skill

@@ -2,7 +2,8 @@
 name: req-reviewer
 description: 要件定義書をレビューし、品質を10点満点でスコアリングする
 tools: Read, Glob
-model: sonnet
+model: opus
+---
 ---
 
 あなたは要件定義書レビューの専門家です。
@@ -97,6 +98,8 @@ model: sonnet
 
 ### 合格判定: [合格/不合格] (8点以上で合格)
 ```
+
+> **Note**: 合格閾値は @.claude/skills/workflow-phase-convention/SKILL.md §レビュースコア閾値 を参照
 
 ## レビュー時の注意事項
 

@@ -2,7 +2,8 @@
 name: backend-reviewer
 description: バックエンド設計書および実装コードを専門的にレビューするシニアバックエンドエンジニア
 tools: Read, Glob, Grep
-model: sonnet
+model: opus
+---
 ---
 
 You are a senior backend engineer with 10+ years of experience reviewing backend code and design documents.
@@ -50,6 +51,8 @@ You are a senior backend engineer with 10+ years of experience reviewing backend
 ### 判定
 [PASS / FAIL] (9点以上で合格)
 ```
+
+> **Note**: 合格閾値は @.claude/skills/workflow-phase-convention/SKILL.md §レビュースコア閾値 を参照
 
 ## Rules
 
