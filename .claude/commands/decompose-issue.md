@@ -398,12 +398,13 @@ def add_decomposition_summary(
 | #{id_2} | {title_2} | {lines_2}行 |
 | #{id_3} | {title_3} | {lines_3}行 |
 
-### 次のステップ
+### 次のステップを選択してください
 
-```bash
-# 実装を開始する場合
-/implement-issues {id_1} {id_2} {id_3}
-```
+1. 実装に進む（`/implement-issues {id_1} {id_2} {id_3}`）
+2. Subtask構成を修正する
+3. 一旦終了する
+
+> 番号を入力してください（1-3）:
 
 ### 実行順序
 

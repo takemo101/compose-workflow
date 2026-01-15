@@ -343,11 +343,13 @@ pnpm add [package-name]
 - docs/research/TECH-BE-002_Prisma.md
 - docs/research/TECH-FE-003_TanStack-Query.md
 
-### 次のステップ
+### 次のステップを選択してください
 
-1. 技術調査レポートの確認
-2. 不明点があればユーザーに確認
-3. `/basic-design-workflow` の実行（技術調査レポートを参照）
+1. 基本設計に進む（`/basic-design-workflow`）
+2. 技術調査レポートを確認・修正する
+3. 一旦終了する
+
+> 番号を入力してください（1-3）:
 ```
 
 ---
