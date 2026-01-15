@@ -154,6 +154,7 @@ flowchart TB
 | `/release` | バージョン（省略可） | GitHub Release | - (リリース完了) |
 | `/detailed-design-workflow` | 基本設計書 | 詳細設計書群 + テスト項目書 + Issues | 9点以上 |
 | `/implement-issues` | GitHub Issues | 実装コード + PR | 9点以上（全レビュアー）⚡並列対応 |
+| `/find-refactoring` | 対象パス | リファクタリングIssues | - (検出完了) |
 
 > **Note**: `/tech-catchup-workflow` は任意実行。全技術が既知かつ最新の場合はスキップ可能。
 
