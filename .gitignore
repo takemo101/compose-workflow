@@ -4,3 +4,6 @@ bun.lock
 # Environment tracking (local state)
 environments.json
 environments.json.lock
+
+# Symlinks created by setup script
+.claude/skills/wireframe-generator

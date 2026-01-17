@@ -27,7 +27,8 @@ export interface FormField {
 		| "range"
 		| "tel"
 		| "url"
-		| "hidden";
+		| "hidden"
+		| "pin";
 	required?: boolean;
 	placeholder?: string;
 	maxLength?: number;
@@ -40,6 +41,7 @@ export interface FormField {
 	disabled?: boolean;
 	helperText?: string;
 	defaultValue?: string | number | boolean;
+	pinLength?: number;
 }
 
 export interface FormButton {

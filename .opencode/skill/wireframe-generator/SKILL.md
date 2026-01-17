@@ -25,10 +25,12 @@ YAML定義から設計レビュー用ワイヤーフレーム画像を自動生�
 ## 実行方法
 
 ```bash
-cd .claude/skills/wireframe-generator/scripts
+cd <skill-dir>/wireframe-generator/scripts
 bun install
 bun run generate.ts <markdown-file> [output-dir]
 ```
+
+> **Note**: `<skill-dir>` は `.opencode/skill` または `.claude/skills` のいずれか（シンボリックリンクで同一）
 
 ---
 
@@ -36,7 +38,7 @@ bun run generate.ts <markdown-file> [output-dir]
 
 AIがYAMLを生成する際は、以下のスキーマに従ってください。
 
-**スキーマファイル**: `.claude/skills/wireframe-generator/wireframe.schema.json`
+**スキーマファイル**: `wireframe.schema.json`（このスキルディレクトリ内）
 
 ### 対応UIパターン（type）
 
@@ -265,6 +267,87 @@ form:                     # 必須: モーダルフォーム定義
       required: true
 ```
 
+### type: confirm
+
+確認ダイアログ（削除確認、操作確認など）
+
+```yaml
+screen: 削除確認ダイアログ
+type: confirm
+title: 削除の確認            # 必須: ダイアログタイトル
+message: この操作は取り消せません。本当に削除しますか？  # 必須: 確認メッセージ
+variant: danger              # 任意: info|warning|danger|success（デフォルト: info）
+icon: warning                # 任意: アイコン（省略時はvariantに応じた自動選択）
+confirmLabel: 削除する       # 任意: 確認ボタンラベル（デフォルト: 確認）
+cancelLabel: キャンセル      # 任意: キャンセルボタンラベル（デフォルト: キャンセル）
+confirmVariant: danger       # 任意: 確認ボタンのvariant（デフォルト: variantに応じて自動選択）
+```
+
+### type: modal
+
+モーダルダイアログ（編集フォーム、詳細表示など）
+
+```yaml
+screen: ユーザー編集モーダル
+type: modal
+title: ユーザー情報を編集    # 必須: モーダルタイトル
+size: md                     # 任意: xs|sm|md|lg|xl|full（デフォルト: md）
+closable: true               # 任意: 閉じるボタン表示（デフォルト: true）
+content:                     # 必須: コンテンツ定義
+  type: form                 # form|table|detail|dashboard|card-grid|timeline|empty-state|custom
+  config:                    # 重要: typeに応じた設定をconfigの中に記述
+    fields:
+      - name: name
+        label: 名前
+        type: text
+        required: true
+      - name: email
+        label: メールアドレス
+        type: email
+        required: true
+footer:                      # 任意: フッターボタン
+  align: right               # 任意: left|center|right（デフォルト: right）
+  actions:
+    - label: キャンセル
+      variant: secondary
+    - label: 保存
+      variant: primary
+```
+
+### type: drawer
+
+スライドパネル（設定、フィルター、サイドメニューなど）
+
+```yaml
+screen: 設定ドロワー
+type: drawer
+title: 表示設定              # 任意: ドロワータイトル
+placement: right             # 任意: left|right|top|bottom（デフォルト: right）
+size: md                     # 任意: xs|sm|md|lg|xl|full（デフォルト: md）
+closable: true               # 任意: 閉じるボタン表示（デフォルト: true）
+content:                     # 必須: コンテンツ定義
+  type: form                 # form|table|detail|dashboard|card-grid|timeline|empty-state|custom
+  config:                    # 重要: typeに応じた設定をconfigの中に記述
+    fields:
+      - name: theme
+        label: テーマ
+        type: select
+        options:
+          - value: light
+            label: ライト
+          - value: dark
+            label: ダーク
+      - name: notifications
+        label: 通知を有効にする
+        type: checkbox
+footer:                      # 任意: フッターボタン
+  actions:
+    - label: 適用
+      variant: primary
+```
+
+> **注意**: `modal`と`drawer`の`content`内では、`type`で指定したコンポーネントの設定を**必ず`config`の中に**記述してください。直接`fields`などを書くとエラーになります。
+
 ---
 
 ## 画面設計書での記述例
@@ -314,7 +397,7 @@ flowchart LR
 ## ディレクトリ構成
 
 ```
-.claude/skills/wireframe-generator/
+wireframe-generator/
 ├── SKILL.md                    # このファイル
 ├── wireframe.schema.json       # JSON Schema定義
 └── scripts/

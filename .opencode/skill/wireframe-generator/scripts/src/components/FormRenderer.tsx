@@ -6,6 +6,8 @@ import {
 	FormLabel,
 	HStack,
 	Input,
+	PinInput,
+	PinInputField,
 	Radio,
 	RadioGroup,
 	Select,
@@ -64,6 +66,17 @@ function FieldInput({ field }: { field: FormField }) {
 			return <Input type="date" />;
 		case "file":
 			return <Input type="file" accept={field.accept} />;
+		case "pin":
+			const length = field.pinLength ?? 6;
+			return (
+				<HStack justify="center">
+					<PinInput size="lg" otp>
+						{Array.from({ length }).map((_, i) => (
+							<PinInputField key={i} />
+						))}
+					</PinInput>
+				</HStack>
+			);
 		default:
 			return null;
 	}
