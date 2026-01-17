@@ -24,7 +24,7 @@ If local build/test commands fail due to environment issues (e.g., wrong rustc v
 
 ## GitHub Issue 状態管理 (MANDATORY)
 
-> **詳細**: {{skill:github-issue-state-management}} を参照
+> **詳細**: @.claude/skills/github-issue-state-management/SKILL.md を参照
 
 **ALL container-use operations MUST update GitHub Issue labels** to track environment state.
 
@@ -189,7 +189,7 @@ When encountering errors or crashes:
 
 4. **If environment is corrupted:**
    ```
-   a. Update Issue state ({{skill:github-issue-state-management}} API)
+   a. Update Issue state (@.claude/skills/github-issue-state-management/SKILL.md API)
    b. Create a NEW environment with the same branch
    c. Update Issue body with new env_id in metadata block
    d. Re-register environment: issue-state.sh register <num> <new_env_id> <branch> container-use
@@ -211,7 +211,7 @@ NEVER silently switch to non-container-use operations.
 
 ## Docker Resource Failures (Fallback Protocol)
 
-> **詳細手順**: {{skill:container-use-guide}} の「トラブルシューティング」セクションを参照
+> **詳細手順**: @.claude/skills/container-use-guide/SKILL.md の「トラブルシューティング」セクションを参照
 
 | Condition | Action |
 |-----------|--------|
@@ -225,7 +225,7 @@ NEVER silently switch to non-container-use operations.
 
 ## Session Recovery Protocol
 
-> **詳細**: {{skill:github-issue-state-management}} の「セッション復旧」セクションを参照
+> **詳細**: @.claude/skills/github-issue-state-management/SKILL.md の「セッション復旧」セクションを参照
 
 ### Quick Reference
 
@@ -286,7 +286,7 @@ Work is complete when ALL conditions are met:
 
 ### PR Merge Flow (MANDATORY)
 
-> **詳細**: {{skill:pr-merge-workflow}} を参照
+> **詳細**: @.claude/skills/pr-merge-workflow/SKILL.md を参照
 
 **概要**: PR作成 → CI待機 → マージ → クリーンアップ → Issue ラベル更新
 
@@ -297,7 +297,7 @@ Work is complete when ALL conditions are met:
 | マージ | `gh pr merge --merge --delete-branch` |
 | クリーンアップ | 環境削除 + Issue ラベル更新 (`env:merged`) |
 
-**HARD BLOCK**: CIが成功するまでマージしない。ロールバック手順も {{skill:pr-merge-workflow}} に記載。
+**HARD BLOCK**: CIが成功するまでマージしない。ロールバック手順も @.claude/skills/pr-merge-workflow/SKILL.md に記載。
 
 ### Required Outputs
 
@@ -327,7 +327,7 @@ After ANY container-use session, ALWAYS provide:
 | Run command | `environment_run_cmd` |
 | Save progress | `environment_checkpoint` |
 | **Delete environment** | `container-use delete <env_id>` (CLI) |
-| **Update Issue state** | `issue-state.sh <command>` ({{skill:github-issue-state-management}}) |
+| **Update Issue state** | `issue-state.sh <command>` (@.claude/skills/github-issue-state-management/SKILL.md) |
 
 ### Environment Naming Convention
 
@@ -358,9 +358,9 @@ Examples:
 | [Design Sync Policy](./design-sync.md) | Keep design docs and implementation in sync | Before/during/after implementation |
 | [Testing Strategy](./testing-strategy.md) | Handle environment-dependent code testing | When writing tests for OS/hardware-dependent code |
 | [Platform Exception Policy](./platform-exception.md) | Platform-specific code exception rules | When implementing macOS/Windows-specific code |
-| {{skill:container-use-guide}} | Step-by-step container environment setup | First time using container-use |
-| {{skill:pr-merge-workflow}} | PR creation to merge and cleanup | When creating/merging PRs |
-| {{skill:github-issue-state-management}} | Environment state via Issue labels | Session recovery, state tracking |
+| @.claude/skills/container-use-guide/SKILL.md | Step-by-step container environment setup | First time using container-use |
+| @.claude/skills/pr-merge-workflow/SKILL.md | PR creation to merge and cleanup | When creating/merging PRs |
+| @.claude/skills/github-issue-state-management/SKILL.md | Environment state via Issue labels | Session recovery, state tracking |
 
 ---
 

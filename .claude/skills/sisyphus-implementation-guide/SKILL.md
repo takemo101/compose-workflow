@@ -125,7 +125,7 @@ Subtask #N:
 
 ### ラベル操作ルール（必須）
 
-> **API詳細**: {{skill:github-issue-state-management}} セクション「必須更新ポイント」を参照
+> **API詳細**: @.claude/skills/github-issue-state-management/SKILL.md セクション「必須更新ポイント」を参照
 
 | タイミング | 実行者 | 操作 | API |
 |-----------|--------|------|-----|
@@ -225,7 +225,7 @@ Sisyphus (親エージェント)
 ### 機能完了チェック（PRマージ後の再確認）
 
 > **重要**: Phase 6.5 で既にチェック済みだが、PRマージ後に再確認を推奨。
-> **詳細**: {{skill:quality-review-flow}} セクション2（客観的品質基準）を参照
+> **詳細**: @.claude/skills/quality-review-flow/SKILL.md セクション2（客観的品質基準）を参照
 
 | チェック | 確認方法 | 必須 |
 |---------|---------|------|

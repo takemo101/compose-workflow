@@ -205,9 +205,9 @@ def check_feasibility(context: dict) -> GateResult:
 
 判定が **NG** の場合、即座に作業を中断し、以下の手順を実行：
 
-1. Issue を `blocked` 状態に更新（{{skill:github-issue-state-management}} API）：
+1. Issue を `blocked` 状態に更新（@.claude/skills/github-issue-state-management/SKILL.md API）：
    ```bash
-   bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh block <issue-num> design_ambiguity "[判定AIが出力した reason]"
+   bash .claude/skills/github-issue-state-management/scripts/issue-state.sh block <issue-num> design_ambiguity "[判定AIが出力した reason]"
    ```
 2. ユーザー（Sisyphus）に報告して終了
 
@@ -247,14 +247,14 @@ def check_feasibility(context: dict) -> GateResult:
 
 ### レビュー観点（6項目）
 
-> **詳細**: {{skill:quality-review-flow}} セクション2（客観的品質基準）を参照
+> **詳細**: @.claude/skills/quality-review-flow/SKILL.md セクション2（客観的品質基準）を参照
 
 1. 設計書との整合性
 2. コード品質（SOLID、命名）
 3. エラーハンドリング
 4. テストカバレッジ
 5. セキュリティ
-6. **定義-使用相関**（スタブ検出）→ 詳細は {{skill:quality-review-flow}} セクション2.3 参照
+6. **定義-使用相関**（スタブ検出）→ 詳細は @.claude/skills/quality-review-flow/SKILL.md セクション2.3 参照
 
 ---
 

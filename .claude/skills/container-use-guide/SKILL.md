@@ -169,7 +169,7 @@ container-use_environment_config(
 
 ### Step 4: サービス追加 (必要に応じて)
 
-> **詳細な設定例**: {{skill:tech-stack-configs}} を参照
+> **詳細な設定例**: @.claude/skills/tech-stack-configs/SKILL.md を参照
 
 | サービス | image | ポート |
 |---------|-------|--------|
@@ -268,7 +268,7 @@ container-use_environment_file_edit(
 
 ## 技術スタック別設定例
 
-> **詳細**: {{skill:tech-stack-configs}} を参照
+> **詳細**: @.claude/skills/tech-stack-configs/SKILL.md を参照
 
 | 技術スタック | base_image | 主な設定 |
 |-------------|-----------|---------|
@@ -279,7 +279,7 @@ container-use_environment_file_edit(
 
 ## DBマイグレーションのテスト
 
-> **詳細**: {{skill:tech-stack-configs}} を参照
+> **詳細**: @.claude/skills/tech-stack-configs/SKILL.md を参照
 
 | ORM/ツール | マイグレーション | ロールバック |
 |-----------|----------------|-------------|
@@ -343,13 +343,13 @@ When container-use cannot function:
 
 1. サービス名をホスト名として使用 (例: `postgres`, `redis`)
 2. ポートが正しいか確認
-3. サービスの起動を待つ（{{skill:tech-stack-configs}} の「サービス起動待機」参照）
+3. サービスの起動を待つ（@.claude/skills/tech-stack-configs/SKILL.md の「サービス起動待機」参照）
 
 ### 依存関係のインストールに失敗
 
 1. base imageを確認
 2. setup_commandsの順序を確認
-3. 必要なシステムパッケージを追加（{{skill:tech-stack-configs}} の「ネイティブモジュール対応」参照）
+3. 必要なシステムパッケージを追加（@.claude/skills/tech-stack-configs/SKILL.md の「ネイティブモジュール対応」参照）
 
 ### 環境が重い
 

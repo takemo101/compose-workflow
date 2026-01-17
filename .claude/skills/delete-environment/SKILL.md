@@ -68,11 +68,11 @@ rm -rf <env_dir>
 
 ### 4. GitHub Issue ラベルの更新
 
-環境削除後、Issue のラベルを更新します（{{skill:github-issue-state-management}} API）。
+環境削除後、Issue のラベルを更新します（@.claude/skills/github-issue-state-management/SKILL.md API）。
 
 ```bash
 # マージ完了として更新
-bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh merged <issue_number>
+bash .claude/skills/github-issue-state-management/scripts/issue-state.sh merged <issue_number>
 ```
 
 ---
@@ -82,17 +82,17 @@ bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh merged
 提供されているスクリプトを使用することで、上記の手順を一括で安全に実行できます。
 
 ```bash
-bash .opencode/skill/delete-environment/scripts/delete_env.sh <env_id> [path_to_delete]
+bash .claude/skills/delete-environment/scripts/delete_env.sh <env_id> [path_to_delete]
 ```
 
 **使用例**:
 
 ```bash
 # JSONとDockerコンテナのみ削除（ディレクトリ削除なし）
-bash .opencode/skill/delete-environment/scripts/delete_env.sh abc-123
+bash .claude/skills/delete-environment/scripts/delete_env.sh abc-123
 
 # ディレクトリも含めて完全削除
-bash .opencode/skill/delete-environment/scripts/delete_env.sh abc-123 .worktrees/issue-123
+bash .claude/skills/delete-environment/scripts/delete_env.sh abc-123 .worktrees/issue-123
 ```
 
 ### スクリプトの動作詳細

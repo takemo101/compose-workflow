@@ -24,13 +24,13 @@ argument-hint: "[Issue番号] [--auto]"
 | 6 | 設計不備対応 | `/request-design-fix` 実行（必要時） |
 | 6.5 | 実装完了自己チェック | TODO残存・Smoke Test・到達可能性 |
 | 7 | 品質レビュー | スコア9点以上、客観的基準クリア |
-| 7.1 | ユーザー承認 | {{skill:approval-gate}} ※`--auto`時スキップ |
+| 7.1 | ユーザー承認 | @.claude/skills/approval-gate/SKILL.md ※`--auto`時スキップ |
 | 8 | コミット & プッシュ | git操作 |
 | 9 | PR作成 | `gh pr create` |
 | 10-11 | CI監視 & マージ | CI成功→自動マージ、環境削除 |
 | 12 | 親Issueクローズ | 全Subtask完了時 |
 
-> **Phase規約**: {{skill:workflow-phase-convention}} を参照
+> **Phase規約**: @.claude/skills/workflow-phase-convention/SKILL.md を参照
 
 ---
 
@@ -102,7 +102,7 @@ macOS/Windows固有APIはコンテナでビルド不可の場合のみ例外適�
 
 ### Subtask自動検出
 
-> **詳細**: {{skill:subtask-detection}} を参照
+> **詳細**: @.claude/skills/subtask-detection/SKILL.md を参照
 
 | 検出結果 | 処理 |
 |---------|------|
@@ -114,7 +114,7 @@ macOS/Windows固有APIはコンテナでビルド不可の場合のみ例外適�
 
 ## 前提条件: 適切な粒度
 
-{{skill:issue-size-estimation}}
+@.claude/skills/issue-size-estimation/SKILL.md
 
 ---
 
@@ -126,7 +126,7 @@ macOS/Windows固有APIはコンテナでビルド不可の場合のみ例外適�
 
 ```bash
 # 1. 復旧情報を取得
-RESUME_INFO=$(bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh resume {issue_id})
+RESUME_INFO=$(bash .claude/skills/github-issue-state-management/scripts/issue-state.sh resume {issue_id})
 
 # 2. 状態に応じてアクションを決定
 # - action: reopen_environment → container-use環境を再開
@@ -167,7 +167,7 @@ git push -u origin feature/issue-{issue_id}-{short_description}
 
 #### ラベル初期化（必須）
 
-> **状態管理API**: {{skill:github-issue-state-management}} セクション「必須更新ポイント」を参照
+> **状態管理API**: @.claude/skills/github-issue-state-management/SKILL.md セクション「必須更新ポイント」を参照
 
 ブランチ作成後、`phase:0-branch` ラベルを追加。未設定の場合は `issue-state.sh` で初期化。
 
@@ -193,7 +193,7 @@ git push -u origin feature/issue-{issue_id}-{short_description}
 > **禁止**: 設計書の全文読み込み
 > **必須**: Subtaskに必要なセクションのみ参照（2,000トークン上限）
 
-詳細は {{skill:implement-subtask-rules}} セクション1を参照。
+詳細は @.claude/skills/implement-subtask-rules/SKILL.md セクション1を参照。
 
 ### Phase 1: container-use環境構築
 
@@ -209,18 +209,18 @@ container-use_environment_create(
 
 #### ラベル更新（必須）
 
-環境作成後、`env:active` + `phase:1-env` に更新。API は {{skill:github-issue-state-management}} を参照。
+環境作成後、`env:active` + `phase:1-env` に更新。API は @.claude/skills/github-issue-state-management/SKILL.md を参照。
 
-技術スタック別設定は {{skill:container-use-guide}} を参照。
+技術スタック別設定は @.claude/skills/container-use-guide/SKILL.md を参照。
 
 ### Phase 2: 申し送り確認
 
 Issueのコメントをスキャンし、未完了の申し送り事項があれば最優先で対応。
-詳細は {{skill:handover-process}} を参照。
+詳細は @.claude/skills/handover-process/SKILL.md を参照。
 
 ### Phase 3-5: TDD実装 (Red → Green → Refactor)
 
-{{skill:tdd-implementation}}
+@.claude/skills/tdd-implementation/SKILL.md
 
 ### Phase 6: 設計不備への対応
 
@@ -229,7 +229,7 @@ Issueのコメントをスキャンし、未完了の申し送り事項があれ
 ### Phase 6.5: 実装完了自己チェック ⚠️ 必須
 
 > **重要**: 以下の全チェックを通過しないとPR作成に進めない。
-> **詳細**: {{skill:quality-review-flow}} セクション2（客観的品質基準）を参照
+> **詳細**: @.claude/skills/quality-review-flow/SKILL.md セクション2（客観的品質基準）を参照
 
 | チェック項目 | アクション |
 |-------------|-----------|
@@ -238,11 +238,11 @@ Issueのコメントをスキャンし、未完了の申し送り事項があれ
 | **到達可能性** | エントリポイントから実装コードが呼ばれているか確認 |
 | **定義-使用相関** | 未使用の引数/Props/パラメータがないか確認（スタブ検出） |
 
-> ※ 到達可能性・定義-使用相関の詳細な確認方法は {{skill:quality-review-flow}} セクション2.2, 2.3 を参照
+> ※ 到達可能性・定義-使用相関の詳細な確認方法は @.claude/skills/quality-review-flow/SKILL.md セクション2.2, 2.3 を参照
 
 ### Phase 7: 品質レビュー & 客観的基準
 
-> **詳細**: {{skill:quality-review-flow}} を参照
+> **詳細**: @.claude/skills/quality-review-flow/SKILL.md を参照
 
 | 項目 | 基準 | アクション |
 |------|------|------------|
@@ -251,7 +251,7 @@ Issueのコメントをスキャンし、未完了の申し送り事項があれ
 
 ### Phase 7.1: ユーザー承認ゲート
 
-> **共通仕様**: {{skill:approval-gate}} を参照
+> **共通仕様**: @.claude/skills/approval-gate/SKILL.md を参照
 
 | モード | 動作 |
 |-------|------|
@@ -304,7 +304,7 @@ git push origin feature/issue-{issue_id}-{description}
 
 ### Phase 10-11: CI監視 & 自動マージ
 
-> **詳細**: {{skill:ci-workflow}} を参照
+> **詳細**: @.claude/skills/ci-workflow/SKILL.md を参照
 
 | フェーズ | 実行者 | 処理 |
 |---------|--------|------|
@@ -383,7 +383,7 @@ def collect_worker_result(task_id: str) -> dict:
 
 ## Sisyphusへの指示
 
-{{skill:sisyphus-implementation-guide}}
+@.claude/skills/sisyphus-implementation-guide/SKILL.md
 
 ---
 
@@ -391,16 +391,16 @@ def collect_worker_result(task_id: str) -> dict:
 
 | スキル | 用途 |
 |--------|------|
-| {{skill:container-use-guide}} | 環境構築・サービス統合 |
-| {{skill:handover-process}} | BE↔FE間の申し送り |
-| {{skill:code-quality-rules}} | 500行ルール、命名規則 |
-| {{skill:ci-workflow}} | CI監視・修正・マージ |
-| {{skill:pr-merge-workflow}} | PR作成〜マージ〜ロールバック |
-| {{skill:subtask-detection}} | Subtask検出・依存関係 |
-| {{skill:issue-size-estimation}} | Issue粒度判定・見積もり |
-| {{skill:tdd-implementation}} | Red→Green→Refactor |
-| {{skill:quality-review-flow}} | PR作成前品質レビュー |
-| {{skill:approval-gate}} | ユーザー承認ゲート |
-| {{skill:implement-subtask-rules}} | Subtask実装ルール |
-| {{skill:github-issue-state-management}} | 環境状態管理 |
-| {{skill:workflow-phase-convention}} | Phase命名規約 |
+| @.claude/skills/container-use-guide/SKILL.md | 環境構築・サービス統合 |
+| @.claude/skills/handover-process/SKILL.md | BE↔FE間の申し送り |
+| @.claude/skills/code-quality-rules/SKILL.md | 500行ルール、命名規則 |
+| @.claude/skills/ci-workflow/SKILL.md | CI監視・修正・マージ |
+| @.claude/skills/pr-merge-workflow/SKILL.md | PR作成〜マージ〜ロールバック |
+| @.claude/skills/subtask-detection/SKILL.md | Subtask検出・依存関係 |
+| @.claude/skills/issue-size-estimation/SKILL.md | Issue粒度判定・見積もり |
+| @.claude/skills/tdd-implementation/SKILL.md | Red→Green→Refactor |
+| @.claude/skills/quality-review-flow/SKILL.md | PR作成前品質レビュー |
+| @.claude/skills/approval-gate/SKILL.md | ユーザー承認ゲート |
+| @.claude/skills/implement-subtask-rules/SKILL.md | Subtask実装ルール |
+| @.claude/skills/github-issue-state-management/SKILL.md | 環境状態管理 |
+| @.claude/skills/workflow-phase-convention/SKILL.md | Phase命名規約 |

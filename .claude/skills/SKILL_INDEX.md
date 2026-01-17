@@ -1,7 +1,7 @@
 # Skill Index
 
 > **Purpose**: Lazy loading guide for skills. Load only when trigger condition matches.
-> **Total skills**: 30 | **Total lines**: ~7,300
+> **Total skills**: 30 | **Total lines**: ~7,200
 
 ---
 
@@ -21,8 +21,8 @@
 |-------|-------|---------|-------------|
 | `container-use-guide` | 383 | Environment creation | Container setup, services, commands |
 | `tech-stack-configs` | 246 | Tech stack setup | Stack-specific configs, DB migrations |
-| `environments-json-management` | 476 | Session recovery, env tracking | SSOT for environment state |
-| `delete-environment` | 105 | Environment cleanup | Container, file, metadata removal |
+| `github-issue-state-management` | 350 | Session recovery, env tracking | **SSOT via GitHub Issue labels** |
+| `delete-environment` | 105 | Environment cleanup | Container, file, label removal |
 
 ### Implementation Flow (load during coding)
 
@@ -90,7 +90,7 @@
 | **Before PR** | `quality-review-flow` |
 | **Critical feature** | + `stress-test-flow` |
 | **CI failed** | `ci-workflow` |
-| **Session recovery** | `environments-json-management` |
+| **Session recovery** | `github-issue-state-management` |
 | **Platform exception** | `worktree-workflow`, `create-worktree` |
 | **Release** | `release-workflow` |
 

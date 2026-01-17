@@ -46,7 +46,7 @@ prompt = """
 
 ### 1.4 スコア判定基準
 
-> **参照**: 閾値の正式定義は {{skill:workflow-phase-convention}} §レビュースコア閾値を参照
+> **参照**: 閾値の正式定義は @.claude/skills/workflow-phase-convention/SKILL.md §レビュースコア閾値を参照
 
 | スコア | アクション |
 |--------|----------|
@@ -221,7 +221,7 @@ prompt = """
 
 #### GitHub Issue との連携
 
-> **状態管理API**: {{skill:github-issue-state-management}} を参照
+> **状態管理API**: @.claude/skills/github-issue-state-management/SKILL.md を参照
 
 | タイミング | 操作 |
 |-----------|------|
@@ -241,10 +241,10 @@ prompt = """
 
 ### 4.6 Blocked状態への移行
 
-レビュー3回失敗時、Issue を `blocked` 状態に更新（{{skill:github-issue-state-management}} API）：
+レビュー3回失敗時、Issue を `blocked` 状態に更新（@.claude/skills/github-issue-state-management/SKILL.md API）：
 
 ```bash
-bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh block <issue-num> review_loop_exceeded "レビュー3回失敗（最終スコア: X/10）"
+bash .claude/skills/github-issue-state-management/scripts/issue-state.sh block <issue-num> review_loop_exceeded "レビュー3回失敗（最終スコア: X/10）"
 ```
 
 その後、Draft PRを作成して中断。

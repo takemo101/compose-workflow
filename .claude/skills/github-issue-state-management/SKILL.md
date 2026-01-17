@@ -87,6 +87,7 @@ last_updated_at: 2026-01-17T15:30:00Z
 | `branch` | string | ✅ | Git ブランチ名 |
 | `env_type` | string | ✅ | `container-use` / `worktree` / `host` |
 | `worktree_path` | string | | worktree 使用時のパス |
+| `pr_number` | string | | PR作成後に設定（途中再開時のCI監視に必要） |
 | `created_at` | string | ✅ | 作成日時（ISO 8601） |
 | `last_updated_at` | string | ✅ | 最終更新日時（ISO 8601） |
 
@@ -200,7 +201,7 @@ gh issue list --label "env:blocked" --json number,title,labels
 
 ```bash
 # 復旧情報をJSON形式で取得
-bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh resume 42
+bash .claude/skills/github-issue-state-management/scripts/issue-state.sh resume 42
 ```
 
 **出力例**:
@@ -238,7 +239,7 @@ bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh resume
 gh issue list --label "env:active" --json number,title,labels
 
 # 2. 特定 Issue の復旧情報を取得
-bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh resume 42
+bash .claude/skills/github-issue-state-management/scripts/issue-state.sh resume 42
 
 # 3. 出力された action/command に従って再開
 ```
@@ -298,7 +299,7 @@ gh label create "area:database" --color "C2E0C6" --description "データベー�
 **使用方法**:
 
 ```bash
-bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh <command> [args...]
+bash .claude/skills/github-issue-state-management/scripts/issue-state.sh <command> [args...]
 ```
 
 | コマンド | 説明 | 使用例 |

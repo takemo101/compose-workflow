@@ -103,15 +103,15 @@ git push origin --delete <branch-name>
 gh issue view <issue-number>  # Should show "CLOSED"
 
 # 2. 環境削除（コンテナ・ファイル・JSON一括削除）
-bash .opencode/skill/delete-environment/scripts/delete_env.sh <env_id>
+bash .claude/skills/delete-environment/scripts/delete_env.sh <env_id>
 ```
 
 ### GitHub Issue ラベル更新
 
-環境削除後、Issue のラベルを更新します（{{skill:github-issue-state-management}} API）：
+環境削除後、Issue のラベルを更新します（@.claude/skills/github-issue-state-management/SKILL.md API）：
 
 ```bash
-bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh merged <issue-number>
+bash .claude/skills/github-issue-state-management/scripts/issue-state.sh merged <issue-number>
 ```
 
 ---
@@ -178,10 +178,10 @@ gh pr merge <pr-number> --admin --merge
 
 | ドキュメント | 内容 |
 |-------------|------|
-| {{skill:ci-workflow}} | CI監視・修正フロー |
-| {{skill:github-issue-state-management}} | 環境状態管理 |
-| {{skill:delete-environment}} | 環境削除手順 |
-| {{skill:quality-review-flow}} | 品質レビュー基準 |
+| @.claude/skills/ci-workflow/SKILL.md | CI監視・修正フロー |
+| @.claude/skills/github-issue-state-management/SKILL.md | 環境状態管理 |
+| @.claude/skills/delete-environment/SKILL.md | 環境削除手順 |
+| @.claude/skills/quality-review-flow/SKILL.md | 品質レビュー基準 |
 
 ---
 
@@ -190,7 +190,7 @@ gh pr merge <pr-number> --admin --merge
 **PRマージ完全フローの自動化スクリプト：**
 
 ```bash
-bash .opencode/skill/pr-merge-workflow/scripts/pr-merge-full.sh <pr-number> [env-id]
+bash .claude/skills/pr-merge-workflow/scripts/pr-merge-full.sh <pr-number> [env-id]
 ```
 
 | 引数 | 説明 | 必須 |
@@ -206,5 +206,5 @@ bash .opencode/skill/pr-merge-workflow/scripts/pr-merge-full.sh <pr-number> [env
 
 **使用例：**
 ```bash
-bash .opencode/skill/pr-merge-workflow/scripts/pr-merge-full.sh 42 abc-123-def
+bash .claude/skills/pr-merge-workflow/scripts/pr-merge-full.sh 42 abc-123-def
 ```
