@@ -94,7 +94,7 @@ convert_agent_frontmatter() {
     esac
     
     local body
-    body=$(echo "$content" | awk '/^---$/{p++} p==2{if(NR>1)print; next}')
+    body=$(echo "$content" | awk '/^---$/{p++; next} p>=2{print}')
     
     cat << EOF
 ---
