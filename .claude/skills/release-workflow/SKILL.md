@@ -1,6 +1,6 @@
 ---
 name: release-workflow
-description: バージョン提案からGitHub Release作成までの標準リリースフローを定義（マルチエコシステム対応）
+description: バージョン整合性チェック→提案→承認→GitHub Release作成までの標準リリースフロー（マルチエコシステム対応）
 ---
 
 # リリースワークフロー
@@ -12,11 +12,14 @@ description: バージョン提案からGitHub Release作成までの標準リ�
 ## フロー概要
 
 ```
+0.5. バージョン整合性チェック（ハードコード検出）
+   ↓
 1. バージョン提案（Sisyphusが自動計算）
    ↓
 2. ユーザーがバージョンを承認/変更
    ↓
 3. リリース実行（自動）
+   - ハードコードバージョン修正（検出時）
    - バージョンファイル更新
    - CHANGELOG.md更新
    - コミット & タグ作成
@@ -73,6 +76,122 @@ gh release create v<version> ...
 5. `go.mod` → Go
 6. `VERSION` → Generic
 7. いずれもなし → Tag-only
+
+> **Note**: 複数のエコシステムファイルが存在する場合、上記の優先順位で最初にマッチしたものを使用します。
+> スクリプトは検出時に警告を表示します。
+
+---
+
+## Phase 0.5: バージョン整合性チェック
+
+リリース前にコードベース内のハードコードされたバージョンを検出し、修正を提案する。
+
+### 0.5.1 目的
+
+- ハードコードされたバージョン文字列の検出
+- 推奨パターン（動的バージョン取得）への移行提案
+- リリース時のバージョン不整合を防止
+
+### 0.5.2 エコシステム別チェックパターン
+
+#### Rust
+
+| パターン | 検索コマンド | 問題 | 推奨修正 |
+|---------|-------------|------|---------|
+| `#[command(version = "x.x.x")]` | `rg '#\[command\(version\s*=' --type rust` | clap属性にハードコード | `#[command(version)]` |
+| `const VERSION: &str = "x.x.x"` | `rg 'const\s+VERSION.*=.*"\d+\.\d+' --type rust` | 定数定義 | `env!("CARGO_PKG_VERSION")` |
+| `static VERSION` | `rg 'static\s+VERSION.*=.*"\d+\.\d+' --type rust` | static定義 | `env!("CARGO_PKG_VERSION")` |
+
+#### Node.js
+
+| パターン | 検索コマンド | 問題 | 推奨修正 |
+|---------|-------------|------|---------|
+| `const version = "x.x.x"` | `rg 'const\s+version\s*=\s*["\x27]\d+\.\d+' --type js --type ts` | 定数定義 | `require('./package.json').version` |
+| `VERSION = "x.x.x"` | `rg 'VERSION\s*=\s*["\x27]\d+\.\d+' --type js --type ts` | 大文字定数 | `process.env.npm_package_version` |
+| `.version("x.x.x")` | `rg '\.version\(["\x27]\d+\.\d+' --type js --type ts` | メソッドチェーン | 動的取得に変更 |
+
+#### Python
+
+| パターン | 検索コマンド | 問題 | 推奨修正 |
+|---------|-------------|------|---------|
+| `__version__ = "x.x.x"` | `rg '__version__\s*=\s*["\x27]\d+\.\d+' --type py` | モジュールバージョン | `importlib.metadata.version("pkg")` |
+| `VERSION = "x.x.x"` | `rg 'VERSION\s*=\s*["\x27]\d+\.\d+' --type py` | 定数定義 | `importlib.metadata.version("pkg")` |
+| `version="x.x.x"` in setup() | `rg 'version\s*=\s*["\x27]\d+\.\d+' setup.py` | setup.py内 | pyproject.tomlに移行 |
+
+#### Go
+
+| パターン | 検索コマンド | 問題 | 推奨修正 |
+|---------|-------------|------|---------|
+| `var Version = "x.x.x"` | `rg 'var\s+[Vv]ersion\s*=\s*"\d+\.\d+' --type go` | 変数定義 | `-ldflags "-X main.Version=..."` |
+| `const Version = "x.x.x"` | `rg 'const\s+[Vv]ersion\s*=\s*"\d+\.\d+' --type go` | 定数定義 | `-ldflags`でビルド時注入 |
+
+### 0.5.3 共通チェックパターン（全エコシステム）
+
+| パターン | 検索コマンド | 対応 |
+|---------|-------------|------|
+| READMEバッジ | `rg 'badge/v?\d+\.\d+\.\d+' README.md` | 新バージョンに更新 |
+| シールドバッジ | `rg 'shields\.io.*\d+\.\d+\.\d+' README.md` | 新バージョンに更新 |
+| インストール例 | `rg '@\d+\.\d+\.\d+' README.md` | 新バージョンに更新 |
+| ドキュメント内バージョン | `rg 'v\d+\.\d+\.\d+' docs/` | 警告表示（確認必要） |
+
+### 0.5.4 スクリプト実行
+
+バージョン整合性チェックは `release.sh` に統合されています：
+
+```bash
+# Phase 0.5 のみ実行
+.claude/skills/release-workflow/scripts/release.sh --version-check <new-version>
+
+# 完全リリースフロー内で自動実行（デフォルト）
+.claude/skills/release-workflow/scripts/release.sh --version 1.2.3
+
+# Phase 0.5 をスキップして実行
+.claude/skills/release-workflow/scripts/release.sh --version 1.2.3 --skip-version-check
+```
+
+> **依存**: `rg`（ripgrep）がインストールされている場合は高速検索を使用。
+> 未インストールの場合は `grep -E` にフォールバック。
+
+### 0.5.5 出力フォーマット
+
+```markdown
+## バージョン整合性チェック結果
+
+### ⚠️ 検出されたハードコードバージョン
+
+| ファイル | 行 | 現在の値 | 種別 | 推奨対応 |
+|---------|-----|---------|------|---------|
+| src/cli/args.rs | 5 | `version = "0.1.0"` | Rust/clap | `#[command(version)]` に変更 |
+| README.md | 12 | `badge/v0.1.0` | バッジ | `v{NEW_VERSION}` に更新 |
+
+### 対応オプション
+
+1. **自動修正を適用** → 推奨パターンに変換（コード変更あり）
+2. **バージョン番号のみ更新** → 現在のパターンを維持し値のみ更新
+3. **スキップ** → 警告のみ、修正なし
+
+> 番号を選択してください（1-3）:
+```
+
+### 0.5.6 自動修正ルール
+
+| 種別 | 自動修正可能 | 修正内容 |
+|------|-------------|---------|
+| Rust clap属性 | ✅ | `version = "x.x.x"` → `version` |
+| Rust定数 | ✅ | `"x.x.x"` → `env!("CARGO_PKG_VERSION")` |
+| READMEバッジ | ✅ | バージョン番号を新バージョンに置換 |
+| Node.js定数 | ⚠️ 確認必要 | 使用箇所により異なる |
+| Python `__version__` | ⚠️ 確認必要 | importlib使用可否による |
+| Go変数 | ❌ 手動 | ビルドスクリプト修正が必要 |
+| ドキュメント内 | ⚠️ 確認必要 | コンテキストによる |
+
+### 0.5.7 Phase 0.5 スキップ条件
+
+以下の場合はPhase 0.5をスキップ可能：
+
+- `--skip-version-check` フラグ指定時
+- 前回リリースからコード変更がない場合（CHANGELOG.mdのみ等）
+- ユーザーが明示的にスキップを選択
 
 ---
 
@@ -145,11 +264,15 @@ v0.4.0
 ---
 
 **このバージョンでリリースしますか？**
-- `はい`: v0.5.0 でリリース開始
-- `0.4.1`: パッチバージョンに変更
-- `1.0.0`: メジャーバージョンに変更
-- `キャンセル`: リリース中止
+
+1. **提案バージョンで続行** → v0.5.0 でリリース開始
+2. **バージョン変更** → 手動でバージョンを入力
+3. **キャンセル** → リリース中止
+
+> 番号を選択してください（1-3）:
 ```
+
+> **参照**: @.claude/skills/approval-gate/SKILL.md 形式に準拠
 
 ---
 
@@ -157,11 +280,11 @@ v0.4.0
 
 ユーザーがバージョンを承認または変更するまで待機。
 
-| ユーザー入力 | アクション |
-|-------------|----------|
-| `はい` / `yes` | 提案バージョンでリリース |
-| `0.x.x` 形式 | 指定バージョンでリリース |
-| `キャンセル` / `cancel` | リリース中止 |
+| 選択 | アクション |
+|------|----------|
+| 1 | 提案バージョンでリリース |
+| 2 | 指定バージョンでリリース（入力プロンプト） |
+| 3 | リリース中止 |
 
 ---
 
@@ -406,8 +529,10 @@ gh release upload v<version> <asset-file>
 - [ ] Lint通過
 - [ ] デフォルトブランチが最新
 - [ ] 未マージのPRなし
+- [ ] **バージョン整合性チェック完了**（Phase 0.5）
 
 ### リリース中
+- [ ] ハードコードバージョン修正（検出時）
 - [ ] バージョンファイル更新
 - [ ] CHANGELOG.md更新
 - [ ] コミット & タグ作成
@@ -428,6 +553,8 @@ gh release upload v<version> <asset-file>
 | [Keep a Changelog](https://keepachangelog.com/) | CHANGELOG形式の標準 |
 | [Semantic Versioning](https://semver.org/) | バージョニング規約 |
 | [release.sh スクリプト](./scripts/release.sh) | リリース自動化スクリプト |
+| @.claude/skills/workflow-phase-convention/SKILL.md | Phase番号体系（release-workflowセクション参照） |
+| @.claude/skills/approval-gate/SKILL.md | 承認ゲートの共通フォーマット |
 
 ---
 
@@ -435,5 +562,7 @@ gh release upload v<version> <asset-file>
 
 | 日付 | バージョン | 変更内容 |
 |:---|:---|:---|
+| 2026-01-17 | 3.1.0 | 承認ゲート形式を番号形式に統一。workflow-phase-convention参照を追加。複数エコシステム警告を追加 |
+| 2026-01-17 | 3.0.0 | Phase 0.5（バージョン整合性チェック）追加。エコシステム別ハードコード検出パターン定義。自動修正ルール追加 |
 | 2026-01-10 | 2.0.0 | マルチエコシステム対応（Rust, Node.js, Python, Go, Generic）。release.sh スクリプト追加 |
 | 2026-01-09 | 1.0.0 | 初版作成（Rust専用） |

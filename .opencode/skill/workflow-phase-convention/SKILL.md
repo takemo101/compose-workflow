@@ -5,7 +5,7 @@ description: 全ワークフローで一貫したPhase番号体系、承認ゲ�
 
 # ワークフローPhase命名規約
 
-> **参照元**: 全ワークフロー（req-workflow, basic-design-workflow, detailed-design-workflow, implement-issues）
+> **参照元**: 全ワークフロー（req-workflow, basic-design-workflow, detailed-design-workflow, implement-issues, release-workflow）
 
 ---
 
@@ -75,6 +75,16 @@ description: 全ワークフローで一貫したPhase番号体系、承認ゲ�
 | 9 | PR作成 | PR作成 | `gh pr create` |
 | 10-11 | CI監視 & マージ | CI監視 & マージ | CI成功→自動マージ、環境削除 |
 | 12 | 親Issueクローズ | - | 全Subtask完了時 |
+
+### リリース系ワークフロー（4フェーズ構成）
+
+| Phase | release-workflow | 説明 |
+|-------|-----------------|------|
+| 0.5 | バージョン整合性チェック | ハードコード検出（`--skip-version-check`でスキップ可） |
+| 1 | バージョン提案 | セマンティックバージョニング自動計算 |
+| 2 | ユーザー承認 | 承認ゲート（バージョン確定） |
+| 3 | リリース実行 | バージョン更新→コミット→タグ→push→GitHub Release |
+| 3.5 | ワークフロー監視 | Release Workflow完了待機 |
 
 ---
 
@@ -216,6 +226,7 @@ Phase X（主要作業） → Phase X.5（中間ステップ） → Phase X+1（
 
 | 日付 | 変更内容 |
 |------|---------|
+| 2026-01-17 | release-workflowのPhase定義を追加（0.5→1→2→3→3.5） |
 | 2026-01-16 | レビュースコア閾値セクションに★SSOT★マーカー追加。各reviewer/skillファイルからSSOT参照を追加 |
 | 2026-01-16 | 実装系Phase対応表をimplement-issues.mdの実際の定義に統一。Phase 6.5→実装完了自己チェック、Phase 7→品質レビュー、Phase 7.1→ユーザー承認に修正 |
 | 2026-01-12 | Phase X.5 規約を「中間ステップ」に再定義。承認ゲート限定→汎用的な中間処理に変更。種類分類（技術的中間処理/条件分岐/承認ゲート）を追加 |

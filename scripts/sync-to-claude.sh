@@ -188,6 +188,22 @@ main() {
             count=$((count + 1))
         done < <(find "$src_dir" -name "*.md" -type f -print0)
         
+        if [[ "$opencode_dir" == "skill" ]]; then
+            while IFS= read -r -d '' scripts_dir; do
+                if [[ "$scripts_dir" == *"/node_modules/"* ]]; then
+                    continue
+                fi
+                local rel_scripts="${scripts_dir#$src_dir/}"
+                local dest_scripts="$dest_dir/$rel_scripts"
+                
+                if [[ "$DRY_RUN" != true ]]; then
+                    mkdir -p "$dest_scripts"
+                    cp -r "$scripts_dir"/* "$dest_scripts/" 2>/dev/null || true
+                fi
+                log "Copied scripts: $rel_scripts"
+            done < <(find "$src_dir" -type d -name "scripts" -print0)
+        fi
+        
         echo "  Done: $count files"
     done
     
