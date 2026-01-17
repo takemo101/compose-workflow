@@ -163,7 +163,7 @@ main() {
         echo ""
     fi
     
-    for opencode_dir in agent command skill instructions; do
+    for opencode_dir in agent command skill instructions templates; do
         local claude_subdir
         claude_subdir=$(get_claude_dir "$opencode_dir")
         local src_dir="$OPENCODE_DIR/$opencode_dir"
