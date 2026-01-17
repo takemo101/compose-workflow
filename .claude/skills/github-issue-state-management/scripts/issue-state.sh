@@ -19,6 +19,7 @@ set -euo pipefail
 #   get <issue-num>                                    - 状態を取得
 #   list                                               - アクティブな環境一覧
 #   resume <issue-num>                                 - 復旧情報を取得（途中再開用）
+#   ci-status <pr-number>                              - CI状態を取得（JSON形式）
 #   init-labels                                        - ラベルを一括作成
 #
 # Example: bash issue-state.sh register 42 abc-123 feature/auth container-use
@@ -79,6 +80,9 @@ usage() {
     echo "  resume <issue-num>"
     echo "      Get resume info (env_id, phase, next action)"
     echo ""
+    echo "  ci-status <pr-number>"
+    echo "      Get CI status for a PR (JSON format with failed job details)"
+    echo ""
     echo "  init-labels"
     echo "      Create all required labels in the repository"
     echo ""
@@ -89,6 +93,7 @@ usage() {
     echo "  $0 unblock 42"
     echo "  $0 get 42"
     echo "  $0 list"
+    echo "  $0 ci-status 123"
     exit 1
 }
 
@@ -420,6 +425,54 @@ last_updated_at: ${TIMESTAMP}
                 ;;
         esac
         
+        echo "}"
+        ;;
+        
+    ci-status)
+        if [ $# -lt 1 ]; then
+            log_error "ci-status requires: <pr-number>"
+            exit 1
+        fi
+        PR_NUMBER="$1"
+        
+        CHECKS_JSON=$(gh pr checks "$PR_NUMBER" --json name,state,conclusion,detailsUrl 2>/dev/null || echo "[]")
+        
+        if [ "$CHECKS_JSON" = "[]" ]; then
+            echo "{"
+            echo "  \"pr_number\": $PR_NUMBER,"
+            echo "  \"error\": \"No checks found or PR does not exist\","
+            echo "  \"total_runs\": 0,"
+            echo "  \"failed\": 0,"
+            echo "  \"passed\": 0,"
+            echo "  \"pending\": 0"
+            echo "}"
+            exit 0
+        fi
+        
+        TOTAL=$(echo "$CHECKS_JSON" | jq 'length')
+        PASSED=$(echo "$CHECKS_JSON" | jq '[.[] | select(.conclusion == "success")] | length')
+        FAILED=$(echo "$CHECKS_JSON" | jq '[.[] | select(.conclusion == "failure")] | length')
+        PENDING=$(echo "$CHECKS_JSON" | jq '[.[] | select(.state == "pending" or .state == "queued" or .state == "in_progress")] | length')
+        
+        FAILED_JOBS=$(echo "$CHECKS_JSON" | jq '[.[] | select(.conclusion == "failure") | {name: .name, conclusion: .conclusion, log_url: .detailsUrl}]')
+        
+        echo "{"
+        echo "  \"pr_number\": $PR_NUMBER,"
+        echo "  \"total_runs\": $TOTAL,"
+        echo "  \"failed\": $FAILED,"
+        echo "  \"passed\": $PASSED,"
+        echo "  \"pending\": $PENDING,"
+        if [ "$FAILED" -gt 0 ]; then
+            echo "  \"all_passed\": false,"
+            echo "  \"failed_jobs\": $FAILED_JOBS"
+        else
+            if [ "$PENDING" -gt 0 ]; then
+                echo "  \"all_passed\": false,"
+                echo "  \"status\": \"in_progress\""
+            else
+                echo "  \"all_passed\": true"
+            fi
+        fi
         echo "}"
         ;;
         

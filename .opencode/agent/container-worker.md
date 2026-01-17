@@ -50,12 +50,12 @@ Container-use環境内で**Subtask**を実装する専門エージェント。
 
 ## ⛔ 禁止事項
 
-| 禁止 | 代替 |
-|------|------|
-| ホストで `edit`/`write` | `environment_file_write` |
-| ホストで `bash cargo test` | `environment_run_cmd` |
-| 設計書全文読み込み | セクション単位参照 |
-| レビュースキップ | 必ず実行 |
+> **詳細**: {{skill:implement-subtask-rules}} セクション6「禁止事項」を参照
+
+- ホストで `edit`/`write` → `environment_file_write` を使用
+- ホストで `bash cargo test` → `environment_run_cmd` を使用
+- 設計書全文読み込み → セクション単位参照（2,000トークン上限）
+- レビュースキップ禁止
 
 ---
 
@@ -142,7 +142,7 @@ Container-use環境内で**Subtask**を実装する専門エージェント。
 
 ---
 
-## Phase 7-8: 品質レビュー & ストレステスト
+## Phase 7: 品質レビュー
 
 1. **Lint/Format**: `cargo clippy -- -D warnings && cargo fmt --check`
 2. **全テスト**: `cargo test --all`
@@ -160,7 +160,7 @@ Container-use環境内で**Subtask**を実装する専門エージェント。
 **3回失敗** → Draft PR作成
 
 5. **ストレステスト**（任意）: {{skill:stress-test-flow}} を参照
-6. **ラベル更新**: `issue-state.sh phase <issue> 8-stress`
+   - 実行時: `issue-state.sh phase <issue> 8-stress`
 
 ---
 
@@ -177,7 +177,7 @@ Container-use環境内で**Subtask**を実装する専門エージェント。
 
 ---
 
-## Phase 10-11: コミット & PR作成
+## Phase 10: コミット & PR作成
 
 1. **コミット**: `git add . && git commit -m "feat: ... Closes #N"`
 2. **プッシュ**: `git push origin feature/issue-N-xxx`
@@ -186,7 +186,7 @@ Container-use環境内で**Subtask**を実装する専門エージェント。
 
 PRタイトル・本文は**日本語**で記述。`Closes #N` を含める。
 
-> **Note**: Phase 12（CI監視・マージ・環境削除・親Issueクローズ）は **Sisyphus** が担当。
+> **Note**: Phase 11-12（CI監視・マージ・環境削除・親Issueクローズ）は **Sisyphus** が担当。
 
 ---
 

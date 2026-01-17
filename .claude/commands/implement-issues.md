@@ -13,22 +13,22 @@ argument-hint: "[Issue番号] [--auto]"
 
 ## 全体フロー
 
-| Phase | 名称 | 内容 |
-|-------|------|------|
-| 0 | ブランチ作成 | featureブランチ作成・プッシュ |
-| 0.5 | 設計書存在チェック | 詳細設計書の有無確認 |
-| 0.6 | 設計書参照ルール | トークン最適化のための部分参照 |
-| 1 | 環境構築 | container-use環境作成・設定 |
-| 2 | 申し送り確認 | 未完了事項の優先対応 |
-| 3-5 | TDD実装 | Red → Green → Refactor |
-| 6 | 設計不備対応 | `/request-design-fix` 実行（必要時） |
-| 6.5 | 実装完了自己チェック | TODO残存・Smoke Test・到達可能性 |
-| 7 | 品質レビュー | スコア9点以上、客観的基準クリア |
-| 7.1 | ユーザー承認 | @.claude/skills/approval-gate/SKILL.md ※`--auto`時スキップ |
-| 8 | コミット & プッシュ | git操作 |
-| 9 | PR作成 | `gh pr create` |
-| 10-11 | CI監視 & マージ | CI成功→自動マージ、環境削除 |
-| 12 | 親Issueクローズ | 全Subtask完了時 |
+| Phase | 名称 | 内容 | ラベル |
+|-------|------|------|--------|
+| 0 | ブランチ作成 | featureブランチ作成・プッシュ | `phase:0-branch` |
+| 0.5 | 設計書存在チェック | 詳細設計書の有無確認 | - |
+| 0.6 | 設計書参照ルール | トークン最適化のための部分参照 | - |
+| 1 | 環境構築 | container-use環境作成・設定 | `phase:1-env` |
+| 2 | 申し送り確認 | 未完了事項の優先対応 | `phase:2-design` |
+| 3-5 | TDD実装 | Red → Green → Refactor | `phase:4-red`, `5-green`, `6-refactor` |
+| 6 | 設計不備対応 | `/request-design-fix` 実行（必要時） | - |
+| 6.5 | 実装完了自己チェック | TODO残存・Smoke Test・到達可能性 | - |
+| 7 | 品質レビュー | スコア9点以上、客観的基準クリア | `phase:7-review` |
+| 8 | ストレステスト | **任意**。スキップ可 | `phase:8-stress` |
+| 9 | ユーザー承認 | @.claude/skills/approval-gate/SKILL.md ※`--auto`時スキップ | `phase:9-approval` |
+| 10 | コミット & PR作成 | git操作 + `gh pr create` | `phase:10-pr` |
+| 11 | CI監視 | CI成功→マージ、失敗→修正(3回) | `phase:11-ci` |
+| 12 | マージ & クローズ | マージ、環境削除、親Issueクローズ | `phase:12-merge` |
 
 > **Phase規約**: @.claude/skills/workflow-phase-convention/SKILL.md を参照
 
@@ -249,7 +249,15 @@ Issueのコメントをスキャンし、未完了の申し送り事項があれ
 | レビュースコア | 9-10点 | 次のチェックへ |
 | 客観的基準 | 全クリア | PR作成承認リクエストへ |
 
-### Phase 7.1: ユーザー承認ゲート
+### Phase 8: ストレステスト（任意）
+
+> **詳細**: @.claude/skills/stress-test-flow/SKILL.md を参照
+
+ストレステストは任意実行。重要な機能では推奨。
+
+**ラベル更新**: `issue-state.sh phase <issue> 8-stress`
+
+### Phase 9: ユーザー承認ゲート
 
 > **共通仕様**: @.claude/skills/approval-gate/SKILL.md を参照
 
@@ -262,23 +270,24 @@ Issueのコメントをスキャンし、未完了の申し送り事項があれ
 
 | ユーザー回答 | アクション |
 |------------|----------|
-| `1` | 通常PRを作成 → Phase 8へ |
+| `1` | 通常PRを作成 → Phase 10へ |
 | `2` + フィードバック | 指摘箇所を修正 → Phase 6へ戻る |
 | `3` | Draft PRを作成 |
 | タイムアウト（30分） | Draft PR自動作成、ユーザーに通知 |
 
 > 番号を選択してください（1-3）:
 
+**ラベル更新**: `issue-state.sh phase <issue> 9-approval`
+
 #### `--auto` モード時
 
-レビュースコア9点以上を満たした場合、Phase 8〜12を自動実行：
-1. コミット & プッシュ
-2. PR作成
-3. CI監視 & 自動マージ
-4. 環境削除
-5. 親Issue自動クローズ（該当時）
+レビュースコア9点以上を満たした場合、Phase 10〜12を自動実行：
+1. コミット & プッシュ & PR作成
+2. CI監視 & 自動マージ
+3. 環境削除
+4. 親Issue自動クローズ（該当時）
 
-### Phase 8: コミット & プッシュ
+### Phase 10: コミット & PR作成
 
 ```bash
 git add . && \
@@ -291,7 +300,18 @@ Closes #{issue_id}
 git push origin feature/issue-{issue_id}-{description}
 ```
 
-### Phase 9: PR作成
+### Phase 10: コミット & PR作成
+
+```bash
+git add . && \
+git commit -m "feat: {summary}
+
+Closes #{issue_id}
+
+- {change1}
+- {change2}" && \
+git push origin feature/issue-{issue_id}-{description}
+```
 
 > **重要**: PRのタイトルと本文は**日本語**で記述。
 
@@ -302,23 +322,37 @@ git push origin feature/issue-{issue_id}-{description}
 | `fix:` | バグ修正 | `fix: セッション期限切れ時のエラーを修正` |
 | `refactor:` | リファクタリング | `refactor: 設定管理のコードを整理` |
 
-### Phase 10-11: CI監視 & 自動マージ
+**ラベル更新**: `issue-state.sh pr-created <issue> <pr_number>`
+
+### Phase 11: CI監視
 
 > **詳細**: @.claude/skills/ci-workflow/SKILL.md を参照
 
-| フェーズ | 実行者 | 処理 |
-|---------|--------|------|
-| Phase 10 | Sisyphus | CI監視 → 成功:マージ / 失敗:修正(3回) |
-| Phase 11 | Sisyphus | 環境削除 |
+| 実行者 | 処理 |
+|--------|------|
+| Sisyphus | CI監視 → 成功:Phase 12へ / 失敗:修正(3回) |
 
-### Phase 12: 親Issue自動クローズ
+**ラベル更新**: `issue-state.sh phase <issue> 11-ci`
 
-> 全SubtaskのPRがマージされたら、親Issueを自動でクローズ。
+### Phase 12: マージ & クリーンアップ
+
+| 実行者 | 処理 |
+|--------|------|
+| Sisyphus | PRマージ → 環境削除 → 親Issueクローズ（全Subtask完了時） |
 
 ```bash
+# PRマージ
+gh pr merge <pr_number> --merge
+
+# 環境削除
+# @.claude/skills/delete-environment/SKILL.md を参照
+
+# 親Issueクローズ（全Subtask完了時）
 gh issue comment {parent_issue_id} --body "## ✅ 全Subtask完了 ..."
 gh issue close {parent_issue_id} --reason completed
 ```
+
+**ラベル更新**: `issue-state.sh merged <issue>`
 
 ---
 

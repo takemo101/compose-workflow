@@ -1,7 +1,7 @@
 # Skill Index
 
 > **Purpose**: Lazy loading guide for skills. Load only when trigger condition matches.
-> **Total skills**: 30 | **Total lines**: ~7,200
+> **Total skills**: 31 | **Total lines**: ~7,300
 
 ---
 
@@ -71,6 +71,12 @@
 | `infra-workflow` | 360 | Infra design | Terraform, Docker Compose |
 | `release-workflow` | 439 | Release creation | Version, changelog, GitHub Release |
 | `wireframe-generator` | 288 | Screen design mockup | YAML→Chakra UI wireframe screenshots |
+
+### Security (load when processing external input)
+
+| Skill | Lines | Trigger | Description |
+|-------|-------|---------|-------------|
+| `sanitizer` | 90 | External input processing | Prompt injection protection |
 
 ### Special Cases (load when applicable)
 

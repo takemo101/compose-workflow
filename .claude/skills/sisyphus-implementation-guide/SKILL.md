@@ -113,15 +113,14 @@ Subtask #N:
 | **5** | container-worker | TDD: 実装（Green） | test_files | impl_files | `phase:5-green` |
 | **6** | container-worker | TDD: リファクタ | impl_files | impl_files (refined) | `phase:6-refactor` |
 | **6.5** | container-worker | **実装完了自己チェック** | impl_files | **OK/NG** | - |
-| **7** | container-worker | 品質レビュー + TODO駆動再実装 | impl_files | review_result | `phase:7-review` |
-| **8** | container-worker | **ストレステスト（任意）** | impl_files | stress_report | `phase:8-stress` |
+| **7** | container-worker | 品質レビュー（+ ストレステスト任意） | impl_files | review_result | `phase:7-review`（任意: `8-stress`） |
 | **9** | container-worker | ユーザー承認依頼 | review_score | approval | `phase:9-approval` |
-| **10** | container-worker | PR作成 | approval | pr_number | `phase:10-pr +env:pr-created` |
+| **10** | container-worker | コミット & プッシュ & PR作成 | approval | pr_number | `phase:10-pr +env:pr-created` |
 | **11** | Sisyphus | CI監視 | pr_number | ci_status | `phase:11-ci` |
 | **12** | Sisyphus | マージ & 環境削除 & 親Issueクローズ | ci_status, env_id | merged, closed | `phase:12-merge +env:merged` |
 
 > **Note**: Phase 0〜10 は container-worker、Phase 11-12 は Sisyphus が担当。
-> 親Issueクローズは Phase 12 の一部として実行（全Subtask完了時）。
+> Phase 8 (ストレステスト) は任意のためスキップ可。親Issueクローズは Phase 12 の一部。
 
 ### ラベル操作ルール（必須）
 
@@ -184,20 +183,6 @@ Sisyphus (親エージェント)
 │   └── Phase 11-12: CI監視 → マージ → 環境削除 [Sisyphus]
 │
 └── Phase 12（最終）: 全Subtask完了 → 親Issue自動クローズ [Sisyphus]
-```
-Sisyphus (親エージェント)
-│
-├── Subtask #9 を処理
-│   ├── Phase 0: ブランチ作成 (feature/issue-9-data-types)
-│   ├── Phase 1-9: container-worker → 実装 → PR #25
-│   └── Phase 10-11: CI監視 → マージ → 環境削除
-│       ↓ (完了後)
-├── Subtask #10 を処理
-│   ├── Phase 0: ブランチ作成 (feature/issue-10-timer-engine)
-│   ├── Phase 1-9: container-worker → 実装 → PR #26
-│   └── Phase 10-11: CI監視 → マージ → 環境削除
-│       ↓ (完了後)
-└── Phase 12: 全Subtask完了 → 親Issue自動クローズ
 ```
 
 ---

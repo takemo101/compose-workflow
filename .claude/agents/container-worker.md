@@ -121,7 +121,7 @@ Container-use環境内で**Subtask**を実装する専門エージェント。
 詳細は @.claude/skills/quality-review-flow/SKILL.md セクション2を参照。
 
 
-## Phase 7-8: 品質レビュー & ストレステスト
+## Phase 7: 品質レビュー
 
 1. **Lint/Format**: `cargo clippy -- -D warnings && cargo fmt --check`
 2. **全テスト**: `cargo test --all`
@@ -139,7 +139,7 @@ Container-use環境内で**Subtask**を実装する専門エージェント。
 **3回失敗** → Draft PR作成
 
 5. **ストレステスト**（任意）: @.claude/skills/stress-test-flow/SKILL.md を参照
-6. **ラベル更新**: `issue-state.sh phase <issue> 8-stress`
+   - 実行時: `issue-state.sh phase <issue> 8-stress`
 
 
 ## Phase 9: ユーザー承認ゲート
@@ -154,7 +154,7 @@ Container-use環境内で**Subtask**を実装する専門エージェント。
 ラベル更新: `issue-state.sh phase <issue> 9-approval`
 
 
-## Phase 10-11: コミット & PR作成
+## Phase 10: コミット & PR作成
 
 1. **コミット**: `git add . && git commit -m "feat: ... Closes #N"`
 2. **プッシュ**: `git push origin feature/issue-N-xxx`
@@ -163,7 +163,7 @@ Container-use環境内で**Subtask**を実装する専門エージェント。
 
 PRタイトル・本文は**日本語**で記述。`Closes #N` を含める。
 
-> **Note**: Phase 12（CI監視・マージ・環境削除・親Issueクローズ）は **Sisyphus** が担当。
+> **Note**: Phase 11-12（CI監視・マージ・環境削除・親Issueクローズ）は **Sisyphus** が担当。
 
 
 ## 🍎 プラットフォーム固有コード例外

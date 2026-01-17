@@ -308,7 +308,7 @@ bash .claude/skills/github-issue-state-management/scripts/issue-state.sh <comman
 | `phase` | Phase を更新 | `issue-state.sh phase 42 5-green` |
 | `block` | Blocked 状態に設定 | `issue-state.sh block 42 design_ambiguity "説明"` |
 | `unblock` | Blocked を解除 | `issue-state.sh unblock 42` |
-| `pr-created` | PR作成済みに更新 | `issue-state.sh pr-created 42` |
+| `pr-created` | PR作成済みに更新 | `issue-state.sh pr-created 42 25` |
 | `merged` | マージ完了に更新 | `issue-state.sh merged 42` |
 | `get` | 状態を取得 | `issue-state.sh get 42` |
 | `list` | アクティブ一覧 | `issue-state.sh list` |

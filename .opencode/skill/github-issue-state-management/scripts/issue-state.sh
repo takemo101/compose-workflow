@@ -19,6 +19,7 @@ set -euo pipefail
 #   get <issue-num>                                    - 状態を取得
 #   list                                               - アクティブな環境一覧
 #   resume <issue-num>                                 - 復旧情報を取得（途中再開用）
+#   ci-status <pr-number>                              - CI状態を取得（JSON形式）
 #   init-labels                                        - ラベルを一括作成
 #
 # Example: bash issue-state.sh register 42 abc-123 feature/auth container-use
@@ -30,9 +31,57 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+# リトライ設定
+MAX_RETRIES=${MAX_RETRIES:-3}
+RETRY_DELAY=${RETRY_DELAY:-5}
+
 log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+
+# リトライ付きでコマンドを実行
+# Usage: retry_cmd <command...>
+# Returns: コマンドの終了コード（成功時は0）
+retry_cmd() {
+    local attempt=1
+    local output
+    local exit_code
+    
+    while [ $attempt -le $MAX_RETRIES ]; do
+        output=$("$@" 2>&1)
+        exit_code=$?
+        
+        if [ $exit_code -eq 0 ]; then
+            echo "$output"
+            return 0
+        fi
+        
+        # レート制限エラーの検出
+        if echo "$output" | grep -qiE "rate.?limit|too many requests|403"; then
+            log_warn "Rate limited. Waiting 60 seconds before retry (attempt $attempt/$MAX_RETRIES)..."
+            sleep 60
+        # ネットワークエラーの検出
+        elif echo "$output" | grep -qiE "network|connection|timeout|could not resolve"; then
+            log_warn "Network error. Waiting ${RETRY_DELAY} seconds before retry (attempt $attempt/$MAX_RETRIES)..."
+            sleep $RETRY_DELAY
+        # その他のエラー
+        else
+            log_warn "Command failed (attempt $attempt/$MAX_RETRIES): $output"
+            sleep $RETRY_DELAY
+        fi
+        
+        attempt=$((attempt + 1))
+    done
+    
+    log_error "Command failed after $MAX_RETRIES attempts: $*"
+    echo "$output"
+    return $exit_code
+}
+
+# gh コマンドのラッパー（リトライ付き）
+gh_retry() {
+    retry_cmd gh "$@"
+}
 
 # gh CLI が存在するか確認
 if ! command -v gh &> /dev/null; then
@@ -79,6 +128,9 @@ usage() {
     echo "  resume <issue-num>"
     echo "      Get resume info (env_id, phase, next action)"
     echo ""
+    echo "  ci-status <pr-number>"
+    echo "      Get CI status for a PR (JSON format with failed job details)"
+    echo ""
     echo "  init-labels"
     echo "      Create all required labels in the repository"
     echo ""
@@ -89,27 +141,25 @@ usage() {
     echo "  $0 unblock 42"
     echo "  $0 get 42"
     echo "  $0 list"
+    echo "  $0 ci-status 123"
     exit 1
 }
 
-# 現在のラベルからenv:*を取得
 get_env_label() {
     local issue_num="$1"
-    gh issue view "$issue_num" --json labels -q '.labels[].name' 2>/dev/null | grep -E '^env:' | head -1 || echo ""
+    gh_retry issue view "$issue_num" --json labels -q '.labels[].name' 2>/dev/null | grep -E '^env:' | head -1 || echo ""
 }
 
-# 現在のラベルからphase:*を取得
 get_phase_label() {
     local issue_num="$1"
-    gh issue view "$issue_num" --json labels -q '.labels[].name' 2>/dev/null | grep -E '^phase:' | head -1 || echo ""
+    gh_retry issue view "$issue_num" --json labels -q '.labels[].name' 2>/dev/null | grep -E '^phase:' | head -1 || echo ""
 }
 
-# ラベルを安全に削除（存在する場合のみ）
 remove_label_if_exists() {
     local issue_num="$1"
     local label="$2"
     if [ -n "$label" ]; then
-        gh issue edit "$issue_num" --remove-label "$label" 2>/dev/null || true
+        gh_retry issue edit "$issue_num" --remove-label "$label" 2>/dev/null || true
     fi
 }
 
@@ -140,11 +190,9 @@ case "$COMMAND" in
         OLD_ENV=$(get_env_label "$ISSUE_NUM")
         remove_label_if_exists "$ISSUE_NUM" "$OLD_ENV"
         
-        # ラベルを追加
-        gh issue edit "$ISSUE_NUM" --add-label "env:active,phase:1-env"
+        gh_retry issue edit "$ISSUE_NUM" --add-label "env:active,phase:1-env"
         
-        # メタデータをIssue bodyに追加
-        CURRENT_BODY=$(gh issue view "$ISSUE_NUM" --json body -q '.body')
+        CURRENT_BODY=$(gh_retry issue view "$ISSUE_NUM" --json body -q '.body')
         
         # 既存のメタデータを削除
         CLEAN_BODY=$(echo "$CURRENT_BODY" | sed '/<!-- ENV_METADATA/,/-->/d')
@@ -162,7 +210,7 @@ created_at: ${TIMESTAMP}
 last_updated_at: ${TIMESTAMP}
 -->"
         
-        gh issue edit "$ISSUE_NUM" --body "$NEW_BODY"
+        gh_retry issue edit "$ISSUE_NUM" --body "$NEW_BODY"
         
         log_info "Registered environment for Issue #${ISSUE_NUM}: env_id=${ENV_ID}, branch=${BRANCH}"
         ;;
@@ -179,8 +227,7 @@ last_updated_at: ${TIMESTAMP}
         OLD_PHASE=$(get_phase_label "$ISSUE_NUM")
         remove_label_if_exists "$ISSUE_NUM" "$OLD_PHASE"
         
-        # 新しいphaseラベルを追加
-        gh issue edit "$ISSUE_NUM" --add-label "phase:${NEW_PHASE}"
+        gh_retry issue edit "$ISSUE_NUM" --add-label "phase:${NEW_PHASE}"
         
         log_info "Updated Issue #${ISSUE_NUM} to phase:${NEW_PHASE}"
         ;;
@@ -194,9 +241,8 @@ last_updated_at: ${TIMESTAMP}
         REASON="$2"
         DESCRIPTION="$3"
         
-        # env:active を env:blocked に変更
         remove_label_if_exists "$ISSUE_NUM" "env:active"
-        gh issue edit "$ISSUE_NUM" --add-label "env:blocked"
+        gh_retry issue edit "$ISSUE_NUM" --add-label "env:blocked"
         
         # Blocked コメントを追加
         TIMESTAMP=$(timestamp)
@@ -210,7 +256,7 @@ last_updated_at: ${TIMESTAMP}
 > このコメントは \`env:blocked\` ラベルと連動しています。
 > 問題解決後、ラベルを \`env:active\` に変更し、このコメントに「Resolved」と返信してください。"
         
-        gh issue comment "$ISSUE_NUM" --body "$COMMENT"
+        gh_retry issue comment "$ISSUE_NUM" --body "$COMMENT"
         
         log_warn "Issue #${ISSUE_NUM} is now BLOCKED: ${REASON}"
         ;;
@@ -222,9 +268,8 @@ last_updated_at: ${TIMESTAMP}
         fi
         ISSUE_NUM="$1"
         
-        # env:blocked を env:active に変更
         remove_label_if_exists "$ISSUE_NUM" "env:blocked"
-        gh issue edit "$ISSUE_NUM" --add-label "env:active"
+        gh_retry issue edit "$ISSUE_NUM" --add-label "env:active"
         
         log_info "Issue #${ISSUE_NUM} is now ACTIVE (unblocked)"
         ;;
@@ -243,10 +288,9 @@ last_updated_at: ${TIMESTAMP}
         remove_label_if_exists "$ISSUE_NUM" "$OLD_ENV"
         remove_label_if_exists "$ISSUE_NUM" "$OLD_PHASE"
         
-        gh issue edit "$ISSUE_NUM" --add-label "env:pr-created,phase:10-pr"
+        gh_retry issue edit "$ISSUE_NUM" --add-label "env:pr-created,phase:10-pr"
         
-        # メタデータに pr_number を追加
-        CURRENT_BODY=$(gh issue view "$ISSUE_NUM" --json body -q '.body')
+        CURRENT_BODY=$(gh_retry issue view "$ISSUE_NUM" --json body -q '.body')
         TIMESTAMP=$(timestamp)
         
         if echo "$CURRENT_BODY" | grep -q "<!-- ENV_METADATA"; then
@@ -261,7 +305,7 @@ last_updated_at: ${TIMESTAMP}
                 NEW_BODY=$(echo "$NEW_BODY" | sed "s/last_updated_at: ${TIMESTAMP}/last_updated_at: ${TIMESTAMP}\npr_number: ${PR_NUMBER}/")
             fi
             
-            gh issue edit "$ISSUE_NUM" --body "$NEW_BODY"
+            gh_retry issue edit "$ISSUE_NUM" --body "$NEW_BODY"
         fi
         
         log_info "Issue #${ISSUE_NUM} marked as PR created (PR #${PR_NUMBER})"
@@ -280,7 +324,7 @@ last_updated_at: ${TIMESTAMP}
         remove_label_if_exists "$ISSUE_NUM" "$OLD_ENV"
         remove_label_if_exists "$ISSUE_NUM" "$OLD_PHASE"
         
-        gh issue edit "$ISSUE_NUM" --add-label "env:merged,phase:12-merge"
+        gh_retry issue edit "$ISSUE_NUM" --add-label "env:merged,phase:12-merge"
         
         log_info "Issue #${ISSUE_NUM} marked as merged"
         ;;
@@ -420,6 +464,54 @@ last_updated_at: ${TIMESTAMP}
                 ;;
         esac
         
+        echo "}"
+        ;;
+        
+    ci-status)
+        if [ $# -lt 1 ]; then
+            log_error "ci-status requires: <pr-number>"
+            exit 1
+        fi
+        PR_NUMBER="$1"
+        
+        CHECKS_JSON=$(gh pr checks "$PR_NUMBER" --json name,state,conclusion,detailsUrl 2>/dev/null || echo "[]")
+        
+        if [ "$CHECKS_JSON" = "[]" ]; then
+            echo "{"
+            echo "  \"pr_number\": $PR_NUMBER,"
+            echo "  \"error\": \"No checks found or PR does not exist\","
+            echo "  \"total_runs\": 0,"
+            echo "  \"failed\": 0,"
+            echo "  \"passed\": 0,"
+            echo "  \"pending\": 0"
+            echo "}"
+            exit 0
+        fi
+        
+        TOTAL=$(echo "$CHECKS_JSON" | jq 'length')
+        PASSED=$(echo "$CHECKS_JSON" | jq '[.[] | select(.conclusion == "success")] | length')
+        FAILED=$(echo "$CHECKS_JSON" | jq '[.[] | select(.conclusion == "failure")] | length')
+        PENDING=$(echo "$CHECKS_JSON" | jq '[.[] | select(.state == "pending" or .state == "queued" or .state == "in_progress")] | length')
+        
+        FAILED_JOBS=$(echo "$CHECKS_JSON" | jq '[.[] | select(.conclusion == "failure") | {name: .name, conclusion: .conclusion, log_url: .detailsUrl}]')
+        
+        echo "{"
+        echo "  \"pr_number\": $PR_NUMBER,"
+        echo "  \"total_runs\": $TOTAL,"
+        echo "  \"failed\": $FAILED,"
+        echo "  \"passed\": $PASSED,"
+        echo "  \"pending\": $PENDING,"
+        if [ "$FAILED" -gt 0 ]; then
+            echo "  \"all_passed\": false,"
+            echo "  \"failed_jobs\": $FAILED_JOBS"
+        else
+            if [ "$PENDING" -gt 0 ]; then
+                echo "  \"all_passed\": false,"
+                echo "  \"status\": \"in_progress\""
+            else
+                echo "  \"all_passed\": true"
+            fi
+        fi
         echo "}"
         ;;
         
