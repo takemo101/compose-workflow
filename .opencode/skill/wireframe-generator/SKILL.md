@@ -122,7 +122,7 @@ type: form
 fields:
   - name: email           # 必須: フィールド識別子
     label: メールアドレス  # 必須: 表示ラベル
-    type: email           # 必須: text|email|password|number|textarea|select|checkbox|radio|date|file
+    type: email           # 必須: text|email|password|number|textarea|select|checkbox|radio|date|file|pin
     required: true        # 任意: 必須フラグ
     placeholder: example@email.com  # 任意
   - name: password
@@ -140,6 +140,11 @@ fields:
   - name: remember
     label: ログイン状態を保持
     type: checkbox
+  - name: pin
+    label: 認証コード
+    type: pin             # PIN/OTP入力
+    pinLength: 6          # 任意: 桁数（デフォルト: 6）
+    required: true
 buttons:                  # 任意
   - label: ログイン
     variant: primary      # primary|secondary|danger|ghost

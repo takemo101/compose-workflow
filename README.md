@@ -43,6 +43,19 @@ claude /oh-my-claude-sisyphus:sisyphus-default
 | GitHub CLI | Issue/PR操作 | `brew install gh` |
 | Playwright | モックアップ生成 | `npx playwright install chromium` |
 
+## セットアップ
+
+```bash
+git clone <repo>
+cd composer-workflow
+npm run setup
+```
+
+これにより以下が実行されます:
+1. npm依存関係のインストール
+2. シンボリックリンクの作成（`.claude/skills/wireframe-generator`）
+3. wireframe-generatorの依存関係インストール
+
 ## クイックスタート
 
 ```bash
