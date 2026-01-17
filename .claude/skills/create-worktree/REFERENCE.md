@@ -20,8 +20,8 @@ project/                         # メインworktree (mainブランチ)
 planモードで複数の機能を計画した場合、それぞれのworktreeで並列開発が可能。
 
 ```bash
-bash .opencode/skill/create-worktree/scripts/create_worktree.sh issue-42-auth
-bash .opencode/skill/create-worktree/scripts/create_worktree.sh issue-43-dashboard
+bash .claude/skills/create-worktree/scripts/create_worktree.sh issue-42-auth
+bash .claude/skills/create-worktree/scripts/create_worktree.sh issue-43-dashboard
 ```
 
 ### 2. ホットフィックス
@@ -29,7 +29,7 @@ bash .opencode/skill/create-worktree/scripts/create_worktree.sh issue-43-dashboa
 メイン開発を中断せずに緊急修正が可能。
 
 ```bash
-bash .opencode/skill/create-worktree/scripts/create_worktree.sh hotfix-critical-bug
+bash .claude/skills/create-worktree/scripts/create_worktree.sh hotfix-critical-bug
 ```
 
 ### 3. PRレビュー

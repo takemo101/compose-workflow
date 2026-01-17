@@ -82,7 +82,7 @@ gh release create v<version> ...
 
 ```bash
 # スクリプトを使用（推奨）
-.opencode/skill/release-workflow/scripts/release.sh --detect
+.claude/skills/release-workflow/scripts/release.sh --detect
 
 # または手動で検出
 # Rust
@@ -171,7 +171,7 @@ v0.4.0
 
 ```bash
 # スクリプトを使用（推奨）
-.opencode/skill/release-workflow/scripts/release.sh --update-version <new-version>
+.claude/skills/release-workflow/scripts/release.sh --update-version <new-version>
 
 # または手動で更新（エコシステム別）
 ```
@@ -233,7 +233,7 @@ echo "<new-version>" > VERSION
 
 ```bash
 # スクリプトを使用（推奨）
-.opencode/skill/release-workflow/scripts/release.sh --commit <new-version>
+.claude/skills/release-workflow/scripts/release.sh --commit <new-version>
 
 # または手動
 git add -A
@@ -246,7 +246,7 @@ git push origin <default-branch> --tags
 
 ```bash
 # スクリプトを使用（推奨）
-.opencode/skill/release-workflow/scripts/release.sh --create-release <new-version> "<release-notes>"
+.claude/skills/release-workflow/scripts/release.sh --create-release <new-version> "<release-notes>"
 
 # または手動
 gh release create v<new-version> \
@@ -258,7 +258,7 @@ gh release create v<new-version> \
 
 ```bash
 # スクリプトを使用（推奨）
-.opencode/skill/release-workflow/scripts/release.sh --watch
+.claude/skills/release-workflow/scripts/release.sh --watch
 
 # または手動
 gh run list --workflow=Release --limit 1
@@ -275,38 +275,38 @@ gh release view v<new-version> --json tagName,assets --jq '.tagName, (.assets[].
 
 ## スクリプト使用方法
 
-`.opencode/skill/release-workflow/scripts/release.sh` を使用することで、上記の処理を自動化できます。
+`.claude/skills/release-workflow/scripts/release.sh` を使用することで、上記の処理を自動化できます。
 
 ### 基本コマンド
 
 ```bash
 # エコシステム検出とバージョン表示
-.opencode/skill/release-workflow/scripts/release.sh --detect
+.claude/skills/release-workflow/scripts/release.sh --detect
 
 # 完全自動リリース（対話モード）
-.opencode/skill/release-workflow/scripts/release.sh
+.claude/skills/release-workflow/scripts/release.sh
 
 # バージョン指定リリース
-.opencode/skill/release-workflow/scripts/release.sh --version 1.2.3
+.claude/skills/release-workflow/scripts/release.sh --version 1.2.3
 
 # ドライラン（実行せずに確認）
-.opencode/skill/release-workflow/scripts/release.sh --dry-run --version 1.2.3
+.claude/skills/release-workflow/scripts/release.sh --dry-run --version 1.2.3
 ```
 
 ### 個別操作
 
 ```bash
 # バージョン更新のみ
-.opencode/skill/release-workflow/scripts/release.sh --update-version 1.2.3
+.claude/skills/release-workflow/scripts/release.sh --update-version 1.2.3
 
 # コミット & タグのみ
-.opencode/skill/release-workflow/scripts/release.sh --commit 1.2.3
+.claude/skills/release-workflow/scripts/release.sh --commit 1.2.3
 
 # GitHub Release作成のみ
-.opencode/skill/release-workflow/scripts/release.sh --create-release 1.2.3 "Release notes here"
+.claude/skills/release-workflow/scripts/release.sh --create-release 1.2.3 "Release notes here"
 
 # Workflow監視
-.opencode/skill/release-workflow/scripts/release.sh --watch
+.claude/skills/release-workflow/scripts/release.sh --watch
 ```
 
 ---

@@ -81,12 +81,12 @@
 ### ケース1: 基本的な使い方
 ```bash
 cd .worktrees/issue-42-auth
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh
 ```
 
 ### ケース2: タイトル・本文を事前指定
 ```bash
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh \
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh \
   --title "feat(frontend): Add user authentication" \
   --body "Closes #42
 
@@ -95,22 +95,22 @@ bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh \
 
 ### ケース3: ドラフトPR作成
 ```bash
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh --draft
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh --draft
 ```
 
 ### ケース4: PR作成のみ（worktree保持）
 ```bash
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh --pr-only
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh --pr-only
 ```
 
 ### ケース5: クリーンアップのみ（PR作成済み）
 ```bash
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh --cleanup-only
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh --cleanup-only
 ```
 
 ### ケース6: カスタムベースブランチ
 ```bash
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh --base develop
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh --base develop
 ```
 
 ## トラブルシューティング
@@ -135,7 +135,7 @@ git worktree remove --force .worktrees/<feature-name>
 ### Q: worktree外で実行してしまった
 ```bash
 cd .worktrees/<feature-name>
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh
 ```
 
 ### Q: gh CLI の認証が必要と言われる
@@ -182,7 +182,7 @@ bash pr_and_cleanup.sh --base develop
 ### 4. worktree開発の推奨フロー
 ```bash
 # 1. worktree作成
-bash .opencode/skill/create-worktree/scripts/create_worktree.sh feature-name
+bash .claude/skills/create-worktree/scripts/create_worktree.sh feature-name
 
 # 2. 開発作業
 cd .worktrees/feature-name
@@ -192,7 +192,7 @@ cd .worktrees/feature-name
 git push origin feature/feature-name
 
 # 4. PR作成＆クリーンアップ
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh
 ```
 
 ## 関連ドキュメント

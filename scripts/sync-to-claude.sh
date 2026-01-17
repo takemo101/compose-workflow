@@ -51,6 +51,16 @@ convert_skill_refs() {
     echo "$content" | sed -E 's/\{\{skill:([^}]+)\}\}/@.claude\/skills\/\1\/SKILL.md/g'
 }
 
+convert_paths() {
+    local content="$1"
+    echo "$content" | sed -E \
+        -e 's|\.opencode/skill/|.claude/skills/|g' \
+        -e 's|\.opencode/agent/|.claude/agents/|g' \
+        -e 's|\.opencode/command/|.claude/commands/|g' \
+        -e 's|\.opencode/instructions/|.claude/instructions/|g' \
+        -e 's|\.opencode/templates/|.claude/templates/|g'
+}
+
 convert_agent_frontmatter() {
     local file="$1"
     local content
@@ -127,10 +137,12 @@ sync_file() {
         agent)
             content=$(convert_agent_frontmatter "$src")
             content=$(convert_skill_refs "$content")
+            content=$(convert_paths "$content")
             ;;
         skill|command|instructions)
             content=$(cat "$src")
             content=$(convert_skill_refs "$content")
+            content=$(convert_paths "$content")
             ;;
         *)
             content=$(cat "$src")

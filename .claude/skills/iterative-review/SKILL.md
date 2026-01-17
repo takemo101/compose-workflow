@@ -14,9 +14,9 @@ description: .opencode/配下のドキュメント・設定を修正する際の
 
 | 対象 | 例 |
 |------|-----|
-| コマンド定義 | `.opencode/command/*.md` |
-| スキル定義 | `.opencode/skill/*.md` |
-| エージェント定義 | `.opencode/agent/*.md` |
+| コマンド定義 | `.claude/commands/*.md` |
+| スキル定義 | `.claude/skills/*.md` |
+| エージェント定義 | `.claude/agents/*.md` |
 | 設定ファイル | `.opencode/*.json`, `.opencode/*.yml` |
 | README | `.opencode/README.md` |
 

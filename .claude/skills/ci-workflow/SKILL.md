@@ -156,7 +156,7 @@ def escalate_ci_failure(pr_number: int, env_id: str):
 ```python
 def cleanup_environment(env_id: str, pr_number: int) -> bool:
     """delete-environment スキルを実行（最大2回リトライ）"""
-    script = ".opencode/skill/delete-environment/scripts/delete_env.sh"
+    script = ".claude/skills/delete-environment/scripts/delete_env.sh"
     
     for _ in range(3):
         if bash(f"bash {script} {env_id}").exit_code == 0:
@@ -196,7 +196,7 @@ def cleanup_environment(env_id: str, pr_number: int) -> bool:
 **CI待機の自動化スクリプト：**
 
 ```bash
-bash .opencode/skill/ci-workflow/scripts/ci-wait.sh <pr-number> [timeout-seconds]
+bash .claude/skills/ci-workflow/scripts/ci-wait.sh <pr-number> [timeout-seconds]
 ```
 
 | 引数 | 説明 | デフォルト |
@@ -214,5 +214,5 @@ bash .opencode/skill/ci-workflow/scripts/ci-wait.sh <pr-number> [timeout-seconds
 
 **使用例：**
 ```bash
-bash .opencode/skill/ci-workflow/scripts/ci-wait.sh 42 1800
+bash .claude/skills/ci-workflow/scripts/ci-wait.sh 42 1800
 ```

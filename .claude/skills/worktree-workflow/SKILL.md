@@ -63,7 +63,7 @@ Issue 受け取り → platform-exception? → YES → worktree 作成 → ホ�
 ### worktree 作成
 
 ```bash
-bash .opencode/skill/create-worktree/scripts/create_worktree.sh issue-42-auth
+bash .claude/skills/create-worktree/scripts/create_worktree.sh issue-42-auth
 ```
 
 **実行結果**:
@@ -75,7 +75,7 @@ bash .opencode/skill/create-worktree/scripts/create_worktree.sh issue-42-auth
 
 ```bash
 cd .worktrees/issue-42-auth
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh
 ```
 
 **実行結果**:
@@ -87,18 +87,18 @@ bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh
 
 ```bash
 # タイトル・本文を事前指定
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh \
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh \
   --title "feat: Add macOS notification" \
   --body "Closes #42"
 
 # ドラフト PR として作成
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh --draft
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh --draft
 
 # PR 作成のみ（worktree は残す）
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh --pr-only
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh --pr-only
 
 # worktree 削除のみ（PR 作成済みの場合）
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh --cleanup-only
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh --cleanup-only
 ```
 
 ## トラブルシューティング

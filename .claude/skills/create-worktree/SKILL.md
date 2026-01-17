@@ -20,10 +20,10 @@ planモード終了後、feature開発用の独立したworktree環境を自動�
 ### 基本的な使い方
 
 ```bash
-bash .opencode/skill/create-worktree/scripts/create_worktree.sh <feature-name>
+bash .claude/skills/create-worktree/scripts/create_worktree.sh <feature-name>
 
 # 例: Issue #42 用の worktree を作成
-bash .opencode/skill/create-worktree/scripts/create_worktree.sh issue-42-auth
+bash .claude/skills/create-worktree/scripts/create_worktree.sh issue-42-auth
 ```
 
 ### 実行結果
@@ -51,7 +51,7 @@ bash .opencode/skill/create-worktree/scripts/create_worktree.sh issue-42-auth
 
 ```bash
 cd .worktrees/<feature-name>
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh
 ```
 
 詳細は [pr-and-cleanup スキル](../pr-and-cleanup/SKILL.md) を参照してください。

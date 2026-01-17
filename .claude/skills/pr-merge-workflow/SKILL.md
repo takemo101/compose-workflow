@@ -103,7 +103,7 @@ git push origin --delete <branch-name>
 gh issue view <issue-number>  # Should show "CLOSED"
 
 # 2. 環境削除（コンテナ・ファイル・JSON一括削除）
-bash .opencode/skill/delete-environment/scripts/delete_env.sh <env_id>
+bash .claude/skills/delete-environment/scripts/delete_env.sh <env_id>
 ```
 
 ### environments.json更新
@@ -187,7 +187,7 @@ gh pr merge <pr-number> --admin --merge
 **PRマージ完全フローの自動化スクリプト：**
 
 ```bash
-bash .opencode/skill/pr-merge-workflow/scripts/pr-merge-full.sh <pr-number> [env-id]
+bash .claude/skills/pr-merge-workflow/scripts/pr-merge-full.sh <pr-number> [env-id]
 ```
 
 | 引数 | 説明 | 必須 |
@@ -203,5 +203,5 @@ bash .opencode/skill/pr-merge-workflow/scripts/pr-merge-full.sh <pr-number> [env
 
 **使用例：**
 ```bash
-bash .opencode/skill/pr-merge-workflow/scripts/pr-merge-full.sh 42 abc-123-def
+bash .claude/skills/pr-merge-workflow/scripts/pr-merge-full.sh 42 abc-123-def
 ```

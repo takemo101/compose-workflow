@@ -363,7 +363,7 @@ issue_id = entry["issue_number"]
 **environments.json管理の自動化スクリプト：**
 
 ```bash
-bash .opencode/skill/environments-json-management/scripts/env-json.sh <command> [args...]
+bash .claude/skills/environments-json-management/scripts/env-json.sh <command> [args...]
 ```
 
 | コマンド | 説明 | 使用例 |
@@ -377,6 +377,6 @@ bash .opencode/skill/environments-json-management/scripts/env-json.sh <command> 
 
 **使用例：**
 ```bash
-bash .opencode/skill/environments-json-management/scripts/env-json.sh add abc-123 42 feature/auth "User authentication"
-bash .opencode/skill/environments-json-management/scripts/env-json.sh list
+bash .claude/skills/environments-json-management/scripts/env-json.sh add abc-123 42 feature/auth "User authentication"
+bash .claude/skills/environments-json-management/scripts/env-json.sh list
 ```

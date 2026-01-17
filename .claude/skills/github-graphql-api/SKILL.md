@@ -118,7 +118,7 @@ gh api graphql \
 **自動化スクリプトが利用可能です：**
 
 ```bash
-bash .opencode/skill/github-graphql-api/scripts/add-sub-issue.sh <parent-issue> <child-issue>
+bash .claude/skills/github-graphql-api/scripts/add-sub-issue.sh <parent-issue> <child-issue>
 ```
 
 | 引数 | 説明 |
@@ -128,5 +128,5 @@ bash .opencode/skill/github-graphql-api/scripts/add-sub-issue.sh <parent-issue> 
 
 **使用例：**
 ```bash
-bash .opencode/skill/github-graphql-api/scripts/add-sub-issue.sh 10 42
+bash .claude/skills/github-graphql-api/scripts/add-sub-issue.sh 10 42
 ```

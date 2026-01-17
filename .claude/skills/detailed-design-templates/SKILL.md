@@ -276,7 +276,7 @@ flowchart LR
 ### 生成コマンド
 
 ```bash
-cd .opencode/skill/wireframe-generator/scripts
+cd .claude/skills/wireframe-generator/scripts
 bun install
 bun run generate.ts <markdown-file> [output-dir]
 ```

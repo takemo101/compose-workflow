@@ -4,7 +4,6 @@ description: 詳細設計書を作成・修正する（参考プロジェクト�
 tools: Read, Glob, Grep, Write, Edit
 model: sonnet
 ---
----
 
 あなたは詳細設計書を作成する専門家です。
 
@@ -46,3 +45,63 @@ model: sonnet
 
 ### 変更履歴
 - **設計書の末尾に変更履歴セクションを設ける**
+
+
+## テンプレートの使用
+
+設計書の作成時には、必ず以下のテンプレートを `read` ツールで読み込んで使用してください。
+記憶だけで書かず、テンプレートの構造に従ってください。
+
+| 設計書タイプ | テンプレートパス | 用途 |
+|-------------|-----------------|------|
+| インデックス | `.claude/templates/designs/detailed-index.md` | サブ機能のトップページ |
+| 親機能README | `.claude/templates/designs/readme.md` | 親機能のフォルダ用 |
+| バックエンド | `.claude/templates/designs/backend.md` | API仕様 |
+| 画面 | `.claude/templates/designs/screen.md` | UI/UX設計（AA禁止） |
+| フロントエンド | `.claude/templates/designs/frontend.md` | FEアーキテクチャ |
+| データベース | `.claude/templates/designs/database.md` | ER図、テーブル定義 |
+| インフラ | `.claude/templates/designs/infra.md` | AWS構成など |
+| 外部連携 | `.claude/templates/designs/external-api.md` | 外部API呼び出し |
+| 通知 | `.claude/templates/designs/notification.md` | メール/プッシュ通知 |
+| 非同期処理 | `.claude/templates/designs/async.md` | キュー/バッチ |
+| コンテナ | `.claude/templates/designs/container.md` | Docker/ECS |
+| CI/CD | `.claude/templates/designs/cicd.md` | パイプライン |
+| BFF | `.claude/templates/designs/bff.md` | Backend For Frontend |
+
+## フォルダ構成ルール
+
+**サブ機能単位の動的構成**: 基本設計書の機能をサブ機能に分割し、各サブ機能ごとにフォルダを作成
+
+```
+docs/designs/detailed/
+├── {親機能名}/                       # 例: ユーザー認証
+│   ├── README.md                     # 親機能の概要・サブ機能一覧
+│   │
+│   ├── {サブ機能1}/                  # 例: ログイン
+│   │   ├── 詳細設計書.md             # 必須
+│   │   ├── バックエンド設計書.md      # そのサブ機能のAPIのみ
+│   │   └── 画面設計書.md              # そのサブ機能の画面のみ
+│   │
+│   ├── {サブ機能2}/                  # 例: パスワードリセット
+│   │   ├── 詳細設計書.md
+│   │   ├── バックエンド設計書.md
+│   │   ├── 画面設計書.md
+│   │   └── 外部API連携設計書.md       # メール送信サービス等
+│   │
+│   └── 共通/                         # 横断的設計
+│       ├── データベース設計書.md      # 全サブ機能で共有
+│       ├── インフラ設計書.md          # AWS構成（必須）
+│       └── セキュリティ設計書.md      # 認証全体のセキュリティ
+│
+└── 共通設計/                         # プロジェクト全体の共通設計
+    ├── エラーコード一覧.md
+    └── 共通処理設計書.md
+```
+
+## 修正時のルール
+
+レビュー結果を受けて修正する場合：
+1. 指摘された問題点を優先的に対応
+2. 修正箇所は変更履歴に記録
+3. 基本設計書との整合性を確認
+4. 他の詳細設計書との整合性を確認

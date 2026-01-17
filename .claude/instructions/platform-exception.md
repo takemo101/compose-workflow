@@ -105,13 +105,13 @@ def verify_container_buildable(env_id: str, language: str) -> bool:
 
 ```bash
 # 1. worktree 作成
-bash .opencode/skill/create-worktree/scripts/create_worktree.sh issue-{issue_id}-{feature}
+bash .claude/skills/create-worktree/scripts/create_worktree.sh issue-{issue_id}-{feature}
 
 # 2. worktree に移動して開発
 cd .worktrees/issue-{issue_id}-{feature}
 
 # 3. 開発完了後、PR 作成 + worktree 削除
-bash ../../.opencode/skill/pr-and-cleanup/scripts/pr_and_cleanup.sh --title "feat: {summary}" --body "Closes #{issue_id}
+bash ../../.claude/skills/pr-and-cleanup/scripts/pr_and_cleanup.sh --title "feat: {summary}" --body "Closes #{issue_id}
 
 [platform-exception: macOS]"
 ```
