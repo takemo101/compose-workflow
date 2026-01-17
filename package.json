@@ -2,8 +2,8 @@
 	"scripts": {
 		"test": "vitest run .opencode",
 		"test:watch": "vitest .opencode",
-		"format": "biome format .opencode/plugin --write",
-		"lint": "biome check .opencode/plugin --write --unsafe"
+		"format": "biome format .opencode .claude --write",
+		"lint": "biome check .opencode .claude --write --unsafe"
 	},
 	"dependencies": {
 		"@opencode-ai/plugin": "1.1.12"

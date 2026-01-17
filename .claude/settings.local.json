@@ -1,39 +1,39 @@
 {
-  "env": {
-    "CLAUDE_CODE_ENABLE_TELEMETRY": "0"
-  },
-  "permissions": {
-    "allow": [
-      "Bash",
-      "Read",
-      "Write",
-      "Edit",
-      "mcp__sequential-thinking",
-      "mcp__serena",
-      "mcp__container-use",
-      "mcp__playwright"
-    ],
-    "deny": [
-      "Bash(rm -rf /)",
-      "Bash(rm -rf /*)",
-      "Bash(*--force*push*)",
-      "Bash(*push*--force*)",
-      "Bash(sudo *)",
-      "Read(./.env)",
-      "Read(./.env.*)",
-      "Read(./secrets/**)",
-      "Read(./**/credentials.json)",
-      "Write(./.env)",
-      "Write(./.env.*)",
-      "Write(./secrets/**)"
-    ]
-  },
-  "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "sequential-thinking",
-    "serena",
-    "container-use",
-    "playwright"
-  ],
-  "hooks": {}
+	"env": {
+		"CLAUDE_CODE_ENABLE_TELEMETRY": "0"
+	},
+	"permissions": {
+		"allow": [
+			"Bash",
+			"Read",
+			"Write",
+			"Edit",
+			"mcp__sequential-thinking",
+			"mcp__serena",
+			"mcp__container-use",
+			"mcp__playwright"
+		],
+		"deny": [
+			"Bash(rm -rf /)",
+			"Bash(rm -rf /*)",
+			"Bash(*--force*push*)",
+			"Bash(*push*--force*)",
+			"Bash(sudo *)",
+			"Read(./.env)",
+			"Read(./.env.*)",
+			"Read(./secrets/**)",
+			"Read(./**/credentials.json)",
+			"Write(./.env)",
+			"Write(./.env.*)",
+			"Write(./secrets/**)"
+		]
+	},
+	"enableAllProjectMcpServers": true,
+	"enabledMcpjsonServers": [
+		"sequential-thinking",
+		"serena",
+		"container-use",
+		"playwright"
+	],
+	"hooks": {}
 }
