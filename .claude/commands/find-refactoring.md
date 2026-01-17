@@ -22,7 +22,7 @@ $ARGUMENTS（対象パス、オプション）
 
 ## 前提条件
 
-> **詳細**: {{skill:refactoring-detection}} を参照
+> **詳細**: @.claude/skills/refactoring-detection/SKILL.md を参照
 
 | ツール | 必須/任意 | フォールバック |
 |--------|---------|---------------|
@@ -42,10 +42,10 @@ $ARGUMENTS（対象パス、オプション）
 | 1 | 静的分析 | コード品質ルール違反の検出 |
 | 2 | パターン分析 | コードスメル・重複の検出 |
 | 3 | 優先度判定 | 優先度付与、粒度チェック |
-| 3.5 | ユーザー確認 | {{skill:approval-gate}} |
+| 3.5 | ユーザー確認 | @.claude/skills/approval-gate/SKILL.md |
 | 4 | Issue作成 | GitHub Issue作成（`--dry-run`時スキップ） |
 
-> **Phase規約**: {{skill:workflow-phase-convention}} を参照
+> **Phase規約**: @.claude/skills/workflow-phase-convention/SKILL.md を参照
 
 ---
 
@@ -81,7 +81,7 @@ check_optional_tools
 EXISTING_ISSUES=$(get_existing_refactoring_issues)
 ```
 
-> **実装詳細**: {{skill:refactoring-detection}} を参照
+> **実装詳細**: @.claude/skills/refactoring-detection/SKILL.md を参照
 
 ---
 
@@ -107,7 +107,7 @@ EXISTING_ISSUES=$(get_existing_refactoring_issues)
 | Rust | `todo!`/`unimplemented!`残存 | High |
 | Rust | `unwrap()`多用（5箇所超/ファイル） | Medium |
 
-> **検出パターン詳細**: {{skill:refactoring-detection}} を参照
+> **検出パターン詳細**: @.claude/skills/refactoring-detection/SKILL.md を参照
 
 ---
 
@@ -131,13 +131,13 @@ EXISTING_ISSUES=$(get_existing_refactoring_issues)
 | 200行以下 | 単一Issueとして作成 |
 | 200行超 | 「**要分割**」注記、`/decompose-issue`リンク付与 |
 
-> **工数算出ロジック**: {{skill:refactoring-detection}} を参照
+> **工数算出ロジック**: @.claude/skills/refactoring-detection/SKILL.md を参照
 
 ---
 
 ## Phase 3.5: ユーザー確認
 
-> **共通仕様**: {{skill:approval-gate}} を参照
+> **共通仕様**: @.claude/skills/approval-gate/SKILL.md を参照
 
 ```markdown
 ## 検出されたリファクタリング候補
@@ -162,10 +162,13 @@ EXISTING_ISSUES=$(get_existing_refactoring_issues)
 
 ---
 **選択肢**:
-- `approve` → 全件Issue作成
-- `approve high` → High以上のみ
-- `select 1,2,3` → 指定番号のみ
-- `reject` → 終了
+
+1. 全件 → 全件Issue作成
+2. High以上 → High以上のみ作成
+3. 選択 → 指定番号のみ（例: `3 1,2,5`）
+4. 終了 → 作成せず終了
+
+> 番号を選択してください（1-4）:
 ```
 
 ---
@@ -257,10 +260,10 @@ ${DECOMPOSE_NOTE}
 
 | スキル | 用途 |
 |--------|------|
-| {{skill:refactoring-detection}} | 検出パターン・工数算出 |
-| {{skill:code-quality-rules}} | 品質ルール定義 |
-| {{skill:issue-size-estimation}} | Issue粒度判定 |
-| {{skill:approval-gate}} | ユーザー承認ゲート |
+| @.claude/skills/refactoring-detection/SKILL.md | 検出パターン・工数算出 |
+| @.claude/skills/code-quality-rules/SKILL.md | 品質ルール定義 |
+| @.claude/skills/issue-size-estimation/SKILL.md | Issue粒度判定 |
+| @.claude/skills/approval-gate/SKILL.md | ユーザー承認ゲート |
 
 ---
 

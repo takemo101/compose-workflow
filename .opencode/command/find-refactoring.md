@@ -162,10 +162,13 @@ EXISTING_ISSUES=$(get_existing_refactoring_issues)
 
 ---
 **選択肢**:
-- `approve` → 全件Issue作成
-- `approve high` → High以上のみ
-- `select 1,2,3` → 指定番号のみ
-- `reject` → 終了
+
+1. 全件 → 全件Issue作成
+2. High以上 → High以上のみ作成
+3. 選択 → 指定番号のみ（例: `3 1,2,5`）
+4. 終了 → 作成せず終了
+
+> 番号を選択してください（1-4）:
 ```
 
 ---

@@ -410,6 +410,7 @@ container-use_environment_run_cmd(command="npm test")
 
 | 日付 | バージョン | 変更内容 |
 |:---|:---|:---|
+| 2026-01-17 | 3.32.0 | **ワークフロー整合性＆トークン最適化**: (1) 承認ゲート選択肢を番号形式（1/2/3）に統一、英語選択肢を日本語化 (2) レビュアー共通テンプレート強化（8エージェント合計392行削減、39%圧縮）(3) ci-workflow/pr-merge-workflow責任境界を明確化 |
 | 2026-01-12 | 3.31.0 | **ワークフローレビュー＆最適化**: Phase X.5規約を「中間ステップ」に再定義、レビュアー合格基準統一（basic/detailed-design-reviewer: 8点→9点）、変更履歴をCHANGELOG.mdに完全移行（README 27行削減） |
 | 2026-01-11 | 3.30.0 | **Security Scan Plugin**: OpenCodeプラグインとして`plugin/security-scan/`を導入。センシティブファイル・APIキー検出によるセキュリティ強化 |
 

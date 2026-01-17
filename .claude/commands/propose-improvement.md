@@ -59,7 +59,7 @@ ls docs/proposals/*.md 2>/dev/null || echo "No existing proposals"
 | 重複提案 | 同一テーマの既存提案がないか |
 | 関連提案 | 類似テーマの提案との整合性 |
 
-**ユーザー確認オプション**: `続行` / `統合` / `中断`
+**ユーザー確認オプション**: `1. 続行` / `2. 統合` / `3. 中断`（番号選択）
 
 ---
 
@@ -94,9 +94,12 @@ ls docs/proposals/*.md 2>/dev/null || echo "No existing proposals"
 
 ---
 **選択肢**:
-- `approve` → Phase 3（Issue作成）へ進む
-- `reject` → 提案を却下、ファイルを削除
-- `revise` → Phase 1に戻り修正
+
+1. 続行 → Phase 3（Issue作成）へ進む
+2. 却下 → 提案を却下、ファイルを削除
+3. 修正 → Phase 1に戻り修正
+
+> 番号を選択してください（1-3）:
 ```
 
 ---
