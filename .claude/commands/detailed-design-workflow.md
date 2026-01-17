@@ -206,6 +206,10 @@ gh issue create --title "..." --body "..."
 | 次ワークフロー | `/implement-issues` |
 | 追加成果物 | Epic Issue, 子Issue群 |
 
+---
+
+## サーキットブレーカー
+
 | 状況 | アクション |
 |------|----------|
 | モックアップ生成失敗 | placeholder.png を置いて続行、警告を残す |
