@@ -36,12 +36,12 @@ Container-use環境内で**Subtask**を実装する専門エージェント。
 
 ## ⛔ 禁止事項
 
-| 禁止 | 代替 |
-|------|------|
-| ホストで `edit`/`write` | `environment_file_write` |
-| ホストで `bash cargo test` | `environment_run_cmd` |
-| 設計書全文読み込み | セクション単位参照 |
-| レビュースキップ | 必ず実行 |
+> **詳細**: @.claude/skills/implement-subtask-rules/SKILL.md セクション6「禁止事項」を参照
+
+- ホストで `edit`/`write` → `environment_file_write` を使用
+- ホストで `bash cargo test` → `environment_run_cmd` を使用
+- 設計書全文読み込み → セクション単位参照（2,000トークン上限）
+- レビュースキップ禁止
 
 
 ## 利用可能ツール

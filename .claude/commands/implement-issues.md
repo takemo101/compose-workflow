@@ -19,9 +19,11 @@ argument-hint: "[Issue番号] [--auto]"
 | 0.5 | 設計書存在チェック | 詳細設計書の有無確認 | - |
 | 0.6 | 設計書参照ルール | トークン最適化のための部分参照 | - |
 | 1 | 環境構築 | container-use環境作成・設定 | `phase:1-env` |
-| 2 | 申し送り確認 | 未完了事項の優先対応 | `phase:2-design` |
-| 3-5 | TDD実装 | Red → Green → Refactor | `phase:4-red`, `5-green`, `6-refactor` |
-| 6 | 設計不備対応 | `/request-design-fix` 実行（必要時） | - |
+| 2 | 設計書参照 | 申し送り確認・設計書セクション読み込み | `phase:2-design` |
+| 3 | 設計書実現性チェック | 設計の矛盾・曖昧さを検出 | `phase:3-check` |
+| 4 | TDD: Red | テスト作成（失敗確認） | `phase:4-red` |
+| 5 | TDD: Green | 最小実装（成功確認） | `phase:5-green` |
+| 6 | TDD: Refactor | リファクタリング | `phase:6-refactor` |
 | 6.5 | 実装完了自己チェック | TODO残存・Smoke Test・到達可能性 | - |
 | 7 | 品質レビュー | スコア9点以上、客観的基準クリア | `phase:7-review` |
 | 8 | ストレステスト | **任意**。スキップ可 | `phase:8-stress` |
@@ -218,11 +220,16 @@ container-use_environment_create(
 Issueのコメントをスキャンし、未完了の申し送り事項があれば最優先で対応。
 詳細は @.claude/skills/handover-process/SKILL.md を参照。
 
-### Phase 3-5: TDD実装 (Red → Green → Refactor)
+### Phase 3: 設計書実現性チェック
+
+> **Token最適化**: Phase 2 で取得した設計書コンテキストを使用（再読み込み禁止）
+> **詳細**: @.claude/skills/implement-subtask-rules/SKILL.md セクション1.5 を参照
+
+設計書に矛盾や曖昧さがある場合は `env:blocked` に移行し、`/request-design-fix` を実行。
+
+### Phase 4-6: TDD実装 (Red → Green → Refactor)
 
 @.claude/skills/tdd-implementation/SKILL.md
-
-### Phase 6: 設計不備への対応
 
 設計の矛盾が見つかった場合は `/request-design-fix` を実行。
 
@@ -286,19 +293,6 @@ Issueのコメントをスキャンし、未完了の申し送り事項があれ
 2. CI監視 & 自動マージ
 3. 環境削除
 4. 親Issue自動クローズ（該当時）
-
-### Phase 10: コミット & PR作成
-
-```bash
-git add . && \
-git commit -m "feat: {summary}
-
-Closes #{issue_id}
-
-- {change1}
-- {change2}" && \
-git push origin feature/issue-{issue_id}-{description}
-```
 
 ### Phase 10: コミット & PR作成
 

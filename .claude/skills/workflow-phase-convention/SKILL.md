@@ -65,9 +65,11 @@ description: 全ワークフローで一貫したPhase番号体系、承認ゲ�
 | 0.6 | 設計書参照ルール | - | - |
 | 1 | 環境構築 | Issue確認/作成 | `phase:1-env` |
 | 1.5 | - | 環境選択 | - |
-| 2 | 申し送り確認 | /implement-issues呼出 | `phase:2-design` |
-| 3-5 | TDD実装 | - | `phase:4-red`, `5-green`, `6-refactor` |
-| 6 | 設計不備対応 | - | - |
+| 2 | 設計書参照 | /implement-issues呼出 | `phase:2-design` |
+| 3 | 設計書実現性チェック | - | `phase:3-check` |
+| 4 | TDD: Red | - | `phase:4-red` |
+| 5 | TDD: Green | - | `phase:5-green` |
+| 6 | TDD: Refactor | - | `phase:6-refactor` |
 | 6.5 | 実装完了自己チェック | - | - |
 | 7 | 品質レビュー | - | `phase:7-review` |
 | 8 | ストレステスト（任意） | - | `phase:8-stress` |

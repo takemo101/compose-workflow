@@ -315,6 +315,23 @@ bash .claude/skills/github-issue-state-management/scripts/issue-state.sh <comman
 | `resume` | **途中再開情報を取得** | `issue-state.sh resume 42` |
 | `init-labels` | ラベル一括作成 | `issue-state.sh init-labels` |
 
+### エラーリトライ
+
+スクリプトはネットワークエラーやGitHub APIのレート制限に対して自動リトライを行います。
+
+| 設定 | 環境変数 | デフォルト |
+|------|---------|-----------|
+| 最大リトライ回数 | `MAX_RETRIES` | 3 |
+| リトライ間隔（秒） | `RETRY_DELAY` | 5 |
+
+**レート制限時**: 60秒待機後にリトライ
+**ネットワークエラー時**: `RETRY_DELAY`秒待機後にリトライ
+
+```bash
+# カスタムリトライ設定
+MAX_RETRIES=5 RETRY_DELAY=10 bash issue-state.sh phase 42 5-green
+```
+
 ---
 
 ## ハードブロック (違反禁止)
