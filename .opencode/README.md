@@ -300,7 +300,7 @@ docs/
 | [ストレステストフロー](./skill/stress-test-flow/SKILL.md) | マルチ視点ストレステスト（セキュリティ/パフォーマンス/エッジケース） | **重要機能実装時（推奨）** |
 | [Issue粒度判定](./skill/issue-size-estimation/SKILL.md) | 200行ルール・サイズラベル・行数見積もり | **Issue実装開始時** |
 | [TDD実装フロー](./skill/tdd-implementation/SKILL.md) | Red→Green→Refactorサイクル | **コード実装時** |
-| [environments.json管理](./skill/environments-json-management/SKILL.md) | 環境ID追跡・ステータス管理API | **環境作成・削除時** |
+| [GitHub Issue状態管理](./skill/github-issue-state-management/SKILL.md) | **環境状態のSSOT**（ラベル＆メタデータ） | **環境作成・削除時（必須）** |
 | [環境削除](./skill/delete-environment/SKILL.md) | コンテナ・ファイル・メタデータの完全削除手順 | **環境削除時** |
 | [Sisyphus実装ガイド](./skill/sisyphus-implementation-guide/SKILL.md) | Sisyphus専用の実行フロー・チェックリスト | **Issue実装時（Sisyphus）** |
 | [GitHub GraphQL API](./skill/github-graphql-api/SKILL.md) | Sub-issue登録等のGraphQL API共通処理 | **Issue作成時** |
@@ -410,6 +410,7 @@ container-use_environment_run_cmd(command="npm test")
 
 | 日付 | バージョン | 変更内容 |
 |:---|:---|:---|
+| 2026-01-17 | 3.33.0 | **GitHub Issue状態管理導入**: environments.jsonからGitHub Issueラベル＆メタデータへ状態管理を移行。container-use/worktree/ホスト環境すべてからアクセス可能なSSOTを実現。`github-issue-state-management`スキル新規作成、`environments-json-management`をdeprecatedに |
 | 2026-01-17 | 3.32.0 | **ワークフロー整合性＆トークン最適化**: (1) 承認ゲート選択肢を番号形式（1/2/3）に統一、英語選択肢を日本語化 (2) レビュアー共通テンプレート強化（8エージェント合計392行削減、39%圧縮）(3) ci-workflow/pr-merge-workflow責任境界を明確化 |
 | 2026-01-12 | 3.31.0 | **ワークフローレビュー＆最適化**: Phase X.5規約を「中間ステップ」に再定義、レビュアー合格基準統一（basic/detailed-design-reviewer: 8点→9点）、変更履歴をCHANGELOG.mdに完全移行（README 27行削減） |
 | 2026-01-11 | 3.30.0 | **Security Scan Plugin**: OpenCodeプラグインとして`plugin/security-scan/`を導入。センシティブファイル・APIキー検出によるセキュリティ強化 |

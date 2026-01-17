@@ -55,7 +55,7 @@
 | Critical features | `stress-test-flow` |
 | TDD cycle | `tdd-implementation` |
 | CI failure | `ci-workflow` |
-| Session recovery | `environments-json-management` |
+| Session recovery | `github-issue-state-management` |
 
 ---
 

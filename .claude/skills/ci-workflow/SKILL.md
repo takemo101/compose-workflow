@@ -127,12 +127,12 @@ def fix_in_container(env_id: str, analysis: CIFailureAnalysis):
 ## 4. 自動マージ
 
 ```python
-def auto_merge_pr(pr_number: int, env_id: str) -> bool:
+def auto_merge_pr(pr_number: int, issue_num: int) -> bool:
     """gh pr merge --merge --delete-branch"""
     result = bash(f"gh pr merge {pr_number} --merge --delete-branch")
     if result.exit_code == 0:
-        # environments.json 更新: status → "merged"
-        mark_environment_merged(env_id)
+        # Issue ラベル更新: env:merged ({{skill:github-issue-state-management}} API)
+        bash(f"bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh merged {issue_num}")
         return True
     return handle_merge_failure(pr_number, error=result.stderr)
 ```
@@ -156,7 +156,7 @@ def escalate_ci_failure(pr_number: int, env_id: str):
 ```python
 def cleanup_environment(env_id: str, pr_number: int) -> bool:
     """delete-environment スキルを実行（最大2回リトライ）"""
-    script = ".claude/skills/delete-environment/scripts/delete_env.sh"
+    script = ".opencode/skill/delete-environment/scripts/delete_env.sh"
     
     for _ in range(3):
         if bash(f"bash {script} {env_id}").exit_code == 0:
@@ -167,7 +167,7 @@ def cleanup_environment(env_id: str, pr_number: int) -> bool:
     return False
 ```
 
-> **Note**: `mark_environment_merged()` は [environments-json-management](../environments-json-management/SKILL.md) で定義。
+> **Note**: 環境状態は GitHub Issue ラベルで管理。詳細は [github-issue-state-management](../github-issue-state-management/SKILL.md) を参照。
 
 ### クリーンアップタイミング
 
@@ -185,9 +185,9 @@ def cleanup_environment(env_id: str, pr_number: int) -> bool:
 
 | ドキュメント | 内容 |
 |-------------|------|
-| @.claude/skills/pr-merge-workflow/SKILL.md | PR作成〜マージ〜ロールバックの全体フロー |
-| @.claude/skills/environments-json-management/SKILL.md | 環境ID管理・ステータス更新 |
-| @.claude/skills/delete-environment/SKILL.md | 環境削除手順 |
+| {{skill:pr-merge-workflow}} | PR作成〜マージ〜ロールバックの全体フロー |
+| {{skill:github-issue-state-management}} | 環境状態管理（ラベル） |
+| {{skill:delete-environment}} | 環境削除手順 |
 
 ---
 
@@ -196,7 +196,7 @@ def cleanup_environment(env_id: str, pr_number: int) -> bool:
 **CI待機の自動化スクリプト：**
 
 ```bash
-bash .claude/skills/ci-workflow/scripts/ci-wait.sh <pr-number> [timeout-seconds]
+bash .opencode/skill/ci-workflow/scripts/ci-wait.sh <pr-number> [timeout-seconds]
 ```
 
 | 引数 | 説明 | デフォルト |
@@ -214,5 +214,5 @@ bash .claude/skills/ci-workflow/scripts/ci-wait.sh <pr-number> [timeout-seconds]
 
 **使用例：**
 ```bash
-bash .claude/skills/ci-workflow/scripts/ci-wait.sh 42 1800
+bash .opencode/skill/ci-workflow/scripts/ci-wait.sh 42 1800
 ```

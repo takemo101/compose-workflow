@@ -22,34 +22,36 @@ If local build/test commands fail due to environment issues (e.g., wrong rustc v
 
 ---
 
-## environments.json Management (MANDATORY)
+## GitHub Issue 状態管理 (MANDATORY)
 
-> **詳細**: @.claude/skills/environments-json-management/SKILL.md を参照
+> **詳細**: {{skill:github-issue-state-management}} を参照
 
-**ALL container-use operations MUST update `environments.json` (project root)** to track Issue/PR/Environment relationships.
+**ALL container-use operations MUST update GitHub Issue labels** to track environment state.
 
 ### 必須更新ポイント（概要）
 
 | トリガー | アクション |
 |---------|----------|
-| `environment_create` 成功 | エントリ追加（`status: "active"`） |
-| `gh pr create` 成功 | `pr_number`, `status: "pr_created"` 更新 |
-| PR merged | `status: "merged"` 更新 |
-| 環境削除 | エントリ削除 |
+| `environment_create` 成功 | ラベル追加: `env:active`, `phase:1-env` |
+| Phase 遷移 | ラベル入れ替え: `phase:X` → `phase:Y` |
+| `gh pr create` 成功 | ラベル変更: `env:pr-created`, `phase:10-pr` |
+| PR merged | ラベル変更: `env:merged`, `phase:12-merge` |
+| 環境削除 | 全 `env:*`, `phase:*` ラベルを削除 |
 
 ### セッション復旧（概要）
 
-作業再開時、**environments.json を最優先で参照**：
-1. `issue_number` または `pr_number` でエントリ検索
-2. `env_id` を使用して環境を再開
+作業再開時、**GitHub Issue のラベルを参照**：
+1. `gh issue list --label "env:active"` でアクティブな環境を検索
+2. `gh issue view <num> --json labels,body` で詳細取得
+3. Issue body 内の `env_id` で環境を再開
 
 ### Hard Blocks
 
 | 違反 | 結果 |
 |------|------|
-| 環境作成時に未登録 | **FORBIDDEN** - 復旧不可 |
-| PR作成時に未更新 | **FORBIDDEN** - 追跡不可 |
-| 環境削除時に未更新 | **FORBIDDEN** - stale data |
+| 環境作成時にラベル未追加 | **FORBIDDEN** - 復旧不可 |
+| Phase 遷移時にラベル未更新 | **FORBIDDEN** - 状態不整合 |
+| Blocked 時にコメント未追加 | **FORBIDDEN** - 理由が不明 |
 
 ---
 
@@ -117,21 +119,21 @@ task(subagent_type="container-worker", prompt="Issue #3: Dashboard...")
 - Record the Environment ID returned by each worker
 - Upon completion, aggregate and present Environment Info for all environments to user
 
-### environments.json in Parallel Execution
+### GitHub Issue Labels in Parallel Execution
 
-**Concurrency Rule**: Only the **main agent (Sisyphus)** updates `environments.json`.
+**Concurrency Rule**: Each worker updates labels on its own Issue independently.
 
 | Actor | Responsibility |
 |-------|---------------|
-| `container-worker` | Returns `env_id` in final response. Does NOT update environments.json |
-| Main agent | Collects all `env_id` values and updates environments.json after all workers complete |
+| `container-worker` | Updates labels on assigned Issue via `gh issue edit` |
+| Main agent | Monitors overall progress via `gh issue list --label "env:active"` |
 
 **Workflow**:
 1. Main agent creates todo list for parallel issues
 2. Delegates to `container-worker` agents (they work independently)
-3. Each worker returns: `env_id`, `branch`, `issue_number`, `pr_number` (if created)
-4. Main agent updates `environments.json` with all entries at once
-5. This avoids race conditions and file conflicts
+3. Each worker updates its Issue labels directly (no file conflicts)
+4. Main agent checks overall status via `gh issue list`
+5. GitHub handles concurrent label updates atomically
 
 ### container-worker Delegation Prompt Structure
 
@@ -187,10 +189,10 @@ When encountering errors or crashes:
 
 4. **If environment is corrupted:**
    ```
-   a. Update environments.json: mark old entry status as "abandoned"
+   a. Update Issue state ({{skill:github-issue-state-management}} API)
    b. Create a NEW environment with the same branch
-   c. Add new entry to environments.json with new env_id
-   d. The git state will be preserved from the remote
+   c. Update Issue body with new env_id in metadata block
+   d. Re-register environment: issue-state.sh register <num> <new_env_id> <branch> container-use
    e. Continue work in the new environment
    ```
 
@@ -209,7 +211,7 @@ NEVER silently switch to non-container-use operations.
 
 ## Docker Resource Failures (Fallback Protocol)
 
-> **詳細手順**: @.claude/skills/container-use-guide/SKILL.md の「トラブルシューティング」セクションを参照
+> **詳細手順**: {{skill:container-use-guide}} の「トラブルシューティング」セクションを参照
 
 | Condition | Action |
 |-----------|--------|
@@ -223,34 +225,33 @@ NEVER silently switch to non-container-use operations.
 
 ## Session Recovery Protocol
 
-> **詳細**: @.claude/skills/environments-json-management/SKILL.md の「セッション復旧」セクションを参照
+> **詳細**: {{skill:github-issue-state-management}} の「セッション復旧」セクションを参照
 
 ### Quick Reference
 
-1. **environments.json を最優先で参照** - `cat environments.json`
-2. **Issue/PR番号でエントリ検索** - `status: "active"` or `status: "pr_created"` を探す
-3. **env_id で環境を再開** - `container-use_environment_open(environment_id="<env_id>")`
+1. **GitHub Issue のラベルを参照** - `gh issue list --label "env:active"`
+2. **Issue 詳細を取得** - `gh issue view <num> --json labels,body`
+3. **env_id で環境を再開** - Issue body のメタデータから `env_id` を抽出し `environment_open`
 
 ### Recovery Decision Matrix
 
-| Entry Status | PR State | Action |
+| Label Status | PR State | Action |
 |--------------|----------|--------|
-| `active` | No PR | `phase`/`step` から作業継続 |
-| `blocked` | N/A | **人間に通知**、解除後に再開 |
-| `pr_created` | PR open | `env_id` で環境再開し修正 |
-| `pr_created` | PR merged | `status: "merged"` に更新、環境削除 |
-| `merged` | N/A | クリーンアップ候補 |
-| `abandoned` | N/A | 環境とエントリを即削除 |
+| `env:active` | No PR | `phase:*` ラベルから作業継続 |
+| `env:blocked` | N/A | **人間に通知**、ラベル変更後に再開 |
+| `env:pr-created` | PR open | `env_id` で環境再開し修正 |
+| `env:pr-created` | PR merged | `env:merged` に更新、環境削除 |
+| `env:merged` | N/A | クリーンアップ候補 |
 
 ### Session State Management
 
-**environments.json が唯一の状態管理ファイル（SSOT）です。**
+**GitHub Issue のラベルが唯一の状態管理（SSOT）です。**
 
 | 情報源 | 役割 | 復旧時 |
 |-------|------|--------|
-| **environments.json** | 状態管理 | ✅ 最優先 |
+| **GitHub Issue Labels** | 状態管理 | ✅ 最優先 |
+| Issue Body Metadata | env_id, branch | ✅ 環境再開用 |
 | Git状態 | コード状態 | ✅ 検証用 |
-| Supermemory | 人間向けログ | ❌ 自動復旧には使用しない |
 
 ---
 
@@ -275,28 +276,28 @@ Work is complete when ALL conditions are met:
 - [ ] Tests pass (if applicable)
 - [ ] Environment Info presented (format below)
 - [ ] PR created (using PR Description Template below)
-- [ ] **environments.json updated**: `pr_number` set, `status: "pr_created"`
+- [ ] **Issue labels updated**: `env:pr-created`, `phase:10-pr`
 - [ ] **CI passed** (MUST wait: `gh pr checks <pr-number> --watch`)
 - [ ] PR merged (only AFTER CI passes)
 - [ ] Issue closed (automatic if `Closes #XX` used in PR)
-- [ ] **environments.json updated**: `status: "merged"` or entry removed
+- [ ] **Issue labels updated**: `env:merged`, `phase:12-merge`
 - [ ] **Environment deleted**: `container-use delete <env_id>` (after PR merge)
 - [ ] **Remote branch deleted**: `git push origin --delete <branch-name>` (after PR merge)
 
 ### PR Merge Flow (MANDATORY)
 
-> **詳細**: @.claude/skills/pr-merge-workflow/SKILL.md を参照
+> **詳細**: {{skill:pr-merge-workflow}} を参照
 
-**概要**: PR作成 → CI待機 → マージ → クリーンアップ → environments.json更新
+**概要**: PR作成 → CI待機 → マージ → クリーンアップ → Issue ラベル更新
 
 | フェーズ | 必須アクション |
 |---------|--------------|
 | PR作成 | `Closes #XX` でIssue参照、テンプレート使用 |
 | CI待機 | `gh pr checks --watch` で完了を待つ |
 | マージ | `gh pr merge --merge --delete-branch` |
-| クリーンアップ | 環境削除 + environments.json更新 |
+| クリーンアップ | 環境削除 + Issue ラベル更新 (`env:merged`) |
 
-**HARD BLOCK**: CIが成功するまでマージしない。ロールバック手順も @.claude/skills/pr-merge-workflow/SKILL.md に記載。
+**HARD BLOCK**: CIが成功するまでマージしない。ロールバック手順も {{skill:pr-merge-workflow}} に記載。
 
 ### Required Outputs
 
@@ -326,7 +327,7 @@ After ANY container-use session, ALWAYS provide:
 | Run command | `environment_run_cmd` |
 | Save progress | `environment_checkpoint` |
 | **Delete environment** | `container-use delete <env_id>` (CLI) |
-| **Update environments.json** | `Read` + `Edit` tools on `environments.json` (project root) |
+| **Update Issue state** | `issue-state.sh <command>` ({{skill:github-issue-state-management}}) |
 
 ### Environment Naming Convention
 
@@ -343,26 +344,10 @@ Examples:
 
 | Context | Variable Name | Rationale |
 |---------|---------------|-----------|
-| **environments.json** (data store) | `issue_number` | JSON field name - explicit that it's a number |
-| **Code/Pseudocode** (variables) | `issue_id` | Common convention for ID variables |
+| **GitHub API / CLI** | Issue number (e.g., `42`) | GitHub's canonical identifier |
+| **Code/Pseudocode** | `issue_num` or `issue_id` | Common convention for ID variables |
 
-**Why the inconsistency is acceptable:**
-- `issue_number` in JSON is the **canonical field name** (matches GitHub API's `number` field)
-- `issue_id` in code is a **variable name convention** (shorter, easier to type)
-- Both refer to the same thing: GitHub Issue number (e.g., `42`)
-
-**Rule**: When reading/writing `environments.json`, map `issue_id` (code) ↔ `issue_number` (JSON):
-
-```python
-# Writing to environments.json
-entry = {
-    "issue_number": issue_id,  # Map variable to JSON field
-    ...
-}
-
-# Reading from environments.json
-issue_id = entry["issue_number"]  # Map JSON field to variable
-```
+**Note**: GitHub Issue number is the primary identifier. Use it consistently in `gh` CLI commands.
 
 ---
 
@@ -373,8 +358,9 @@ issue_id = entry["issue_number"]  # Map JSON field to variable
 | [Design Sync Policy](./design-sync.md) | Keep design docs and implementation in sync | Before/during/after implementation |
 | [Testing Strategy](./testing-strategy.md) | Handle environment-dependent code testing | When writing tests for OS/hardware-dependent code |
 | [Platform Exception Policy](./platform-exception.md) | Platform-specific code exception rules | When implementing macOS/Windows-specific code |
-| @.claude/skills/container-use-guide/SKILL.md | Step-by-step container environment setup | First time using container-use |
-| @.claude/skills/pr-merge-workflow/SKILL.md | PR creation to merge and cleanup | When creating/merging PRs |
+| {{skill:container-use-guide}} | Step-by-step container environment setup | First time using container-use |
+| {{skill:pr-merge-workflow}} | PR creation to merge and cleanup | When creating/merging PRs |
+| {{skill:github-issue-state-management}} | Environment state via Issue labels | Session recovery, state tracking |
 
 ---
 
@@ -382,11 +368,5 @@ issue_id = entry["issue_number"]  # Map JSON field to variable
 
 | 日付 | バージョン | 変更内容 |
 |:---|:---|:---|
-| 2026-01-12 | 3.22.0 | Docker障害フォールバックとセッション復旧をスキル参照に置換（545→391行、**28%削減**）|
-| 2026-01-08 | 3.21.0 | PRマージフローをskill参照に置換（約130行削減）。Related Documentsにpr-merge-workflow追加 |
-| 2026-01-08 | 3.21.0 | environments.json管理をskill参照に置換（約85行削減）。environments-json-management.mdをSSOT化 |
-| 2026-01-07 | 3.15.1 | 命名規則ガイドライン追加: issue_id vs issue_number の使い分けを明文化 |
-| 2026-01-07 | 3.15.0 | 厳格レビュー対応: Session State ManagementをSSOT化（Supermemoryは補助ログに）、ロールバック手順追加、--delete-branch統一 |
-| 2026-01-07 | 3.14.0 | Session Summary Auto-Save セクションを追加。Supermemory との連携による自動復旧機能を追加。Related Documents に Platform Exception Policy を追加 |
-| 2026-01-05 | 3.13.0 | environments.json必須化 |
-| 2026-01-05 | 3.12.0 | 追加仕様対応 |
+| 2026-01-17 | 3.33.0 | **GitHub Issue状態管理に移行**: environments.jsonを廃止、GitHub Issueラベルによる状態管理に完全移行 |
+| 2026-01-12 | 3.22.0 | Docker障害フォールバックとセッション復旧をスキル参照に置換 |

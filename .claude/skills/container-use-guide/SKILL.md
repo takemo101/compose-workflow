@@ -67,7 +67,7 @@ container-useは、Dockerコンテナ内で開発・テストを行うための�
 | ルール | 説明 |
 |--------|------|
 | **1 Issue = 1 環境** | 必ずIssueごとに環境を作成 |
-| **環境IDを記録** | `environments.json` で追跡 |
+| **環境IDを記録** | GitHub Issue のメタデータで追跡 |
 | **作業再開時は既存環境を使用** | 毎回新規作成しない |
 | **PRマージ後に環境削除** | リソース節約 |
 
@@ -169,7 +169,7 @@ container-use_environment_config(
 
 ### Step 4: サービス追加 (必要に応じて)
 
-> **詳細な設定例**: @.claude/skills/tech-stack-configs/SKILL.md を参照
+> **詳細な設定例**: {{skill:tech-stack-configs}} を参照
 
 | サービス | image | ポート |
 |---------|-------|--------|
@@ -268,7 +268,7 @@ container-use_environment_file_edit(
 
 ## 技術スタック別設定例
 
-> **詳細**: @.claude/skills/tech-stack-configs/SKILL.md を参照
+> **詳細**: {{skill:tech-stack-configs}} を参照
 
 | 技術スタック | base_image | 主な設定 |
 |-------------|-----------|---------|
@@ -279,7 +279,7 @@ container-use_environment_file_edit(
 
 ## DBマイグレーションのテスト
 
-> **詳細**: @.claude/skills/tech-stack-configs/SKILL.md を参照
+> **詳細**: {{skill:tech-stack-configs}} を参照
 
 | ORM/ツール | マイグレーション | ロールバック |
 |-----------|----------------|-------------|
@@ -343,13 +343,13 @@ When container-use cannot function:
 
 1. サービス名をホスト名として使用 (例: `postgres`, `redis`)
 2. ポートが正しいか確認
-3. サービスの起動を待つ（@.claude/skills/tech-stack-configs/SKILL.md の「サービス起動待機」参照）
+3. サービスの起動を待つ（{{skill:tech-stack-configs}} の「サービス起動待機」参照）
 
 ### 依存関係のインストールに失敗
 
 1. base imageを確認
 2. setup_commandsの順序を確認
-3. 必要なシステムパッケージを追加（@.claude/skills/tech-stack-configs/SKILL.md の「ネイティブモジュール対応」参照）
+3. 必要なシステムパッケージを追加（{{skill:tech-stack-configs}} の「ネイティブモジュール対応」参照）
 
 ### 環境が重い
 
@@ -365,19 +365,19 @@ When container-use cannot function:
 4. **チェックポイント**: 安定した状態でスナップショットを保存
 5. **クリーンアップ**: 不要になった環境は削除
 
-## 環境ID管理 (environments.json)
+## 環境ID管理 (GitHub Issue)
 
-PRレビュー後の修正作業で環境を再利用するため、環境IDを `environments.json`（プロジェクトルート）で追跡します。
+PRレビュー後の修正作業で環境を再利用するため、環境IDをGitHub Issueで追跡します。
 
-> **詳細**: [environments.json管理](../environments-json-management/SKILL.md) を参照
+> **詳細**: [GitHub Issue状態管理](../github-issue-state-management/SKILL.md) を参照
 
-### クリーンアップポリシー
+### 状態追跡
 
-| 条件 | 推奨アクション |
-|------|---------------|
-| PRマージから7日以上経過 | 環境削除 + エントリ削除 |
-| PRクローズ（マージなし） | 即時削除推奨 |
-| `last_used_at` が30日以上前 | 削除検討 |
+| ラベル | 説明 |
+|--------|------|
+| `env:active` | 作業中 |
+| `env:blocked` | 人間の介入が必要 |
+| `env:pr-created` | PR作成済み |
+| `env:merged` | マージ完了 |
 
-**注意**: `environments.json` はローカル環境データのため `.gitignore` に含まれています。
-チーム間で共有する必要がある場合は別途管理してください。
+**メリット**: container-use/worktree/ホスト環境のどこからでも `gh` CLI でアクセス可能。

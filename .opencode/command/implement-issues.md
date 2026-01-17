@@ -39,11 +39,14 @@ argument-hint: "[Issue番号] [--auto]"
 | オプション | 説明 | デフォルト |
 |-----------|------|-----------|
 | `--auto` | 承認ゲートをスキップし、PR作成から環境削除まで自動実行 | off |
+| `--resume` | 既存の状態から途中再開（GitHub Issueラベルから状態を復元） | off |
 
 **使用例**:
 ```
 /implement-issues 123 --auto
 /implement-issues 9,10,11 --auto
+/implement-issues 42 --resume        # Issue #42 を途中から再開
+/implement-issues 42 --resume --auto # 途中再開 + 自動完了
 ```
 
 > **注意**: `--auto` 使用時はレビュースコア9点以上で自動的にPR作成・CI監視・マージ・環境削除まで実行します。
@@ -115,6 +118,40 @@ macOS/Windows固有APIはコンテナでビルド不可の場合のみ例外適�
 
 ---
 
+## 途中再開モード（--resume）
+
+`--resume` オプション指定時は、新規開始ではなく既存の状態から再開します。
+
+### 再開フロー
+
+```bash
+# 1. 復旧情報を取得
+RESUME_INFO=$(bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh resume {issue_id})
+
+# 2. 状態に応じてアクションを決定
+# - action: reopen_environment → container-use環境を再開
+# - action: resume_review → レビューループを継続
+# - action: wait_approval → 承認ゲートを提示
+# - action: monitor_ci → CI監視を継続
+# - action: resolve_block → Blocked原因を確認して解決
+```
+
+### 再開判定マトリクス
+
+| 現在のPhase | 再開アクション |
+|------------|---------------|
+| `0-branch` | 環境作成から開始（Phase 1へ） |
+| `1-env`〜`6-refactor` | `environment_open` で環境再開 → 該当Phaseから継続 |
+| `7-review` | 環境再開 → レビューループ継続 |
+| `8-stress` | 環境再開 → ストレステスト継続 |
+| `9-approval` | ユーザー承認ゲートを提示 |
+| `10-pr`〜`11-ci` | CI監視を継続 |
+| `12-merge` | 完了済み（何もしない） |
+
+> **Blocked状態**: `env:blocked` の場合は、Blockedコメントの内容を確認し、問題解決後に `issue-state.sh unblock` を実行してから再開。
+
+---
+
 ## 実行プロセス
 
 ### Phase 0: ブランチ作成（Sisyphus）
@@ -127,6 +164,12 @@ git checkout main && git pull origin main
 git checkout -b feature/issue-{issue_id}-{short_description}
 git push -u origin feature/issue-{issue_id}-{short_description}
 ```
+
+#### ラベル初期化（必須）
+
+> **状態管理API**: {{skill:github-issue-state-management}} セクション「必須更新ポイント」を参照
+
+ブランチ作成後、`phase:0-branch` ラベルを追加。未設定の場合は `issue-state.sh` で初期化。
 
 **ブランチ命名規則**:
 | プレフィックス | 用途 |
@@ -163,6 +206,10 @@ container-use_environment_create(
     from_git_ref=f"feature/issue-{issue_id}-{short_description}"
 )
 ```
+
+#### ラベル更新（必須）
+
+環境作成後、`env:active` + `phase:1-env` に更新。API は {{skill:github-issue-state-management}} を参照。
 
 技術スタック別設定は {{skill:container-use-guide}} を参照。
 
@@ -355,5 +402,5 @@ def collect_worker_result(task_id: str) -> dict:
 | {{skill:quality-review-flow}} | PR作成前品質レビュー |
 | {{skill:approval-gate}} | ユーザー承認ゲート |
 | {{skill:implement-subtask-rules}} | Subtask実装ルール |
-| {{skill:environments-json-management}} | 環境ID管理 |
+| {{skill:github-issue-state-management}} | 環境状態管理 |
 | {{skill:workflow-phase-convention}} | Phase命名規約 |

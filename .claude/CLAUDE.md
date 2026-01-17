@@ -25,7 +25,7 @@ Detailed instructions are maintained in separate files. **MUST READ** before imp
 
 - **ALWAYS** use container-use for ALL file/code/shell operations
 - **Exception**: `.claude/` workflow docs may be edited directly on host
-- **environments.json**: Update on create/PR/merge/delete
+- **GitHub Issue ラベル**: Phase遷移時は必ずラベルを更新（{{skill:github-issue-state-management}}）
 - **Never push broken code** to CI hoping it works
 
 ### Platform Exception (Summary)
@@ -57,7 +57,7 @@ Detailed instructions are maintained in separate files. **MUST READ** before imp
 | Skill | Purpose |
 |-------|---------|
 | @.claude/skills/container-use-guide/SKILL.md | Environment setup guide |
-| @.claude/skills/environments-json-management/SKILL.md | Environment state management |
+| @.claude/skills/github-issue-state-management/SKILL.md | Environment state management (GitHub Issue labels) |
 | @.claude/skills/pr-merge-workflow/SKILL.md | PR creation to merge flow |
 | @.claude/skills/worktree-workflow/SKILL.md | Host environment development |
 | @.claude/skills/code-quality-rules/SKILL.md | Code quality standards |

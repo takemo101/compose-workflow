@@ -103,13 +103,16 @@ git push origin --delete <branch-name>
 gh issue view <issue-number>  # Should show "CLOSED"
 
 # 2. 環境削除（コンテナ・ファイル・JSON一括削除）
-bash .claude/skills/delete-environment/scripts/delete_env.sh <env_id>
+bash .opencode/skill/delete-environment/scripts/delete_env.sh <env_id>
 ```
 
-### environments.json更新
+### GitHub Issue ラベル更新
 
-`delete_env.sh` が自動的にJSONエントリを削除するため、手動更新は不要です。
-もし履歴を残したい場合は、削除前にバックアップするか、スクリプトのオプションを確認してください。
+環境削除後、Issue のラベルを更新します（{{skill:github-issue-state-management}} API）：
+
+```bash
+bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh merged <issue-number>
+```
 
 ---
 
@@ -167,7 +170,7 @@ gh pr merge <pr-number> --admin --merge
 ### マージ後
 - [ ] Issue自動クローズ確認
 - [ ] 環境削除（`delete_env.sh` 実行）
-- [ ] environments.json更新（スクリプトが自動実行）
+- [ ] Issue ラベル更新（`env:merged`）
 
 ---
 
@@ -175,10 +178,10 @@ gh pr merge <pr-number> --admin --merge
 
 | ドキュメント | 内容 |
 |-------------|------|
-| @.claude/skills/ci-workflow/SKILL.md | CI監視・修正フロー |
-| @.claude/skills/environments-json-management/SKILL.md | 環境ID管理 |
-| @.claude/skills/delete-environment/SKILL.md | 環境削除手順 |
-| @.claude/skills/quality-review-flow/SKILL.md | 品質レビュー基準 |
+| {{skill:ci-workflow}} | CI監視・修正フロー |
+| {{skill:github-issue-state-management}} | 環境状態管理 |
+| {{skill:delete-environment}} | 環境削除手順 |
+| {{skill:quality-review-flow}} | 品質レビュー基準 |
 
 ---
 
@@ -187,7 +190,7 @@ gh pr merge <pr-number> --admin --merge
 **PRマージ完全フローの自動化スクリプト：**
 
 ```bash
-bash .claude/skills/pr-merge-workflow/scripts/pr-merge-full.sh <pr-number> [env-id]
+bash .opencode/skill/pr-merge-workflow/scripts/pr-merge-full.sh <pr-number> [env-id]
 ```
 
 | 引数 | 説明 | 必須 |
@@ -198,10 +201,10 @@ bash .claude/skills/pr-merge-workflow/scripts/pr-merge-full.sh <pr-number> [env-
 **処理フロー：**
 1. CI完了待機（ci-wait.sh呼び出し）
 2. PRマージ（`gh pr merge --merge --delete-branch`）
-3. environments.json更新
+3. Issue ラベル更新（`env:merged`）
 4. 環境削除（env-id指定時）
 
 **使用例：**
 ```bash
-bash .claude/skills/pr-merge-workflow/scripts/pr-merge-full.sh 42 abc-123-def
+bash .opencode/skill/pr-merge-workflow/scripts/pr-merge-full.sh 42 abc-123-def
 ```

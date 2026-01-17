@@ -205,10 +205,10 @@ def check_feasibility(context: dict) -> GateResult:
 
 判定が **NG** の場合、即座に作業を中断し、以下の手順を実行：
 
-1. `environments.json` を `blocked` 状態に更新
-   - Reason: `design_ambiguity`
-   - Description: 判定AIが出力した `reason`
-   - Suggested Action: 設計書の該当セクション修正依頼
+1. Issue を `blocked` 状態に更新（{{skill:github-issue-state-management}} API）：
+   ```bash
+   bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh block <issue-num> design_ambiguity "[判定AIが出力した reason]"
+   ```
 2. ユーザー（Sisyphus）に報告して終了
 
 **⛔ 絶対禁止**: 「たぶんこうだろう」と推測して実装を進めること。

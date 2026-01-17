@@ -5,14 +5,14 @@ description: container-use環境（コンテナ、ファイル、メタデータ
 
 # Environment Deletion (環境削除)
 
-container-use環境（Dockerコンテナ、ファイルシステム、environments.jsonエントリ）を安全かつ完全に削除するためのワークフロー。
+container-use環境（Dockerコンテナ、ファイルシステム、GitHub Issueラベル）を安全かつ完全に削除するためのワークフロー。
 
 ## 概要
 
 環境削除は以下の3つのリソースをクリーンアップする必要があります：
 1. **Docker Resources**: 実行中のコンテナ、ネットワーク、ボリューム
 2. **Filesystem**: 作業ディレクトリ（Worktree または サブディレクトリ）
-3. **Metadata**: `environments.json` のエントリ（プロジェクトルート）
+3. **GitHub Issue Labels**: `env:*`, `phase:*` ラベルを削除
 
 ---
 
@@ -23,11 +23,11 @@ container-use環境（Dockerコンテナ、ファイルシステム、environmen
 削除対象の `env_id` とディレクトリパスを特定します。
 
 ```bash
-# 環境一覧を確認
-bash .opencode/skill/environments-json-management/scripts/env-json.sh list
+# アクティブな環境一覧を確認
+gh issue list --label "env:active" --json number,title
 
-# 特定のIssueに関連する環境を検索
-bash .opencode/skill/environments-json-management/scripts/env-json.sh find-by-issue <issue_number>
+# 特定のIssueの詳細を取得（env_idはIssue bodyのメタデータから）
+gh issue view <issue_number> --json body
 ```
 
 ### 2. コンテナの停止・削除
@@ -66,12 +66,13 @@ git worktree remove <env_dir> --force
 rm -rf <env_dir>
 ```
 
-### 4. environments.json の更新 (SSOT)
+### 4. GitHub Issue ラベルの更新
 
-メタデータから環境を削除し、追跡を終了します。
+環境削除後、Issue のラベルを更新します（{{skill:github-issue-state-management}} API）。
 
 ```bash
-bash .opencode/skill/environments-json-management/scripts/env-json.sh remove <env_id>
+# マージ完了として更新
+bash .opencode/skill/github-issue-state-management/scripts/issue-state.sh merged <issue_number>
 ```
 
 ---
@@ -95,11 +96,11 @@ bash .opencode/skill/delete-environment/scripts/delete_env.sh abc-123 .worktrees
 ```
 
 ### スクリプトの動作詳細
-1. **SSOT更新**: `environments.json` からエントリを削除（再利用防止）
-2. **Docker掃除**: `docker compose down -v` および ID名マッチによる強制削除
-3. **ファイル掃除**: 指定された場合、Worktree解除または `rm -rf` を実行
+1. **Docker掃除**: `docker compose down -v` および ID名マッチによる強制削除
+2. **ファイル掃除**: 指定された場合、Worktree解除または `rm -rf` を実行
+3. **ラベル更新**: GitHub Issue のラベルを手動で更新
 
 ## エラー対応
 
 - **`docker compose down` が失敗する**: ネットワークが使用中の場合があります。`docker network prune -f` を検討してください。
-- **environments.json にエントリがない**: 既に削除されているか、手動で削除された可能性があります。スクリプトはエラーを出さずに完了します（冪等性）。
+- **Issue ラベルが既にない**: 既に削除されているか、手動で削除された可能性があります。

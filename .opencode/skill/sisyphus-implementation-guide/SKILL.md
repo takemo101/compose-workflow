@@ -103,24 +103,38 @@ Subtask #N:
 
 ### 責任分担マトリクス
 
-| Phase | 実行者 | 内容 | 入力 | 出力 | Token消費 |
+| Phase | 実行者 | 内容 | 入力 | 出力 | ラベル操作 |
 |-------|--------|------|------|------|-----------|
-| **0** | Sisyphus | Subtask検出 & ブランチ作成 | Issue ID | branch_name, subtask_list | 低 |
-| **1** | container-worker | 環境構築 | branch_name | env_id | 低 |
-| **2** | container-worker | 設計書参照（マトリクス使用） | task_type | context (必須セクションのみ) | **中**（最適化済） |
-| **3** | container-worker | **設計書実現性チェック** | context | **OK/NG** | 低 |
-| **4** | container-worker | TDD: テスト作成（Red） | context, test_spec | test_files | 中 |
-| **5** | container-worker | TDD: 実装（Green） | test_files | impl_files | 中 |
-| **6** | container-worker | TDD: リファクタ | impl_files | impl_files (refined) | 低 |
-| **6.5** | container-worker | **実装完了自己チェック** | impl_files | **到達可能性/定義-使用相関 OK/NG** | 低 |
-| **7** | container-worker | 品質レビュー依頼 | impl_files | review_result | 低（レビュアーがトークン消費） |
-| **8** | container-worker | TODO駆動再実装（必要時） | review_todo_file | impl_files (fixed) | **低**（TODO参照のみ） |
-| **9** | container-worker | **ストレステスト（任意）** | impl_files | stress_report | 中（重要機能のみ） |
-| **10** | container-worker | ユーザー承認依頼 | review_score | approval | 低 |
-| **11** | container-worker | PR作成 | approval | pr_number | 低 |
-| **12** | Sisyphus | CI監視 | pr_number | ci_status | 低 |
-| **13** | Sisyphus | マージ & 環境削除 | ci_status, env_id | merged | 低 |
-| **14** | Sisyphus | 親Issueクローズ | all_subtasks_done | closed | 低 |
+| **0** | Sisyphus | Subtask検出 & ブランチ作成 | Issue ID | branch_name, subtask_list | `+env:active +phase:0-branch` |
+| **1** | container-worker | 環境構築 | branch_name | env_id | `phase:1-env` |
+| **2** | container-worker | 設計書参照（マトリクス使用） | task_type | context | `phase:2-design` |
+| **3** | container-worker | **設計書実現性チェック** | context | **OK/NG** | `phase:3-check`（NGなら`+env:blocked`） |
+| **4** | container-worker | TDD: テスト作成（Red） | context, test_spec | test_files | `phase:4-red` |
+| **5** | container-worker | TDD: 実装（Green） | test_files | impl_files | `phase:5-green` |
+| **6** | container-worker | TDD: リファクタ | impl_files | impl_files (refined) | `phase:6-refactor` |
+| **6.5** | container-worker | **実装完了自己チェック** | impl_files | **OK/NG** | - |
+| **7** | container-worker | 品質レビュー + TODO駆動再実装 | impl_files | review_result | `phase:7-review` |
+| **8** | container-worker | **ストレステスト（任意）** | impl_files | stress_report | `phase:8-stress` |
+| **9** | container-worker | ユーザー承認依頼 | review_score | approval | `phase:9-approval` |
+| **10** | container-worker | PR作成 | approval | pr_number | `phase:10-pr +env:pr-created` |
+| **11** | Sisyphus | CI監視 | pr_number | ci_status | `phase:11-ci` |
+| **12** | Sisyphus | マージ & 環境削除 & 親Issueクローズ | ci_status, env_id | merged, closed | `phase:12-merge +env:merged` |
+
+> **Note**: Phase 0〜10 は container-worker、Phase 11-12 は Sisyphus が担当。
+> 親Issueクローズは Phase 12 の一部として実行（全Subtask完了時）。
+
+### ラベル操作ルール（必須）
+
+> **API詳細**: {{skill:github-issue-state-management}} セクション「必須更新ポイント」を参照
+
+| タイミング | 実行者 | 操作 | API |
+|-----------|--------|------|-----|
+| Phase開始時 | container-worker | Phaseラベル更新 | `issue-state.sh phase <num> <phase>` |
+| Blocked発生時 | container-worker | ステータス変更 | `issue-state.sh block <num> <reason> "<説明>"` |
+| PR作成時 | container-worker | ステータス + PR番号記録 | `issue-state.sh pr-created <num> <pr_number>` |
+| マージ完了時 | Sisyphus | ステータス変更 | `issue-state.sh merged <num>` |
+
+**⛔ 違反禁止**: Phase遷移時にラベルを更新しないこと。
 
 ### Token消費の最適化ポイント
 
@@ -135,18 +149,20 @@ Subtask #N:
 
 ### 責任境界（厳格）
 
-| 操作 | Sisyphus | container-worker |
-|------|----------|------------------|
-| Subtask検出 | ✅ | ❌ |
-| ブランチ作成 | ✅ | ❌ |
-| 環境作成/操作 | ❌ | ✅ |
-| ファイル読み書き | ❌ | ✅ |
-| テスト実行 | ❌ | ✅ |
-| レビュー依頼 | ❌ | ✅ |
-| PR作成 | ❌ | ✅ |
-| CI監視 | ✅ | ❌ |
-| マージ | ✅ | ❌ |
-| 環境削除 | ✅ | ❌ |
+| 操作 | Sisyphus | container-worker | Phase |
+|------|----------|------------------|-------|
+| Subtask検出 | ✅ | ❌ | 0 |
+| ブランチ作成 | ✅ | ❌ | 0 |
+| 環境作成/操作 | ❌ | ✅ | 1 |
+| 設計書参照 | ❌ | ✅ | 2-3 |
+| TDD実装 | ❌ | ✅ | 4-6 |
+| 品質レビュー | ❌ | ✅ | 7-8 |
+| ユーザー承認依頼 | ❌ | ✅ | 9 |
+| PR作成 | ❌ | ✅ | 10 |
+| CI監視 | ✅ | ❌ | 11 |
+| マージ | ✅ | ❌ | 12 |
+| 環境削除 | ✅ | ❌ | 12 |
+| 親Issueクローズ | ✅ | ❌ | 12 |
 
 **⛔ 違反禁止**: container-workerがSisyphusの責任を実行すること、またはその逆。
 
@@ -154,6 +170,20 @@ Subtask #N:
 
 ## Subtask順次実装時の全体像
 
+```
+Sisyphus (親エージェント)
+│
+├── Subtask #9 を処理
+│   ├── Phase 0: ブランチ作成 (feature/issue-9-data-types) [Sisyphus]
+│   ├── Phase 1-10: container-worker → 実装 → PR #25
+│   └── Phase 11-12: CI監視 → マージ → 環境削除 [Sisyphus]
+│
+├── Subtask #10 を処理（#9と並列可能なら同時実行）
+│   ├── Phase 0: ブランチ作成 (feature/issue-10-timer-engine) [Sisyphus]
+│   ├── Phase 1-10: container-worker → 実装 → PR #26
+│   └── Phase 11-12: CI監視 → マージ → 環境削除 [Sisyphus]
+│
+└── Phase 12（最終）: 全Subtask完了 → 親Issue自動クローズ [Sisyphus]
 ```
 Sisyphus (親エージェント)
 │
