@@ -63,6 +63,7 @@ convert_paths() {
 
 convert_agent_frontmatter() {
     local file="$1"
+    local dest_file="$2"
     local content
     content=$(cat "$file")
     
@@ -96,12 +97,23 @@ convert_agent_frontmatter() {
         tools_list="${tools_list:+$tools_list, }Bash"
     fi
     
+    # Check existing .claude file for opus model
+    local existing_model=""
+    if [[ -f "$dest_file" ]]; then
+        existing_model=$(grep -E '^model:' "$dest_file" | head -1 | sed 's/^model:[[:space:]]*//' || echo "")
+    fi
+    
     local claude_model="sonnet"
-    case "$model" in
-        *opus*|*high*) claude_model="opus" ;;
-        *sonnet*|*pro*) claude_model="sonnet" ;;
-        *haiku*|*low*|*flash*) claude_model="haiku" ;;
-    esac
+    # If .claude file already has opus, preserve it
+    if [[ "$existing_model" == "opus" ]]; then
+        claude_model="opus"
+    else
+        case "$model" in
+            *opus*|*high*) claude_model="opus" ;;
+            *sonnet*|*pro*) claude_model="sonnet" ;;
+            *haiku*|*low*|*flash*) claude_model="haiku" ;;
+        esac
+    fi
     
     local body
     body=$(echo "$content" | awk '/^---$/{p++; next} p>=2{print}')
@@ -135,7 +147,7 @@ sync_file() {
     
     case "$type" in
         agent)
-            content=$(convert_agent_frontmatter "$src")
+            content=$(convert_agent_frontmatter "$src" "$dest")
             content=$(convert_skill_refs "$content")
             content=$(convert_paths "$content")
             ;;

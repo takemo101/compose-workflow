@@ -1,7 +1,7 @@
 ---
 description: バックエンド設計書および実装コードを専門的にレビューするシニアバックエンドエンジニア
 mode: subagent
-model: google/antigravity-gemini-3-pro-high
+model: google/antigravity-gemini-3-pro
 temperature: 0.2
 tools:
   read: true

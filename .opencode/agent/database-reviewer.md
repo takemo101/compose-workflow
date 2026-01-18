@@ -1,7 +1,7 @@
 ---
 description: データベース設計書およびマイグレーションコードを専門的にレビューするDBA
 mode: subagent
-model: google/antigravity-gemini-3-pro-high
+model: google/antigravity-gemini-3-pro
 temperature: 0.2
 tools:
   read: true

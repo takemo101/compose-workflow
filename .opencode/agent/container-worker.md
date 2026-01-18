@@ -1,6 +1,6 @@
 ---
 description: Container-use環境でSubtaskを実装するワーカーエージェント
-model: google/antigravity-gemini-3-pro-high
+model: google/antigravity-gemini-3-pro
 mode: subagent
 temperature: 0.3
 tools:

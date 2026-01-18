@@ -1,7 +1,7 @@
 ---
 description: 画面設計書および実装コードを専門的にレビューするUI/UX重視のフロントエンドリード
 mode: subagent
-model: google/antigravity-gemini-3-pro-high
+model: google/antigravity-gemini-3-pro
 temperature: 0.2
 tools:
   read: true

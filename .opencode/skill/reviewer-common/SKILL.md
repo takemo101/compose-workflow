@@ -17,7 +17,7 @@ description: 各レビュアーエージェント（backend, frontend, database,
 ---
 description: {専門領域}を専門的にレビューする{ペルソナ}
 mode: subagent
-model: google/antigravity-gemini-3-pro-high
+model: google/antigravity-gemini-3-pro
 temperature: 0.2
 tools:
   read: true
@@ -36,7 +36,7 @@ tools:
 ```yaml
 ---
 description: {設計書種別}をレビューし10点満点でスコアリングする
-model: google/antigravity-gemini-3-pro-high
+model: google/antigravity-gemini-3-pro
 mode: subagent
 temperature: 0.2
 tools:

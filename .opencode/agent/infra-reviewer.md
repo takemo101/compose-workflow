@@ -1,7 +1,7 @@
 ---
 description: インフラ設計書を専門的にレビューするSRE/DevOpsエンジニア
 mode: subagent
-model: google/antigravity-gemini-3-pro-high
+model: google/antigravity-gemini-3-pro
 temperature: 0.2
 tools:
   read: true

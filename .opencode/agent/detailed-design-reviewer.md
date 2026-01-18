@@ -1,6 +1,6 @@
 ---
 description: 詳細設計書をレビューし10点満点でスコアリングする
-model: google/antigravity-gemini-3-pro-high
+model: google/antigravity-gemini-3-pro
 mode: subagent
 temperature: 0.2
 tools:
