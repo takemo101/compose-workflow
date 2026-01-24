@@ -1,7 +1,7 @@
 # Skill Index
 
 > **Purpose**: Lazy loading guide for skills. Load only when trigger condition matches.
-> **Total skills**: 31 | **Total lines**: ~7,300
+> **Total skills**: 32 | **Total lines**: ~7,500
 
 ---
 
@@ -51,6 +51,7 @@
 | `pr-and-cleanup` | 93 | After PR merge | Worktree cleanup |
 | `ci-workflow` | 214 | CI failure | CI monitoring, fix flow |
 | `github-graphql-api` | 132 | Sub-issue creation | GraphQL API patterns |
+| `github-issue-dependency` | 180 | Subtask dependency setup | Issue blocking/blocked-by relations |
 
 ### Workflow Control (load when managing phases)
 
@@ -99,6 +100,7 @@
 | **Session recovery** | `github-issue-state-management` |
 | **Platform exception** | `worktree-workflow`, `create-worktree` |
 | **Release** | `release-workflow` |
+| **Issue decomposition** | `subtask-detection`, `github-issue-dependency` |
 
 ---
 

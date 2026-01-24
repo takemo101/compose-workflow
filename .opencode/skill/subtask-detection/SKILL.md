@@ -20,6 +20,10 @@ description: 親IssueからSubtaskを検出し、依存関係を考慮した実�
 
 > **Note**: GitHub Sub-issues API (`trackedInIssues`) は gh CLI では取得不可のため使用しない
 
+**依存関係取得方法（優先順）**:
+1. GitHub Issue依存関係API（`blockedBy`フィールド） ← **推奨**
+2. Issue bodyの `Depends on #N`, `Blocked by #N` テキストパターン
+
 ---
 
 ## Subtask検出
@@ -96,6 +100,8 @@ def resolve_issues(issue_ids: list[int]) -> list[int]:
 
 ## 依存関係チェック
 
+> **参照スキル**: {{skill:github-issue-dependency}}
+
 ```python
 def check_subtask_dependencies(subtask_ids: list[int]) -> list[int]:
     """Subtask間の依存関係をチェックし、実行順序を決定"""
@@ -103,21 +109,32 @@ def check_subtask_dependencies(subtask_ids: list[int]) -> list[int]:
     dependencies = {}
     
     for issue_id in subtask_ids:
-        result = bash(f"gh issue view {issue_id} --json body,title")
-        body = json.loads(result.stdout).get("body", "") or ""
-        
-        # 依存関係パターン: "Depends on #N", "Blocked by #N", "After #N", "Requires #N"
-        dep_patterns = [
-            r"[Dd]epends on #(\d+)",
-            r"[Bb]locked by #(\d+)",
-            r"[Aa]fter #(\d+)",
-            r"[Rr]equires #(\d+)",
-        ]
-        
         deps = []
-        for pattern in dep_patterns:
-            matches = re.findall(pattern, body)
-            deps.extend([int(m) for m in matches if int(m) in subtask_ids])
+        
+        # 1. GitHub Issue依存関係API から取得（推奨）
+        api_result = bash(f'''
+            gh api "repos/{{owner}}/{{repo}}/issues/{issue_id}/dependencies/blocked_by" \
+              --jq '.[].number' 2>/dev/null || echo ""
+        ''')
+        if api_result.exit_code == 0 and api_result.stdout.strip():
+            api_deps = [int(n) for n in api_result.stdout.strip().split('\n') if n]
+            deps.extend([d for d in api_deps if d in subtask_ids])
+        
+        # 2. Issue body からテキストパターンで取得（フォールバック）
+        if not deps:
+            result = bash(f"gh issue view {issue_id} --json body,title")
+            body = json.loads(result.stdout).get("body", "") or ""
+            
+            dep_patterns = [
+                r"[Dd]epends on #(\d+)",
+                r"[Bb]locked by #(\d+)",
+                r"[Aa]fter #(\d+)",
+                r"[Rr]equires #(\d+)",
+            ]
+            
+            for pattern in dep_patterns:
+                matches = re.findall(pattern, body)
+                deps.extend([int(m) for m in matches if int(m) in subtask_ids])
         
         dependencies[issue_id] = list(set(deps))
     
@@ -171,8 +188,25 @@ def topological_sort(ids: list[int], deps: dict[int, list[int]]) -> list[int]:
 
 ## 依存パターン
 
-| パターン | 検出キーワード |
-|---------|---------------|
-| 明示的依存 | `Depends on #N`, `Blocked by #N` |
-| 順序指定 | `After #N`, `Requires #N` |
-| 暗黙的依存 | （検出不可 → 失敗時に報告） |
+| パターン | 検出方法 | 優先度 |
+|---------|----------|--------|
+| GitHub Issue依存関係 | REST API `/dependencies/blocked_by` | **最優先** |
+| 明示的テキスト | `Depends on #N`, `Blocked by #N` | フォールバック |
+| 順序指定テキスト | `After #N`, `Requires #N` | フォールバック |
+| 暗黙的依存 | （検出不可 → 失敗時に報告） | - |
+
+---
+
+## CLIスクリプト
+
+依存関係の確認・設定には専用スクリプトが利用可能：
+
+```bash
+# 依存関係を一覧表示
+bash .opencode/skill/github-issue-dependency/scripts/issue-dependency.sh list <issue>
+
+# 依存関係を追加
+bash .opencode/skill/github-issue-dependency/scripts/issue-dependency.sh add-blocked-by <issue> <blocking-issue>
+```
+
+> **詳細**: {{skill:github-issue-dependency}} を参照

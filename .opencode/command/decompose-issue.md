@@ -28,6 +28,7 @@ $ARGUMENTS（Issue番号）
 | 3 | 依存関係解析 | Subtask間の依存関係を解析 |
 | 3.5 | ユーザー確認 | 分解計画の承認（{{skill:approval-gate}}） |
 | 4 | Subtask作成 | GitHub Issue作成、Sub-issue連携 |
+| 4.5 | 依存関係設定 | GitHub Issue依存関係を設定（{{skill:github-issue-dependency}}） |
 | 5 | 親Issue更新 | サマリーコメント追加 |
 
 > **Phase規約**: {{skill:workflow-phase-convention}} を参照
@@ -127,6 +128,24 @@ $ARGUMENTS（Issue番号）
    - 作成済みIssueは削除しない（有用な情報が含まれる可能性）
    - 親Issueにエラー報告と対応オプションをコメント
 
+### Phase 4.5: 依存関係設定
+
+> **参照スキル**: {{skill:github-issue-dependency}}
+
+1. **依存関係の設定**:
+   - Phase 3で解析した依存関係を GitHub Issue の「Blocked by」として設定
+   - スクリプト: `bash .opencode/skill/github-issue-dependency/scripts/issue-dependency.sh add-blocked-by <subtask> <blocking-subtask>`
+
+2. **設定例**:
+   ```bash
+   # Subtask #13 は #12 に依存（#12 が完了しないと #13 は着手不可）
+   bash .opencode/skill/github-issue-dependency/scripts/issue-dependency.sh add-blocked-by 13 12
+   ```
+
+3. **エラーハンドリング**:
+   - 依存関係設定の失敗は警告として記録（ワークフロー停止しない）
+   - 失敗した場合は手動設定を案内
+
 ### Phase 5: 親Issue更新
 
 1. **サマリーコメント追加**:
@@ -141,7 +160,8 @@ $ARGUMENTS（Issue番号）
 - [ ] 全Subtask Issueが作成されている
 - [ ] 各Subtaskが200行以下である
 - [ ] 各Subtaskが3ファイル以下である
-- [ ] 依存関係が明記されている
+- [ ] 依存関係がIssue本文に明記されている
+- [ ] 依存関係がGitHub Issue依存関係機能で設定されている
 - [ ] 親Issueにサマリーがコメントされている
 
 ---
@@ -186,4 +206,5 @@ $ARGUMENTS（Issue番号）
 2. **分解計画作成** → 依存関係も解析
 3. **ユーザー確認** → 承認ゲートで計画を提示
 4. **Subtask Issue作成** → エラー時はロールバック報告
-5. **完了報告** → 番号選択形式で次のステップを提示
+5. **依存関係設定** → {{skill:github-issue-dependency}} を使用してGitHub Issue依存関係を設定
+6. **完了報告** → 番号選択形式で次のステップを提示
