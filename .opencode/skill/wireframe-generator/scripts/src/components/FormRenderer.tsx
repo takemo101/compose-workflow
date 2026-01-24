@@ -66,7 +66,7 @@ function FieldInput({ field }: { field: FormField }) {
 			return <Input type="date" />;
 		case "file":
 			return <Input type="file" accept={field.accept} />;
-		case "pin":
+		case "pin": {
 			const length = field.pinLength ?? 6;
 			return (
 				<HStack justify="center">
@@ -77,6 +77,7 @@ function FieldInput({ field }: { field: FormField }) {
 					</PinInput>
 				</HStack>
 			);
+		}
 		default:
 			return null;
 	}
