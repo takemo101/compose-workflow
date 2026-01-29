@@ -100,7 +100,7 @@ def resolve_issues(issue_ids: list[int]) -> list[int]:
 
 ## 依存関係チェック
 
-> **参照スキル**: {{skill:github-issue-dependency}}
+> **参照スキル**: @.claude/skills/github-issue-dependency/SKILL.md
 
 ```python
 def check_subtask_dependencies(subtask_ids: list[int]) -> list[int]:
@@ -203,10 +203,10 @@ def topological_sort(ids: list[int], deps: dict[int, list[int]]) -> list[int]:
 
 ```bash
 # 依存関係を一覧表示
-bash .opencode/skill/github-issue-dependency/scripts/issue-dependency.sh list <issue>
+bash .claude/skills/github-issue-dependency/scripts/issue-dependency.sh list <issue>
 
 # 依存関係を追加
-bash .opencode/skill/github-issue-dependency/scripts/issue-dependency.sh add-blocked-by <issue> <blocking-issue>
+bash .claude/skills/github-issue-dependency/scripts/issue-dependency.sh add-blocked-by <issue> <blocking-issue>
 ```
 
-> **詳細**: {{skill:github-issue-dependency}} を参照
+> **詳細**: @.claude/skills/github-issue-dependency/SKILL.md を参照

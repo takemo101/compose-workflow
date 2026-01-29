@@ -130,6 +130,39 @@ interface {Feature}State {
 
 ---
 
+## 9. 呼び出し元（Integration Points）⚠️ 必須
+
+> **重要**: このセクションがないと Phase 6.6（設計書整合性チェック）で統合漏れを検出できません。
+
+### 9.1 このコンポーネントを使用する場所
+
+| 呼び出し元 | 使用方法 | 統合Issue |
+|-----------|---------|----------|
+| `app/{path}/page.tsx` | `<{FeatureName} />` をレンダリング | #{issue_number} |
+| `components/layout.tsx` | Navigationから `/{path}` へリンク | #{issue_number} |
+
+### 9.2 ルーティング統合
+
+| パス | ページコンポーネント | 統合確認コマンド |
+|-----|-------------------|----------------|
+| `/{path}` | `{Feature}Page` | `grep -r '{Feature}' app/` |
+
+### 9.3 統合確認手順
+
+```bash
+# 1. ページが正しく配置されているか
+ls app/{path}/page.tsx
+
+# 2. ナビゲーションからリンクされているか
+grep -r '/{path}' components/
+
+# 3. 実際にブラウザで動作確認
+npm run dev
+# → http://localhost:3000/{path} にアクセス
+```
+
+---
+
 ## 変更履歴
 
 | 日付 | バージョン | 変更内容 | 担当者 |
@@ -177,10 +210,37 @@ interface {Feature}State {
 - [ ] {実装項目1}
 - [ ] {実装項目2}
 
+## 呼び出し元（Integration Points）⚠️ 必須
+
+> **重要**: このセクションがないと Phase 6.6（設計書整合性チェック）で統合漏れを検出できません。
+
+### このモジュールを使用する場所
+
+| 呼び出し元ファイル | 使用方法 | 統合Issue |
+|------------------|---------|----------|
+| `{path/to/caller.rs}` | `{ClassName}::{method}()` を呼び出す | #{issue_number} |
+| `{path/to/cli.rs}` | `{command}` コマンドで使用 | #{issue_number} |
+
+### 統合確認コマンド
+
+```bash
+# 呼び出し元から実際に参照されているか確認
+grep -r '{ModuleName}\|{ClassName}' {caller_path}
+
+# CLIコマンドの動作確認（該当する場合）
+{cli_command} --help
+{cli_command} {test_args}
+```
+
+### この機能を使用する他のIssue
+
+- #{related_issue} - {概要}
+
 ## 完了条件
 - [ ] 実装完了（200行以下）
 - [ ] テスト通過
 - [ ] レビュー9点以上
+- [ ] **呼び出し元からの統合確認** ⚠️ 新規追加
 
 ## 依存
 - #{依存するIssue番号}

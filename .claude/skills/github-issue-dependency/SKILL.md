@@ -27,13 +27,13 @@ GitHub Issue間の「ブロック関係」を管理する機能。2025年8月に
 
 ```bash
 # 依存関係を追加（#10 は #5 にブロックされている）
-bash .opencode/skill/github-issue-dependency/scripts/issue-dependency.sh add-blocked-by 10 5
+bash .claude/skills/github-issue-dependency/scripts/issue-dependency.sh add-blocked-by 10 5
 
 # 依存関係を削除
-bash .opencode/skill/github-issue-dependency/scripts/issue-dependency.sh remove-blocked-by 10 5
+bash .claude/skills/github-issue-dependency/scripts/issue-dependency.sh remove-blocked-by 10 5
 
 # 依存関係を一覧表示
-bash .opencode/skill/github-issue-dependency/scripts/issue-dependency.sh list 10
+bash .claude/skills/github-issue-dependency/scripts/issue-dependency.sh list 10
 ```
 
 | コマンド | 引数 | 説明 |
@@ -162,7 +162,7 @@ def add_subtask_dependencies(parent_id: int, subtask_ids: list[int], dependencie
             if dep_id in subtask_ids:  # 同じ親の子Issue間のみ
                 # subtask_id は dep_id にブロックされている
                 bash(f'''
-                    bash .opencode/skill/github-issue-dependency/scripts/issue-dependency.sh \
+                    bash .claude/skills/github-issue-dependency/scripts/issue-dependency.sh \
                       add-blocked-by {subtask_id} {dep_id}
                 ''')
 ```

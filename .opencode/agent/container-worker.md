@@ -142,6 +142,44 @@ Container-use環境内で**Subtask**を実装する専門エージェント。
 
 ---
 
+## Phase 6.6: 設計書整合性チェック ⚠️ 必須（統合漏れ防止）
+
+> **重要**: 設計書で定義された全機能が実装・統合されていることを確認する。
+> **このチェックをスキップすると、機能が作成されても使われない「死にコード」が発生するリスクあり。**
+
+| チェック項目 | 確認方法 |
+|-------------|---------|
+| **全機能実装** | 設計書「実装内容」セクションの各項目を `grep` で確認 |
+| **呼び出し元統合** | 設計書「呼び出し元」セクションの各ポイントで import/use を確認 |
+| **CLI動作確認** | `{cli_binary} --help` / `{cli_binary} {test_args}` |
+| **E2E動作確認** | `npm run dev` / `cargo run` で主要フロー確認 |
+
+### 確認コマンド例
+
+```bash
+# 1. 実装内容の存在確認
+grep -r '{ClassName}\|{FunctionName}' src/
+
+# 2. 呼び出し元からの参照確認
+grep -r 'import.*{ModuleName}\|use.*{ModuleName}' {caller_path}
+
+# 3. CLI動作確認（該当する場合）
+{cli_binary} {command} --help
+```
+
+### 判定ルール
+
+| 条件 | 結果 |
+|------|------|
+| 全チェックOK | ✅ Phase 7 へ |
+| 未実装 or 統合漏れ or CLI動作NG | ❌ Phase 5 に戻って追加実装 |
+
+> **⛔ 禁止**: このチェックをスキップして Phase 7（品質レビュー）に進むこと。
+
+詳細は {{skill:quality-review-flow}} セクション2.5を参照。
+
+---
+
 ## Phase 7: 品質レビュー
 
 1. **Lint/Format**: `cargo clippy -- -D warnings && cargo fmt --check`

@@ -113,6 +113,7 @@ Subtask #N:
 | **5** | container-worker | TDD: 実装（Green） | test_files | impl_files | `phase:5-green` |
 | **6** | container-worker | TDD: リファクタ | impl_files | impl_files (refined) | `phase:6-refactor` |
 | **6.5** | container-worker | **実装完了自己チェック** | impl_files | **OK/NG** | - |
+| **6.6** | container-worker | **設計書整合性チェック** | impl_files, design_doc | **OK/NG** | -（NGならPhase 5に戻る） |
 | **7** | container-worker | 品質レビュー（+ ストレステスト任意） | impl_files | review_result | `phase:7-review`（任意: `8-stress`） |
 | **9** | container-worker | ユーザー承認依頼 | review_score | approval | `phase:9-approval` |
 | **10** | container-worker | コミット & プッシュ & PR作成 | approval | pr_number | `phase:10-pr +env:pr-created` |
@@ -120,7 +121,7 @@ Subtask #N:
 | **12** | Sisyphus | マージ & 環境削除 & 親Issueクローズ | ci_status, env_id | merged, closed | `phase:12-merge +env:merged` |
 
 > **Note**: Phase 0〜10 は container-worker、Phase 11-12 は Sisyphus が担当。
-> Phase 8 (ストレステスト) は任意のためスキップ可。親Issueクローズは Phase 12 の一部。
+> Phase 6.6（設計書整合性チェック）は**統合漏れ防止のため必須**。Phase 8 (ストレステスト) は任意のためスキップ可。
 
 ### ラベル操作ルール（必須）
 
@@ -209,6 +210,21 @@ Sisyphus (親エージェント)
 □ Subtaskは順次処理しているか?（1つ完了してから次へ）
 ```
 
+### 設計書整合性チェック（Phase 6.6）★重要：統合漏れ防止★
+
+> **詳細**: {{skill:quality-review-flow}} セクション2.5（設計書整合性チェック）を参照
+
+```
+□ 設計書「実装内容」の全項目が実装されているか?
+□ 設計書「呼び出し元」の全統合ポイントで実際に呼び出されているか? ★最重要★
+□ CLIコマンド（定義されている場合）が実際に動作するか?
+□ E2Eフローが正常に動作するか?
+□ 「呼び出し元」セクションがない場合、実装者が統合ポイントを特定し設計書に追記したか?
+```
+
+> **⛔ 禁止**: 設計書整合性チェックをスキップしてPhase 7（品質レビュー）に進むこと。
+> **理由**: 単体テスト・コードレビューだけでは「機能が統合されているか」を検出できない。
+
 ### 機能完了チェック（PRマージ後の再確認）
 
 > **重要**: Phase 6.5 で既にチェック済みだが、PRマージ後に再確認を推奨。
@@ -257,6 +273,9 @@ Sisyphus (親エージェント)
 | `task(subagent_type="container-worker", ...)` | `background_task(agent="container-worker", ...)` |
 | Subtaskを並列実行 | Subtaskは順次実行（1つ完了してから次へ） |
 | 全Subtask完了後、親Issueを放置 | 必ず自動クローズ処理を実行 |
+| **設計書整合性チェック(Phase 6.6)をスキップ** | **必ず「呼び出し元」からの統合を確認してからレビューへ** ★新規★ |
+| **クラス/関数を作成したが呼び出し元を実装しない** | **設計書「呼び出し元」セクションの全ポイントで呼び出しコードを実装** ★新規★ |
+| **CLIコマンドを定義したが実際に動作確認しない** | **`{command} --help` と基本動作を必ず確認** ★新規★ |
 
 ---
 

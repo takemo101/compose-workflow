@@ -26,12 +26,12 @@ $ARGUMENTS（Issue番号）
 | 1 | Issue分析 | 規模分析、設計書特定、コード量推定 |
 | 2 | 分解計画 | Subtask分割、200行/3ファイル制約適用 |
 | 3 | 依存関係解析 | Subtask間の依存関係を解析 |
-| 3.5 | ユーザー確認 | 分解計画の承認（{{skill:approval-gate}}） |
+| 3.5 | ユーザー確認 | 分解計画の承認（@.claude/skills/approval-gate/SKILL.md） |
 | 4 | Subtask作成 | GitHub Issue作成、Sub-issue連携 |
-| 4.5 | 依存関係設定 | GitHub Issue依存関係を設定（{{skill:github-issue-dependency}}） |
+| 4.5 | 依存関係設定 | GitHub Issue依存関係を設定（@.claude/skills/github-issue-dependency/SKILL.md） |
 | 5 | 親Issue更新 | サマリーコメント追加 |
 
-> **Phase規約**: {{skill:workflow-phase-convention}} を参照
+> **Phase規約**: @.claude/skills/workflow-phase-convention/SKILL.md を参照
 
 ---
 
@@ -85,7 +85,7 @@ $ARGUMENTS（Issue番号）
 
 ### Phase 3.5: ユーザー確認
 
-> **共通仕様**: {{skill:approval-gate}} を参照
+> **共通仕様**: @.claude/skills/approval-gate/SKILL.md を参照
 
 **出力形式**:
 
@@ -123,23 +123,23 @@ $ARGUMENTS（Issue番号）
    - タイトル: `[#{parent_id}] N/M: {subtask_title}`
    - ラベル: `subtask,automated`
    - 本文: 概要、推定規模、対象ファイル、実装内容、完了条件、依存関係
-2. **Sub-issueとして親に連携**: {{skill:github-graphql-api}} を使用
+2. **Sub-issueとして親に連携**: @.claude/skills/github-graphql-api/SKILL.md を使用
 3. **エラー時のロールバック**:
    - 作成済みIssueは削除しない（有用な情報が含まれる可能性）
    - 親Issueにエラー報告と対応オプションをコメント
 
 ### Phase 4.5: 依存関係設定
 
-> **参照スキル**: {{skill:github-issue-dependency}}
+> **参照スキル**: @.claude/skills/github-issue-dependency/SKILL.md
 
 1. **依存関係の設定**:
    - Phase 3で解析した依存関係を GitHub Issue の「Blocked by」として設定
-   - スクリプト: `bash .opencode/skill/github-issue-dependency/scripts/issue-dependency.sh add-blocked-by <subtask> <blocking-subtask>`
+   - スクリプト: `bash .claude/skills/github-issue-dependency/scripts/issue-dependency.sh add-blocked-by <subtask> <blocking-subtask>`
 
 2. **設定例**:
    ```bash
    # Subtask #13 は #12 に依存（#12 が完了しないと #13 は着手不可）
-   bash .opencode/skill/github-issue-dependency/scripts/issue-dependency.sh add-blocked-by 13 12
+   bash .claude/skills/github-issue-dependency/scripts/issue-dependency.sh add-blocked-by 13 12
    ```
 
 3. **エラーハンドリング**:
@@ -206,5 +206,5 @@ $ARGUMENTS（Issue番号）
 2. **分解計画作成** → 依存関係も解析
 3. **ユーザー確認** → 承認ゲートで計画を提示
 4. **Subtask Issue作成** → エラー時はロールバック報告
-5. **依存関係設定** → {{skill:github-issue-dependency}} を使用してGitHub Issue依存関係を設定
+5. **依存関係設定** → @.claude/skills/github-issue-dependency/SKILL.md を使用してGitHub Issue依存関係を設定
 6. **完了報告** → 番号選択形式で次のステップを提示
