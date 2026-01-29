@@ -1,0 +1,5 @@
+node_modules/
+public/wireframes/
+test-output/
+*.png
+package-lock.json

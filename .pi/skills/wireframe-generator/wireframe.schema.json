@@ -1,0 +1,1271 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "wireframe.schema.json",
+	"title": "Wireframe Definition",
+	"description": "YAML定義からChakra UIベースのワイヤーフレーム画像を生成するためのスキーマ",
+	"oneOf": [
+		{ "$ref": "#/$defs/FormWireframe" },
+		{ "$ref": "#/$defs/TableWireframe" },
+		{ "$ref": "#/$defs/DetailWireframe" },
+		{ "$ref": "#/$defs/DashboardWireframe" },
+		{ "$ref": "#/$defs/CrudWireframe" },
+		{ "$ref": "#/$defs/LayoutWireframe" },
+		{ "$ref": "#/$defs/TabsWireframe" },
+		{ "$ref": "#/$defs/CardGridWireframe" },
+		{ "$ref": "#/$defs/WizardWireframe" },
+		{ "$ref": "#/$defs/EmptyStateWireframe" },
+		{ "$ref": "#/$defs/ModalWireframe" },
+		{ "$ref": "#/$defs/DrawerWireframe" },
+		{ "$ref": "#/$defs/ConfirmWireframe" },
+		{ "$ref": "#/$defs/AlertWireframe" },
+		{ "$ref": "#/$defs/TimelineWireframe" },
+		{ "$ref": "#/$defs/GalleryWireframe" },
+		{ "$ref": "#/$defs/PricingWireframe" },
+		{ "$ref": "#/$defs/FaqWireframe" },
+		{ "$ref": "#/$defs/HeroWireframe" },
+		{ "$ref": "#/$defs/StatsWireframe" },
+		{ "$ref": "#/$defs/KanbanWireframe" },
+		{ "$ref": "#/$defs/CalendarWireframe" },
+		{ "$ref": "#/$defs/ChatWireframe" },
+		{ "$ref": "#/$defs/ProfileWireframe" },
+		{ "$ref": "#/$defs/SettingsWireframe" },
+		{ "$ref": "#/$defs/AuthWireframe" }
+	],
+	"$defs": {
+		"IconType": {
+			"type": "string",
+			"enum": [
+				"users",
+				"currency",
+				"activity",
+				"chart",
+				"inbox",
+				"settings",
+				"home",
+				"search",
+				"plus",
+				"edit",
+				"delete",
+				"check",
+				"close",
+				"arrow-left",
+				"arrow-right",
+				"download",
+				"upload",
+				"filter",
+				"calendar",
+				"clock",
+				"star",
+				"heart",
+				"bell",
+				"mail",
+				"phone",
+				"map",
+				"link",
+				"image",
+				"file",
+				"folder",
+				"lock",
+				"unlock",
+				"eye",
+				"eye-off",
+				"alert",
+				"info",
+				"help",
+				"warning",
+				"error",
+				"success"
+			]
+		},
+		"FieldOption": {
+			"type": "object",
+			"required": ["value", "label"],
+			"properties": {
+				"value": { "type": "string" },
+				"label": { "type": "string" }
+			},
+			"additionalProperties": false
+		},
+		"FormField": {
+			"type": "object",
+			"required": ["name", "label", "type"],
+			"properties": {
+				"name": { "type": "string" },
+				"label": { "type": "string" },
+				"type": {
+					"type": "string",
+					"enum": [
+						"text",
+						"email",
+						"password",
+						"number",
+						"textarea",
+						"select",
+						"checkbox",
+						"radio",
+						"date",
+						"file",
+						"time",
+						"datetime",
+						"color",
+						"range",
+						"tel",
+						"url",
+						"hidden"
+					]
+				},
+				"required": { "type": "boolean", "default": false },
+				"placeholder": { "type": "string" },
+				"maxLength": { "type": "integer" },
+				"min": { "type": "number" },
+				"max": { "type": "number" },
+				"step": { "type": "number" },
+				"rows": { "type": "integer", "default": 4 },
+				"options": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FieldOption" }
+				},
+				"accept": { "type": "string" },
+				"disabled": { "type": "boolean" },
+				"helperText": { "type": "string" },
+				"defaultValue": {}
+			},
+			"additionalProperties": false
+		},
+		"FormButton": {
+			"type": "object",
+			"required": ["label", "variant"],
+			"properties": {
+				"label": { "type": "string" },
+				"variant": {
+					"type": "string",
+					"enum": ["primary", "secondary", "danger", "ghost", "link", "outline"]
+				},
+				"icon": { "$ref": "#/$defs/IconType" },
+				"disabled": { "type": "boolean" }
+			},
+			"additionalProperties": false
+		},
+		"FormWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "fields"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "form" },
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"fields": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FormField" },
+					"minItems": 1
+				},
+				"buttons": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FormButton" }
+				},
+				"layout": {
+					"type": "string",
+					"enum": ["vertical", "horizontal", "grid"]
+				},
+				"columns": { "type": "integer" }
+			},
+			"additionalProperties": false
+		},
+		"TableColumn": {
+			"type": "object",
+			"required": ["name", "label"],
+			"properties": {
+				"name": { "type": "string" },
+				"label": { "type": "string" },
+				"width": { "type": "integer" },
+				"type": {
+					"type": "string",
+					"enum": [
+						"text",
+						"badge",
+						"date",
+						"currency",
+						"number",
+						"image",
+						"avatar",
+						"progress",
+						"link",
+						"boolean"
+					]
+				},
+				"sortable": { "type": "boolean" },
+				"filterable": { "type": "boolean" }
+			},
+			"additionalProperties": false
+		},
+		"TableWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "columns"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "table" },
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"columns": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/TableColumn" },
+					"minItems": 1
+				},
+				"actions": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"enum": [
+							"search",
+							"pagination",
+							"create-button",
+							"row-edit",
+							"row-delete",
+							"row-view",
+							"bulk-select",
+							"bulk-delete",
+							"export",
+							"import",
+							"filter",
+							"sort",
+							"refresh"
+						]
+					}
+				},
+				"data": { "type": "array", "items": { "type": "object" } },
+				"emptyState": { "$ref": "#/$defs/EmptyStateContent" }
+			},
+			"additionalProperties": false
+		},
+		"DetailField": {
+			"type": "object",
+			"required": ["label", "value"],
+			"properties": {
+				"label": { "type": "string" },
+				"value": { "type": "string" },
+				"type": {
+					"type": "string",
+					"enum": [
+						"text",
+						"badge",
+						"date",
+						"link",
+						"image",
+						"avatar",
+						"currency",
+						"boolean",
+						"list",
+						"html"
+					]
+				},
+				"span": { "type": "integer" }
+			},
+			"additionalProperties": false
+		},
+		"DetailSection": {
+			"type": "object",
+			"required": ["title", "fields"],
+			"properties": {
+				"title": { "type": "string" },
+				"fields": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/DetailField" },
+					"minItems": 1
+				},
+				"collapsible": { "type": "boolean" },
+				"defaultExpanded": { "type": "boolean" }
+			},
+			"additionalProperties": false
+		},
+		"DetailWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "sections"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "detail" },
+				"title": { "type": "string" },
+				"subtitle": { "type": "string" },
+				"avatar": {
+					"type": "object",
+					"properties": {
+						"src": { "type": "string" },
+						"name": { "type": "string" }
+					}
+				},
+				"sections": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/DetailSection" },
+					"minItems": 1
+				},
+				"actions": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FormButton" }
+				},
+				"tabs": { "type": "array", "items": { "$ref": "#/$defs/TabItem" } }
+			},
+			"additionalProperties": false
+		},
+		"DashboardStat": {
+			"type": "object",
+			"required": ["label", "value"],
+			"properties": {
+				"label": { "type": "string" },
+				"value": { "type": "string" },
+				"icon": { "$ref": "#/$defs/IconType" },
+				"trend": { "type": "string" },
+				"trendDirection": {
+					"type": "string",
+					"enum": ["up", "down", "neutral"]
+				},
+				"color": {
+					"type": "string",
+					"enum": ["blue", "green", "red", "yellow", "purple", "gray"]
+				}
+			},
+			"additionalProperties": false
+		},
+		"DashboardWidget": {
+			"type": "object",
+			"required": ["type", "title"],
+			"properties": {
+				"type": {
+					"type": "string",
+					"enum": [
+						"chart",
+						"table",
+						"list",
+						"calendar",
+						"map",
+						"progress",
+						"activity"
+					]
+				},
+				"title": { "type": "string" },
+				"chartType": {
+					"type": "string",
+					"enum": ["line", "bar", "pie", "area", "donut", "radar"]
+				},
+				"columns": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": { "label": { "type": "string" } }
+					}
+				},
+				"items": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"label": { "type": "string" },
+							"value": { "type": "string" }
+						}
+					}
+				},
+				"span": { "type": "integer", "minimum": 1, "maximum": 4 }
+			},
+			"additionalProperties": false
+		},
+		"DashboardWireframe": {
+			"type": "object",
+			"required": ["screen", "type"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "dashboard" },
+				"title": { "type": "string" },
+				"stats": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/DashboardStat" }
+				},
+				"widgets": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/DashboardWidget" }
+				},
+				"actions": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FormButton" }
+				}
+			},
+			"additionalProperties": false
+		},
+		"CrudWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "table", "form"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "crud" },
+				"table": {
+					"type": "object",
+					"required": ["columns"],
+					"properties": {
+						"columns": {
+							"type": "array",
+							"items": { "$ref": "#/$defs/TableColumn" }
+						},
+						"actions": { "type": "array", "items": { "type": "string" } },
+						"data": { "type": "array", "items": { "type": "object" } }
+					}
+				},
+				"form": {
+					"type": "object",
+					"required": ["title", "fields"],
+					"properties": {
+						"title": { "type": "string" },
+						"fields": {
+							"type": "array",
+							"items": { "$ref": "#/$defs/FormField" }
+						}
+					}
+				}
+			},
+			"additionalProperties": false
+		},
+		"NavItem": {
+			"type": "object",
+			"required": ["label"],
+			"properties": {
+				"label": { "type": "string" },
+				"icon": { "$ref": "#/$defs/IconType" },
+				"href": { "type": "string" },
+				"active": { "type": "boolean" },
+				"badge": {},
+				"children": { "type": "array", "items": { "$ref": "#/$defs/NavItem" } }
+			},
+			"additionalProperties": false
+		},
+		"HeaderConfig": {
+			"type": "object",
+			"properties": {
+				"logo": {
+					"type": "object",
+					"properties": {
+						"text": { "type": "string" },
+						"image": { "type": "string" }
+					}
+				},
+				"nav": { "type": "array", "items": { "$ref": "#/$defs/NavItem" } },
+				"search": { "type": "boolean" },
+				"notifications": { "type": "boolean" },
+				"userMenu": {
+					"type": "object",
+					"properties": {
+						"name": { "type": "string" },
+						"avatar": { "type": "string" },
+						"items": { "type": "array", "items": { "$ref": "#/$defs/NavItem" } }
+					}
+				}
+			},
+			"additionalProperties": false
+		},
+		"SidebarConfig": {
+			"type": "object",
+			"required": ["items"],
+			"properties": {
+				"title": { "type": "string" },
+				"logo": {
+					"type": "object",
+					"properties": {
+						"text": { "type": "string" },
+						"image": { "type": "string" }
+					}
+				},
+				"items": { "type": "array", "items": { "$ref": "#/$defs/NavItem" } },
+				"collapsed": { "type": "boolean" },
+				"footer": { "type": "array", "items": { "$ref": "#/$defs/NavItem" } }
+			},
+			"additionalProperties": false
+		},
+		"LayoutWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "content"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "layout" },
+				"header": { "$ref": "#/$defs/HeaderConfig" },
+				"sidebar": { "$ref": "#/$defs/SidebarConfig" },
+				"breadcrumbs": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"label": { "type": "string" },
+							"href": { "type": "string" }
+						}
+					}
+				},
+				"content": { "$ref": "#/$defs/WireframeContent" },
+				"footer": {
+					"type": "object",
+					"properties": {
+						"text": { "type": "string" },
+						"links": { "type": "array", "items": { "$ref": "#/$defs/NavItem" } }
+					}
+				}
+			},
+			"additionalProperties": false
+		},
+		"TabItem": {
+			"type": "object",
+			"required": ["label", "content"],
+			"properties": {
+				"label": { "type": "string" },
+				"icon": { "$ref": "#/$defs/IconType" },
+				"badge": {},
+				"disabled": { "type": "boolean" },
+				"content": { "$ref": "#/$defs/WireframeContent" }
+			},
+			"additionalProperties": false
+		},
+		"TabsWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "tabs"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "tabs" },
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"variant": {
+					"type": "string",
+					"enum": ["line", "enclosed", "soft-rounded", "solid-rounded"]
+				},
+				"orientation": { "type": "string", "enum": ["horizontal", "vertical"] },
+				"tabs": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/TabItem" },
+					"minItems": 1
+				},
+				"actions": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FormButton" }
+				}
+			},
+			"additionalProperties": false
+		},
+		"CardItem": {
+			"type": "object",
+			"required": ["title"],
+			"properties": {
+				"title": { "type": "string" },
+				"subtitle": { "type": "string" },
+				"description": { "type": "string" },
+				"image": { "type": "string" },
+				"avatar": {
+					"type": "object",
+					"properties": {
+						"src": { "type": "string" },
+						"name": { "type": "string" }
+					}
+				},
+				"badge": {
+					"type": "object",
+					"properties": {
+						"label": { "type": "string" },
+						"color": { "type": "string" }
+					}
+				},
+				"stats": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"label": { "type": "string" },
+							"value": { "type": "string" }
+						}
+					}
+				},
+				"actions": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FormButton" }
+				},
+				"href": { "type": "string" }
+			},
+			"additionalProperties": false
+		},
+		"CardGridWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "cards"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "card-grid" },
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"columns": { "type": "integer", "enum": [1, 2, 3, 4] },
+				"cards": { "type": "array", "items": { "$ref": "#/$defs/CardItem" } },
+				"actions": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FormButton" }
+				},
+				"pagination": { "type": "boolean" },
+				"emptyState": { "$ref": "#/$defs/EmptyStateContent" }
+			},
+			"additionalProperties": false
+		},
+		"WizardStep": {
+			"type": "object",
+			"required": ["title"],
+			"properties": {
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"icon": { "$ref": "#/$defs/IconType" },
+				"fields": { "type": "array", "items": { "$ref": "#/$defs/FormField" } },
+				"content": { "$ref": "#/$defs/WireframeContent" },
+				"optional": { "type": "boolean" }
+			},
+			"additionalProperties": false
+		},
+		"WizardWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "steps"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "wizard" },
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"steps": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/WizardStep" },
+					"minItems": 2
+				},
+				"currentStep": { "type": "integer", "minimum": 0 },
+				"orientation": { "type": "string", "enum": ["horizontal", "vertical"] },
+				"allowSkip": { "type": "boolean" },
+				"showStepNumbers": { "type": "boolean" }
+			},
+			"additionalProperties": false
+		},
+		"EmptyStateContent": {
+			"type": "object",
+			"required": ["title"],
+			"properties": {
+				"icon": { "$ref": "#/$defs/IconType" },
+				"image": { "type": "string" },
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"actions": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FormButton" }
+				}
+			},
+			"additionalProperties": false
+		},
+		"EmptyStateWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "title"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "empty-state" },
+				"variant": {
+					"type": "string",
+					"enum": [
+						"default",
+						"error",
+						"no-results",
+						"no-permission",
+						"maintenance"
+					]
+				},
+				"icon": { "$ref": "#/$defs/IconType" },
+				"image": { "type": "string" },
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"actions": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FormButton" }
+				}
+			},
+			"additionalProperties": false
+		},
+		"ModalWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "title", "content"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "modal" },
+				"title": { "type": "string" },
+				"size": {
+					"type": "string",
+					"enum": ["xs", "sm", "md", "lg", "xl", "full"]
+				},
+				"closable": { "type": "boolean" },
+				"content": { "$ref": "#/$defs/WireframeContent" },
+				"footer": {
+					"type": "object",
+					"properties": {
+						"actions": {
+							"type": "array",
+							"items": { "$ref": "#/$defs/FormButton" }
+						},
+						"align": { "type": "string", "enum": ["left", "center", "right"] }
+					}
+				}
+			},
+			"additionalProperties": false
+		},
+		"DrawerWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "content"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "drawer" },
+				"title": { "type": "string" },
+				"placement": {
+					"type": "string",
+					"enum": ["left", "right", "top", "bottom"]
+				},
+				"size": {
+					"type": "string",
+					"enum": ["xs", "sm", "md", "lg", "xl", "full"]
+				},
+				"closable": { "type": "boolean" },
+				"content": { "$ref": "#/$defs/WireframeContent" },
+				"footer": {
+					"type": "object",
+					"properties": {
+						"actions": {
+							"type": "array",
+							"items": { "$ref": "#/$defs/FormButton" }
+						}
+					}
+				}
+			},
+			"additionalProperties": false
+		},
+		"ConfirmWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "title", "message"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "confirm" },
+				"variant": {
+					"type": "string",
+					"enum": ["info", "warning", "danger", "success"]
+				},
+				"icon": { "$ref": "#/$defs/IconType" },
+				"title": { "type": "string" },
+				"message": { "type": "string" },
+				"confirmLabel": { "type": "string" },
+				"cancelLabel": { "type": "string" },
+				"confirmVariant": {
+					"type": "string",
+					"enum": ["primary", "secondary", "danger", "ghost", "link", "outline"]
+				}
+			},
+			"additionalProperties": false
+		},
+		"AlertItem": {
+			"type": "object",
+			"required": ["message", "variant"],
+			"properties": {
+				"title": { "type": "string" },
+				"message": { "type": "string" },
+				"variant": {
+					"type": "string",
+					"enum": ["info", "warning", "error", "success"]
+				},
+				"closable": { "type": "boolean" },
+				"action": { "$ref": "#/$defs/FormButton" }
+			},
+			"additionalProperties": false
+		},
+		"AlertWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "alerts"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "alert" },
+				"alerts": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/AlertItem" },
+					"minItems": 1
+				}
+			},
+			"additionalProperties": false
+		},
+		"TimelineItem": {
+			"type": "object",
+			"required": ["title"],
+			"properties": {
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"timestamp": { "type": "string" },
+				"icon": { "$ref": "#/$defs/IconType" },
+				"color": {
+					"type": "string",
+					"enum": ["blue", "green", "red", "yellow", "purple", "gray"]
+				},
+				"user": {
+					"type": "object",
+					"properties": {
+						"name": { "type": "string" },
+						"avatar": { "type": "string" }
+					}
+				}
+			},
+			"additionalProperties": false
+		},
+		"TimelineWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "items"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "timeline" },
+				"title": { "type": "string" },
+				"items": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/TimelineItem" },
+					"minItems": 1
+				},
+				"orientation": { "type": "string", "enum": ["vertical", "horizontal"] }
+			},
+			"additionalProperties": false
+		},
+		"GalleryItem": {
+			"type": "object",
+			"required": ["src"],
+			"properties": {
+				"src": { "type": "string" },
+				"alt": { "type": "string" },
+				"caption": { "type": "string" },
+				"thumbnail": { "type": "string" }
+			},
+			"additionalProperties": false
+		},
+		"GalleryWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "items"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "gallery" },
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"items": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/GalleryItem" },
+					"minItems": 1
+				},
+				"columns": { "type": "integer", "enum": [2, 3, 4, 5, 6] },
+				"aspectRatio": {
+					"type": "string",
+					"enum": ["square", "video", "portrait"]
+				},
+				"lightbox": { "type": "boolean" }
+			},
+			"additionalProperties": false
+		},
+		"PricingFeature": {
+			"type": "object",
+			"required": ["label", "included"],
+			"properties": {
+				"label": { "type": "string" },
+				"included": { "type": "boolean" },
+				"tooltip": { "type": "string" }
+			},
+			"additionalProperties": false
+		},
+		"PricingPlan": {
+			"type": "object",
+			"required": ["name", "price", "features", "action"],
+			"properties": {
+				"name": { "type": "string" },
+				"description": { "type": "string" },
+				"price": { "type": "string" },
+				"period": { "type": "string" },
+				"featured": { "type": "boolean" },
+				"features": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/PricingFeature" }
+				},
+				"action": { "$ref": "#/$defs/FormButton" },
+				"badge": { "type": "string" }
+			},
+			"additionalProperties": false
+		},
+		"PricingWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "plans"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "pricing" },
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"plans": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/PricingPlan" },
+					"minItems": 1
+				},
+				"billingToggle": { "type": "boolean" }
+			},
+			"additionalProperties": false
+		},
+		"FaqItem": {
+			"type": "object",
+			"required": ["question", "answer"],
+			"properties": {
+				"question": { "type": "string" },
+				"answer": { "type": "string" },
+				"category": { "type": "string" }
+			},
+			"additionalProperties": false
+		},
+		"FaqWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "items"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "faq" },
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"items": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FaqItem" },
+					"minItems": 1
+				},
+				"searchable": { "type": "boolean" },
+				"categorized": { "type": "boolean" }
+			},
+			"additionalProperties": false
+		},
+		"HeroWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "title"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "hero" },
+				"variant": {
+					"type": "string",
+					"enum": ["centered", "split", "image-bg"]
+				},
+				"title": { "type": "string" },
+				"subtitle": { "type": "string" },
+				"description": { "type": "string" },
+				"image": { "type": "string" },
+				"video": { "type": "string" },
+				"actions": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FormButton" }
+				},
+				"features": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"icon": { "$ref": "#/$defs/IconType" },
+							"title": { "type": "string" },
+							"description": { "type": "string" }
+						}
+					}
+				}
+			},
+			"additionalProperties": false
+		},
+		"StatsWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "stats"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "stats" },
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"stats": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/DashboardStat" },
+					"minItems": 1
+				},
+				"columns": { "type": "integer", "enum": [2, 3, 4] },
+				"variant": { "type": "string", "enum": ["simple", "card", "icon"] }
+			},
+			"additionalProperties": false
+		},
+		"KanbanCard": {
+			"type": "object",
+			"required": ["id", "title"],
+			"properties": {
+				"id": { "type": "string" },
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"labels": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"label": { "type": "string" },
+							"color": { "type": "string" }
+						}
+					}
+				},
+				"assignee": {
+					"type": "object",
+					"properties": {
+						"name": { "type": "string" },
+						"avatar": { "type": "string" }
+					}
+				},
+				"dueDate": { "type": "string" },
+				"comments": { "type": "integer" },
+				"attachments": { "type": "integer" }
+			},
+			"additionalProperties": false
+		},
+		"KanbanColumn": {
+			"type": "object",
+			"required": ["id", "title", "cards"],
+			"properties": {
+				"id": { "type": "string" },
+				"title": { "type": "string" },
+				"color": { "type": "string" },
+				"cards": { "type": "array", "items": { "$ref": "#/$defs/KanbanCard" } },
+				"limit": { "type": "integer" }
+			},
+			"additionalProperties": false
+		},
+		"KanbanWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "columns"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "kanban" },
+				"title": { "type": "string" },
+				"columns": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/KanbanColumn" },
+					"minItems": 1
+				}
+			},
+			"additionalProperties": false
+		},
+		"CalendarEvent": {
+			"type": "object",
+			"required": ["title", "start"],
+			"properties": {
+				"title": { "type": "string" },
+				"start": { "type": "string" },
+				"end": { "type": "string" },
+				"color": { "type": "string" },
+				"allDay": { "type": "boolean" }
+			},
+			"additionalProperties": false
+		},
+		"CalendarWireframe": {
+			"type": "object",
+			"required": ["screen", "type"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "calendar" },
+				"title": { "type": "string" },
+				"view": {
+					"type": "string",
+					"enum": ["month", "week", "day", "agenda"]
+				},
+				"events": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/CalendarEvent" }
+				},
+				"actions": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FormButton" }
+				}
+			},
+			"additionalProperties": false
+		},
+		"ChatMessage": {
+			"type": "object",
+			"required": ["id", "content", "sender", "timestamp"],
+			"properties": {
+				"id": { "type": "string" },
+				"content": { "type": "string" },
+				"sender": {
+					"type": "object",
+					"required": ["name"],
+					"properties": {
+						"name": { "type": "string" },
+						"avatar": { "type": "string" }
+					}
+				},
+				"timestamp": { "type": "string" },
+				"isOwn": { "type": "boolean" },
+				"status": { "type": "string", "enum": ["sent", "delivered", "read"] }
+			},
+			"additionalProperties": false
+		},
+		"ChatWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "messages"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "chat" },
+				"title": { "type": "string" },
+				"participants": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": { "type": "string" },
+							"avatar": { "type": "string" },
+							"status": {
+								"type": "string",
+								"enum": ["online", "offline", "away"]
+							}
+						}
+					}
+				},
+				"messages": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/ChatMessage" },
+					"minItems": 1
+				},
+				"inputPlaceholder": { "type": "string" }
+			},
+			"additionalProperties": false
+		},
+		"ProfileWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "user"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "profile" },
+				"user": {
+					"type": "object",
+					"required": ["name"],
+					"properties": {
+						"name": { "type": "string" },
+						"avatar": { "type": "string" },
+						"coverImage": { "type": "string" },
+						"title": { "type": "string" },
+						"bio": { "type": "string" },
+						"stats": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"label": { "type": "string" },
+									"value": { "type": "string" }
+								}
+							}
+						},
+						"social": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"platform": { "type": "string" },
+									"url": { "type": "string" }
+								}
+							}
+						}
+					}
+				},
+				"tabs": { "type": "array", "items": { "$ref": "#/$defs/TabItem" } },
+				"actions": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FormButton" }
+				}
+			},
+			"additionalProperties": false
+		},
+		"SettingsSection": {
+			"type": "object",
+			"required": ["title", "fields"],
+			"properties": {
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"fields": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FormField" },
+					"minItems": 1
+				}
+			},
+			"additionalProperties": false
+		},
+		"SettingsWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "sections"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "settings" },
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"sections": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/SettingsSection" },
+					"minItems": 1
+				},
+				"sidebar": { "type": "array", "items": { "$ref": "#/$defs/NavItem" } }
+			},
+			"additionalProperties": false
+		},
+		"AuthWireframe": {
+			"type": "object",
+			"required": ["screen", "type", "variant", "fields"],
+			"properties": {
+				"screen": { "type": "string" },
+				"type": { "const": "auth" },
+				"variant": {
+					"type": "string",
+					"enum": [
+						"login",
+						"register",
+						"forgot-password",
+						"reset-password",
+						"verify-email",
+						"two-factor"
+					]
+				},
+				"title": { "type": "string" },
+				"description": { "type": "string" },
+				"logo": {
+					"type": "object",
+					"properties": {
+						"text": { "type": "string" },
+						"image": { "type": "string" }
+					}
+				},
+				"fields": {
+					"type": "array",
+					"items": { "$ref": "#/$defs/FormField" },
+					"minItems": 1
+				},
+				"submitLabel": { "type": "string" },
+				"socialProviders": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"enum": ["google", "github", "facebook", "twitter", "apple"]
+					}
+				},
+				"links": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"label": { "type": "string" },
+							"href": { "type": "string" }
+						}
+					}
+				},
+				"footer": { "type": "string" }
+			},
+			"additionalProperties": false
+		},
+		"WireframeContent": {
+			"type": "object",
+			"required": ["type"],
+			"properties": {
+				"type": {
+					"type": "string",
+					"enum": [
+						"form",
+						"table",
+						"detail",
+						"dashboard",
+						"card-grid",
+						"timeline",
+						"empty-state",
+						"custom"
+					]
+				},
+				"config": { "type": "object" },
+				"html": { "type": "string" }
+			}
+		}
+	}
+}
