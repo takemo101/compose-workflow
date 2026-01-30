@@ -9,6 +9,11 @@
 	"dependencies": {
 		"@opencode-ai/plugin": "1.1.12"
 	},
+	"pi": {
+		"skills": [
+			".pi/skills"
+		]
+	},
 	"devDependencies": {
 		"@biomejs/biome": "2.3.11",
 		"vitest": "^4.0.16"
