@@ -1,6 +1,6 @@
 ---
 name: implement
-description: 指定されたGitHub Issueをworktree環境で実装する完全ワークフロー。Subtask検出からPR作成までを統括。
+description: 指定されたGitHub Issueをworktree環境で実装する完全ワークフロー。Subtask検出からPRマージまでを統括。
 ---
 
 # Issue実装ワークフロー (/implement)
@@ -26,9 +26,15 @@ description: 指定されたGitHub Issueをworktree環境で実装する完全�
    - **品質保証**: Lint, Test, 品質レビュー (9点以上)
    - **客観的基準**: `quality-review-flow` 準拠
 
-4. **完了 & クリーンアップ (Phase 4)**
+4. **PR作成 (Phase 4)**
    - ユーザー承認
    - `/pr-and-cleanup` でPR作成と環境削除
+
+5. **CI監視 & 自動マージ (Phase 5)** ← **承認不要・自動実行**
+   - `pr-merge-full.sh` で一括実行
+   - CI完了待機 → 成功で即マージ
+   - CI失敗時は自動修正（最大3回）
+   - 3回失敗でエスカレーション
 
 ---
 
@@ -74,13 +80,49 @@ PR作成前に必ず品質チェックを行います。
    - `quality-review-flow` skill を参照
    - 9点未満の場合は修正して再レビュー
 
-### 4. 完了フェーズ
+### 4. PR作成フェーズ
 
 1. **承認ゲート**: ユーザーにPR作成の許可を得る
-2. **PR作成と削除**:
+2. **PR作成と環境削除**:
    ```bash
    /pr-and-cleanup <issue_id>
    ```
+
+### 5. CI監視&自動マージフェーズ
+
+PR作成後、**承認なしで自動的に**CI監視→マージまで実行します。
+
+#### 一括実行コマンド（推奨）
+
+```bash
+bash .pi/skills/pr-merge-workflow/scripts/pr-merge-full.sh <pr-number>
+```
+
+このスクリプトが以下を自動実行します：
+1. CI完了待機（最大10分）
+2. CI成功 → 自動マージ（`--merge --delete-branch`）
+3. Issueラベル更新（`env:merged`）
+
+#### CI失敗時の自動対応
+
+CI失敗時は `ci-workflow` に従い自動修正を試みます：
+
+| 失敗種別 | 自動対応 |
+|---------|---------|
+| Lint/Format | `--fix` で自動修正 → push → 再待機 |
+| Test/Build | コード修正 → push → 再待機 |
+| 3回失敗 | PRをDraft化してユーザーにエスカレーション |
+
+```bash
+# CI失敗時の手動対応が必要な場合
+gh run view --log-failed  # ログ確認
+# 修正後
+git add . && git commit -m "fix: CI修正" && git push
+# 再度マージ試行
+bash .pi/skills/pr-merge-workflow/scripts/pr-merge-full.sh <pr-number>
+```
+
+> **詳細**: `ci-workflow` skill および `pr-merge-workflow` skill を参照
 
 ---
 

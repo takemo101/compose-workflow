@@ -131,10 +131,33 @@ else
     fi
 fi
 
+log_step "Phase 3: Updating Issue labels..."
+
+# PRからIssue番号を取得（Closes #XX または Fixes #XX）
+ISSUE_NUMBER=$(gh pr view "$PR_NUMBER" --json body --jq '.body' | grep -oE '(Closes|Fixes|Resolves) #[0-9]+' | head -1 | grep -oE '[0-9]+' || echo "")
+
+if [ -n "$ISSUE_NUMBER" ]; then
+    ISSUE_STATE_SCRIPT="${SCRIPT_DIR}/../../github-issue-state-management/scripts/issue-state.sh"
+    if [ -f "$ISSUE_STATE_SCRIPT" ]; then
+        if bash "$ISSUE_STATE_SCRIPT" merged "$ISSUE_NUMBER"; then
+            log_info "Issue #${ISSUE_NUMBER} label updated to env:merged"
+        else
+            log_warn "Failed to update Issue #${ISSUE_NUMBER} label (non-critical)"
+        fi
+    else
+        log_warn "issue-state.sh not found, skipping label update"
+    fi
+else
+    log_warn "No linked Issue found in PR body (Closes #XX)"
+fi
+
 echo ""
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN} PR Merge Workflow Complete!${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
 echo "PR #${PR_NUMBER} has been merged"
+if [ -n "$ISSUE_NUMBER" ]; then
+    echo "Issue #${ISSUE_NUMBER} label updated"
+fi
 echo ""
