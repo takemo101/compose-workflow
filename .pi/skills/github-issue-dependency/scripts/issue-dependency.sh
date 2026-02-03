@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # GitHub Issue依存関係管理スクリプト
 # Usage: issue-dependency.sh <command> <args...>
 #
