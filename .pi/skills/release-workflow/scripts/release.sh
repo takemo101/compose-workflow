@@ -220,14 +220,15 @@ version_check() {
     echo ""
     
     if [[ -f "README.md" ]]; then
+        local badge_match shield_match install_match
         if [[ "$use_rg" == "true" ]]; then
-            local badge_match=$(rg 'badge/v?[0-9]+\.[0-9]+\.[0-9]+' README.md 2>/dev/null || true)
-            local shield_match=$(rg 'shields\.io.*[0-9]+\.[0-9]+\.[0-9]+' README.md 2>/dev/null || true)
-            local install_match=$(rg '@[0-9]+\.[0-9]+\.[0-9]+' README.md 2>/dev/null || true)
+            badge_match=$(rg 'badge/v?[0-9]+\.[0-9]+\.[0-9]+' README.md 2>/dev/null || true)
+            shield_match=$(rg 'shields\.io.*[0-9]+\.[0-9]+\.[0-9]+' README.md 2>/dev/null || true)
+            install_match=$(rg '@[0-9]+\.[0-9]+\.[0-9]+' README.md 2>/dev/null || true)
         else
-            local badge_match=$(grep -E 'badge/v?[0-9]+\.[0-9]+\.[0-9]+' README.md 2>/dev/null || true)
-            local shield_match=$(grep -E 'shields\.io.*[0-9]+\.[0-9]+\.[0-9]+' README.md 2>/dev/null || true)
-            local install_match=$(grep -E '@[0-9]+\.[0-9]+\.[0-9]+' README.md 2>/dev/null || true)
+            badge_match=$(grep -E 'badge/v?[0-9]+\.[0-9]+\.[0-9]+' README.md 2>/dev/null || true)
+            shield_match=$(grep -E 'shields\.io.*[0-9]+\.[0-9]+\.[0-9]+' README.md 2>/dev/null || true)
+            install_match=$(grep -E '@[0-9]+\.[0-9]+\.[0-9]+' README.md 2>/dev/null || true)
         fi
         
         if [[ -n "$badge_match" ]]; then
@@ -267,6 +268,7 @@ version_check() {
         
         if [[ -n "$docs_versions" ]]; then
             echo "  - Documentation files with version references:"
+            # shellcheck disable=SC2001  # Line-by-line processing requires sed
             echo "$docs_versions" | sed 's/^/      /'
             log_warning "Review these docs manually before release"
         else
@@ -670,7 +672,7 @@ main() {
             if [[ -z "$version" ]]; then
                 show_detection
                 echo ""
-                read -p "Enter version to release: " version
+                IFS= read -rp "Enter version to release: " version
                 if [[ -z "$version" ]]; then
                     log_error "Version is required"
                     exit 1
