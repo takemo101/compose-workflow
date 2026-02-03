@@ -47,7 +47,7 @@ retry_cmd() {
     local output
     local exit_code
     
-    while [ $attempt -le $MAX_RETRIES ]; do
+    while [ $attempt -le "$MAX_RETRIES" ]; do
         output=$("$@" 2>&1)
         exit_code=$?
         
@@ -63,11 +63,11 @@ retry_cmd() {
         # ネットワークエラーの検出
         elif echo "$output" | grep -qiE "network|connection|timeout|could not resolve"; then
             log_warn "Network error. Waiting ${RETRY_DELAY} seconds before retry (attempt $attempt/$MAX_RETRIES)..."
-            sleep $RETRY_DELAY
+            sleep "$RETRY_DELAY"
         # その他のエラー
         else
             log_warn "Command failed (attempt $attempt/$MAX_RETRIES): $output"
-            sleep $RETRY_DELAY
+            sleep "$RETRY_DELAY"
         fi
         
         attempt=$((attempt + 1))
@@ -295,16 +295,19 @@ last_updated_at: ${TIMESTAMP}
         
         if echo "$CURRENT_BODY" | grep -q "<!-- ENV_METADATA"; then
             # 既存のメタデータを更新
+            # shellcheck disable=SC2001  # Multi-line pattern matching requires sed
             NEW_BODY=$(echo "$CURRENT_BODY" | sed "s/last_updated_at: .*/last_updated_at: ${TIMESTAMP}/")
-            
+
             # pr_number が既にある場合は更新、なければ追加
             if echo "$NEW_BODY" | grep -q "pr_number:"; then
+                # shellcheck disable=SC2001  # Multi-line pattern matching requires sed
                 NEW_BODY=$(echo "$NEW_BODY" | sed "s/pr_number: .*/pr_number: ${PR_NUMBER}/")
             else
                 # last_updated_at の後に pr_number を追加
+                # shellcheck disable=SC2001  # Multi-line pattern matching requires sed
                 NEW_BODY=$(echo "$NEW_BODY" | sed "s/last_updated_at: ${TIMESTAMP}/last_updated_at: ${TIMESTAMP}\npr_number: ${PR_NUMBER}/")
             fi
-            
+
             gh_retry issue edit "$ISSUE_NUM" --body "$NEW_BODY"
         fi
         
@@ -390,7 +393,7 @@ last_updated_at: ${TIMESTAMP}
         
         ENV_LABEL=$(get_env_label "$ISSUE_NUM")
         PHASE_LABEL=$(get_phase_label "$ISSUE_NUM")
-        PHASE=$(echo "$PHASE_LABEL" | sed 's/phase://')
+        PHASE="${PHASE_LABEL//phase:/}"
         
         BODY=$(gh issue view "$ISSUE_NUM" --json body -q '.body')
         ENV_ID=$(echo "$BODY" | grep -oP '(?<=env_id: )[^\n]+' || echo "")

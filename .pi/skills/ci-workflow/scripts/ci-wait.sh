@@ -88,7 +88,7 @@ log_info "Timeout: ${TIMEOUT}s, Poll interval: ${POLL_INTERVAL}s"
 
 ELAPSED=0
 
-while [ $ELAPSED -lt $TIMEOUT ]; do
+while [ $ELAPSED -lt "$TIMEOUT" ]; do
     CHECKS_JSON=$(gh pr checks "$PR_NUMBER" --json state,name 2>/dev/null) || {
         log_warn "Failed to get CI status, retrying..."
         sleep $POLL_INTERVAL

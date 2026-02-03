@@ -169,6 +169,7 @@ add_blocked_by_graphql() {
     
     # GraphQL mutation を実行
     local result
+    # shellcheck disable=SC2016  # GraphQL variables ($issueId, $blockingIssueId) are intentional, not bash expansion
     result=$(gh api graphql -f query='
         mutation($issueId: ID!, $blockingIssueId: ID!) {
             addBlockedBy(input: {
